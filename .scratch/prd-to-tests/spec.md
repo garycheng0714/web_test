@@ -85,6 +85,10 @@ subcommands: `plan` (PRD → test cases) and `automate` (test cases → Playwrig
 `automate` refuses to run unless the test-case file is marked approved. Review is a state
 in the artifact, not a separate service.
 
+**Final form — local CLI.** v1 is a command-line tool run on the builder's machine, against
+the test repository. It is not an MCP server, a CI job, or a long-running service (see Out of
+Scope). The human review gate is a local step between the two subcommands.
+
 **Stage 1 — QA test designer.** A Pydantic AI agent whose input is the PRD text and whose
 output is the structured test-case document. It applies a fixed coverage policy: for each
 requirement, one case per *applicable* technique (happy, negative/validation,
@@ -100,12 +104,14 @@ It lives with the feature's planning artifacts under the local tracker conventio
 
 **Stage 2 — Test automator.** A Pydantic AI agent that consumes the approved cases and
 produces Playwright TypeScript. It has function tools to: run a `playwright-cli` command
-from an argv list (returning stdout/stderr), write a generated artifact (see the write
-guard below), read a test back, and run a Playwright test with the HTML report suppressed.
-Its instructions encode the workflow: explore → write page objects and specs → run →
-diagnose and repair on failure, bounded to a small number of attempts. One `.spec.ts` per
-requirement, tests grouped by case; priority and type become tags; non-automatable cases
-become `test.fixme` with a reason and are listed in the report.
+from an argv list (returning stdout/stderr); **inspect the test repository — list, glob,
+grep, and read files — so it can reuse existing page objects and follow the repo's
+conventions**; write a generated artifact (see the write guard below); and run a Playwright
+test with the HTML report suppressed. Its instructions encode the workflow: inspect the repo
+→ explore the live app → write page objects and specs → run → diagnose and repair on failure,
+bounded to a small number of attempts. One `.spec.ts` per requirement, tests grouped by case;
+priority and type become tags; non-automatable cases become `test.fixme` with a reason and are
+listed in the report. The inspection tools are read-only; only the write tool mutates the repo.
 
 **Test architecture — Page Object Model.** Generated tests follow a classic POM shape:
 
@@ -164,6 +170,8 @@ acceptance and practice. The base URL is a PRD field; a command-line override ex
 - **Secondary seam — the write guard**, a pure function: accepts `tests/*.spec.ts`,
   `pages/**`, and the fixtures file; rejects traversal, other extensions, source files,
   config, and writes outside the allowed directories.
+- **Secondary seam — repo inspection**: the list/glob/grep/read tools never mutate the repo,
+  so their wiring is asserted without a write.
 - **Secondary seam — the CLI gate**: `automate` refuses unreviewed cases.
 - The command runner is injected so no seam spawns `playwright-cli`.
 - Prior art: none — this repo has no test suite yet; this feature introduces the first
@@ -176,7 +184,7 @@ acceptance and practice. The base URL is a PRD field; a command-line override ex
 - A BDD execution runtime — test cases are translated to plain Playwright tests, not run
   as Cucumber/`.feature` files.
 - Component-object granularity beyond genuinely reused regions.
-- CI integration or an automated pipeline.
+- Other delivery forms — an MCP server, a CI job, or a long-running service; v1 is a local CLI.
 - Multiple-model routing or per-stage cost optimization.
 - An interactive/conversational REPL.
 - Fan-out (one agent per requirement) — the stages process the whole PRD.
