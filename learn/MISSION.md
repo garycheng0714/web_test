@@ -1,25 +1,25 @@
-# Mission: 用 Matt Pocock 工程流程開發一個功能
+# Mission: 學會把一個領域導入 Agent
 
 ## Why
-你是這套流程的完全新手。你要用它從頭到尾做出一個真實功能——經你自己主導的 grilling
-收斂後，目前方向是「以蘇格拉底式提問，協助熟練測試工程師從 PRD 設計測試項目」的教練
-（確切範圍由你的 `learn/plans/0001-prd-to-tests.md` 定義）——藉此把流程的每一步變成
-肌肉記憶，而不是只讀文件。
+你是一位熟悉 QA 流程的測試工程師。你想學會「**如何在特定領域建造 Agent**」——
+以你最熟悉的 QA（PRD → 測試項目 → 自動化測試）當練習載體，和 OpenCode 一起做出
+一個真的能幹活的 QA agent。真正要帶走的是這套「領域 → agent」的方法，而不是單一
+產品；QA 只是第一個領域。
 
 ## Success looks like
-- 自己主導一次規劃：用 grilling 把一個模糊想法收斂成可寫的計畫
-- 不看筆記能畫出 idea → ship 主流程，並說出每個階段該用哪個 skill
-- 用 `setup-matt-pocock-skills` 正確配置本 repo（local markdown tracker、`docs/agents/*`、AGENTS.md 區塊）
-- 用 `to-spec` 產出 spec、用 `to-tickets` 拆出帶 blocking edges 的票
-- 至少獨立完成一張票的 `implement`（tdd 紅→綠）並 commit
+- 做出一個能讀 PRD、產測試項目、產自動化測試、並修復失敗測試的 agent
+- 過程中你是主導者：OpenCode 當蘇格拉底式教練（先問、後回饋，不代筆、不直接給答案）
+- 能說出「把一個領域導入 agent」的可複用步驟（可搬到下一個領域）
+- 留下一個可複用的範本 repo
 - 能分辨何時走哪條 on-ramp（`triage` / `diagnosing-bugs` / `wayfinder`）
 
 ## Constraints
-- 完全新手：術語先定義再用，第一課只教一件事
-- 一次只跑一個真實功能；用本 repo 的 local markdown tracker
+- 完全新手於此流程：術語先定義再用
+- 一次只跑一個領域（QA）；用本 repo 的 local markdown tracker
 - 學習與實作交錯（邊做邊學），不先上一堆理論
+- 你寫計畫、agent 只 grill（見 `NOTES.md` 的教學模式）
 
 ## Out of scope
-- 精通 `grilling` 訪談技巧
-- 撰寫新 skill / `writing-for-agents` 的深水區
-- `wayfinder`、`improve-codebase-architecture` 等高階流程（先知道存在即可）
+- 現在不急著商業化或面對市場
+- 精通 `grilling` 訪談技巧、`wayfinder` 等高階流程
+- 一次導入多個領域

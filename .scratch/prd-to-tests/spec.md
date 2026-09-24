@@ -4,29 +4,34 @@ Status: ready-for-agent
 
 ## Problem Statement
 
-Today, turning a product requirements document (PRD) into automated tests is a manual,
-multi-step craft. A QA engineer reads the PRD, works out which test cases it implies,
-decides which are worth automating, then hand-writes Playwright tests and hunts for
-locators by hand. The reasoning (reading requirements as a QA, choosing test cases) and
-the mechanical work (writing and verifying tests) are tangled together, so the whole
-pipeline is slow and inconsistent. The generated tests also tend to inline selectors,
-so they rot quickly and repeat themselves across specs.
+The builder is a test engineer who knows the QA workflow deeply: reading a PRD, deriving
+test cases, deciding what to automate, and writing Playwright tests. Two things are true at
+once. The pipeline is manual and slow, and much of it is worth automating. And if an agent
+does all of it, the builder loses the very practice that keeps the skill sharp.
+
+The real problem is therefore bigger than "automate QA": it is **learning how to bring a
+domain into an agent**, using QA as the practice domain, and ending up with a QA agent that
+genuinely works. Today the pipeline is manual and inconsistent, generated tests inline
+selectors and rot, and there is no good way to encode a domain into an agent without either
+hand-writing everything or blindly delegating to it.
 
 ## Solution
 
-A command-line tool that runs the pipeline in clearly separated stages:
+Build a QA automation agent as the vehicle, and learn how to build it by doing:
 
-1. **Plan** — read a PRD and, acting as a QA engineer, derive structured test cases
-   (happy path, negative/validation, boundary/equivalence), each traceable to a PRD
-   requirement, written to a human-reviewable markdown file.
-2. **Human review gate** — the user reviews and edits the test cases and approves them.
-3. **Automate** — turn each approved test case into a runnable Playwright TypeScript
-   test built on the Page Object Model, exploring the live application via
-   `playwright-cli` to ground locators and expected values, then run the tests and
-   self-heal failures.
+1. **Plan** — the agent reads a PRD and, acting as a QA engineer, derives structured test
+   cases (happy, negative/validation, boundary/equivalence), traceable to requirements,
+   written to a human-reviewable markdown file.
+2. **Human review gate** — the builder reviews, edits, and approves the cases.
+3. **Automate** — the agent turns each approved case into a runnable Playwright TypeScript
+   test built on the Page Object Model, exploring the live application via `playwright-cli`
+   to ground locators and expected values, then runs the tests and self-heals failures.
 
-The reasoning stage and the automation stage are deliberately separate so each can be
-verified on its own, and so the QA judgement is reviewable before any code is generated.
+**Learning method (not a product feature).** The builder stays the one doing the thinking:
+OpenCode acts as a Socratic coach that asks questions and gives reasoned feedback *after*
+the builder acts, never handing over answers or code. QA is the practice domain; the
+transferable outcome is the experience of bringing a domain into an agent, plus a reusable
+template. See `learn/MISSION.md`.
 
 ## User Stories
 
@@ -70,6 +75,8 @@ verified on its own, and so the QA judgement is reviewable before any code is ge
 38. As a maintainer, I want the existing navigation entrypoint to keep working, so that this feature is additive.
 39. As a maintainer, I want the model configurable via environment variable, so that I can trade cost against quality.
 40. As a learner, I want this built through the Matt Pocock flow (spec → tickets → implement), so that the process is practiced, not just read.
+41. As the builder, I want OpenCode to coach me Socratically (ask before telling), so that I stay the one reasoning about the design.
+42. As the builder, I want the end result to double as a reusable template, so that the "domain → agent" learning transfers to my next domain.
 
 ## Implementation Decisions
 
@@ -177,6 +184,9 @@ acceptance and practice. The base URL is a PRD field; a command-line override ex
 
 ## Further Notes
 
+- **Two levels.** This spec describes the *product* (the QA automation agent). The *project's*
+  real goal — learning how to bring a domain into an agent — lives in `learn/MISSION.md`;
+  the Socratic coaching is the learning method, not a product feature.
 - This spec supersedes the earlier `playwright-test-generator` spec, which covered only
   the automation stage and mis-stated the problem.
 - The Page Object conventions are deliberately not a skill: the Stage 2 automator is a
