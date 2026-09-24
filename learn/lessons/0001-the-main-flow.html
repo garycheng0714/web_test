@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0001 · The Main Flow</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0001 · Matt Pocock 工程流程 · 約 5 分鐘</p>
+<h1>The Main Flow：idea → ship</h1>
+<p class="subtitle">這一課只教你一件事：把手上任何任務放上主流程，並說出下一步該用哪個 skill。</p>
+
+<div class="callout">
+<h3>學完你能做到</h3>
+<p>看著我們的功能——「把自然語言任務轉成 Playwright TS 測試的 agent」——你能指出它現在在流程的哪一格，以及下一個要打的指令是 <code>/to-spec</code>。</p>
+</div>
+
+<h2>主流程只有一條</h2>
+<p>這套流程的核心是一個路線：從一個模糊的想法，走到可出貨的程式。中間有幾個<b>關卡</b>，每個關卡由一個 skill 負責。先感受整體，再記細節。</p>
+
+<div class="flow">idea
+ │
+ ▼
+grill-with-docs        訪談收斂，順手寫 CONTEXT.md / ADR
+ │
+ ├─ 唯有「跑起來看」才能回答的問題？ → handoff → prototype → handoff
+ │
+ ▼
+是多 session 的大工作嗎？
+ ├─ 是 → to-spec → to-tickets → implement（每票一個 fresh context）
+ └─ 否 → implement（就在同一段 context 做完）
+                       │
+                       └─ 內部驅動 tdd（紅→綠）→ code-review → commit</div>
+
+<p>完整版（含 on-ramps 與 skill 分類）在 <a href="../reference/main-flow-cheatsheet.html">主流程速查</a>。</p>
+
+<h2>先分清楚兩種 skill</h2>
+<table>
+<thead><tr><th>類型</th><th>誰能觸發</th><th>角色</th></tr></thead>
+<tbody>
+<tr><td>User-invoked</td><td>只有你（打 <code>/to-spec</code>）</td><td>編排流程</td></tr>
+<tr><td>Model-invoked</td><td>你或 agent 皆可</td><td>可重用的紀律（tdd、seam 設計…）</td></tr>
+</tbody>
+</table>
+<p>記住一句：<b>流程 skill 可以被模型載入的參考 skill 支援，但流程 skill 之間不互相呼叫。</b></p>
+
+<h2>套到我們的功能</h2>
+<p>我們已經在對話中把需求談清楚了（等於做過 <code>grill</code>），而且這件事跨多個 session。所以現在的位置是：</p>
+<div class="flow">grill（已完成）
+ ▼
+【你現在在這裡】→ to-spec    ← 下一步
+                   to-tickets
+                   implement（逐票）</div>
+
+<h2>檢索練習</h2>
+<p>先別往上看，憑記憶作答。答錯沒關係——努力的回想才會留下長期記憶。</p>
+
+<div class="quiz">
+  <p class="q">Q1. 需求已談清楚、且要跨多個 session，主流程的下一步是哪一個？</p>
+  <ul>
+    <li>
+      <input type="radio" name="q1" id="q1a">
+      <label for="q1a">用 to-spec 寫規格</label>
+      <div class="answer">正確。to-spec 把已談定的內容收斂成 spec，發佈到 issue tracker，之後才 to-tickets。</div>
+    </li>
+    <li>
+      <input type="radio" name="q1" id="q1b">
+      <label for="q1b">用 tdd 寫測試</label>
+    </li>
+    <li>
+      <input type="radio" name="q1" id="q1c">
+      <label for="q1c">用 pr 開請求</label>
+    </li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <p class="q">Q2. 哪一項屬於 on-ramp（不是主流程本身）？</p>
+  <ul>
+    <li>
+      <input type="radio" name="q2" id="q2a">
+      <label for="q2a">用 triage 分類問題</label>
+      <div class="answer">正確。triage 是處理「別人丟來的 issue / 外部 PR」的 on-ramp，處理完會匯入主流程。</div>
+    </li>
+    <li>
+      <input type="radio" name="q2" id="q2b">
+      <label for="q2b">用 to-spec 寫成規格</label>
+    </li>
+    <li>
+      <input type="radio" name="q2" id="q2c">
+      <label for="q2c">用 to-tickets 拆成票</label>
+    </li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <p class="q">Q3. 接近 smart zone 上限、工作還沒做完，該怎麼做？</p>
+  <ul>
+    <li>
+      <input type="radio" name="q3" id="q3a">
+      <label for="q3a">在階段邊界清空</label>
+      <div class="answer">正確。在階段邊界 clear / compact，讓下一個階段在 smart zone 內進行；implement 尤其要在新 context。</div>
+    </li>
+    <li>
+      <input type="radio" name="q3" id="q3b">
+      <label for="q3b">持續加內容硬撐</label>
+    </li>
+    <li>
+      <input type="radio" name="q3" id="q3c">
+      <label for="q3c">直接換另一個模型</label>
+    </li>
+  </ul>
+</div>
+
+<h2>主要來源</h2>
+<p>想深入，讀這份（最權威）：<a href="https://github.com/mattpocock/skills">mattpocock/skills README</a>。術語（smart zone、harness）則查 <a href="https://www.aihero.dev/ai-coding-dictionary">AI Coding Dictionary</a>。</p>
+
+<div class="callout">
+<h3>有問題就問我</h3>
+<p>我是你的老師。任何一格看不懂、想用我們的功能當例子演練，直接問。下一課會帶你實際跑 <code>setup-matt-pocock-skills</code>。</p>
+</div>
+
+<footer>
+<nav>
+<a href="../reference/main-flow-cheatsheet.html">主流程速查 →</a>
+<a href="../RESOURCES.md">Resources</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+<p>Lesson 0001 · 下一課：0002-setup-and-to-spec</p>
+</footer>
+
+</body>
+</html>

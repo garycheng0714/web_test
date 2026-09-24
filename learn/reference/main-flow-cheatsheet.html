@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>速查：Matt Pocock 主流程</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<p class="lesson-meta">Reference · 速查 · Matt Pocock 工程流程</p>
+<h1>主流程速查</h1>
+<p class="subtitle">貼在牆上的一頁。搭配第一課 <a href="../lessons/0001-the-main-flow.html">0001-the-main-flow</a>。</p>
+
+<h2>1. idea → ship 主流程</h2>
+<div class="flow">idea
+ │
+ ▼
+grill-with-docs ── 訪談收斂，順手寫 CONTEXT.md / ADR
+ │
+ ├─ 問題非得「跑起來看」才知道？ ─► handoff → prototype → handoff
+ │
+ ▼
+多 session 的大工作？
+ ├─ 是 → to-spec → to-tickets →（每票 fresh context）implement
+ └─ 否 → implement（同一 context）
+              │
+              └─ 內部驅動 tdd（紅→綠）→ code-review → commit</div>
+
+<h2>2. 三條 on-ramp</h2>
+<table>
+<thead><tr><th>情境</th><th>Skill</th><th>要點</th></tr></thead>
+<tbody>
+<tr><td>別人丟來的 issue / 外部 PR 堆積</td><td><code>triage</code></td><td>把 raw 的東西變成 agent-ready；<strong>不要</strong> triage 由 to-tickets 產生的票</td></tr>
+<tr><td>東西壞了 / 效能退化</td><td><code>diagnosing-bugs</code></td><td>先逼出「已對此 bug 變紅的 tight feedback loop」，再修，最後補回歸測試</td></tr>
+<tr><td>大到一個 session 裝不下、方向模糊</td><td><code>wayfinder</code></td><td>用決策票地圖推霧；霧散才接回 <code>to-spec</code></td></tr>
+</tbody>
+</table>
+
+<h2>3. Codebase 保養</h2>
+<p><code>improve-codebase-architecture</code> 掃出 deepening 機會 → 挑一個生成 idea → 回主流程 <code>grill-with-docs</code>。</p>
+
+<h2>4. 誰能觸發（很重要）</h2>
+<table>
+<thead><tr><th>類型</th><th>觸發方式</th><th>Skills</th></tr></thead>
+<tbody>
+<tr><td><strong>User-invoked</strong></td><td>只有你打（<code>/to-spec</code>）；負責編排流程</td><td>ask-matt, grill-with-docs, grill-me, to-spec, to-tickets, implement, triage, wayfinder, improve-codebase-architecture, handoff, teach, retro, setup-*</td></tr>
+<tr><td><strong>Model-invoked</strong></td><td>你或 agent 都可；承載可重用的紀律</td><td>tdd, codebase-design, domain-modeling, diagnosing-bugs, code-review, writing-for-agents, research, prototype, pr, grilling</td></tr>
+</tbody>
+</table>
+<p>規則：user-invoked 可以呼叫 model-invoked，但<strong>不會</strong>呼叫另一個 user-invoked。</p>
+
+<h2>5. 五個先記住的詞</h2>
+<table>
+<tbody>
+<tr><td><strong>tracer bullet</strong></td><td>窄但打穿每一層的垂直切片，單獨可驗證，塞得進一個 context。</td></tr>
+<tr><td><strong>seam</strong></td><td>你測試與觀察行為的公開邊界；測試只立在事先講好的 seam。</td></tr>
+<tr><td><strong>deep module</strong></td><td>小介面、厚實作；deep module 的詞彙來自 codebase-design。</td></tr>
+<tr><td><strong>smart zone</strong></td><td>session 前期模型仍銳利的區間（約 100–150k tokens），之後漸入 dumb zone。</td></tr>
+<tr><td><strong>paper trail</strong></td><td>grill-with-docs 邊談邊留下的 CONTEXT.md / ADR，讓後續 spec 與票同語言。</td></tr>
+</tbody>
+</table>
+
+<h2>外部來源</h2>
+<ul>
+<li><a href="https://github.com/mattpocock/skills">mattpocock/skills README</a>（主流程權威）</li>
+<li><a href="https://www.aihero.dev/ai-coding-dictionary">AI Coding Dictionary</a>（smart zone 等術語）</li>
+<li><a href="../../.agents/skills/ask-matt/SKILL.md">ask-matt SKILL.md</a>（本 repo 內的路由圖）</li>
+</ul>
+
+<footer>
+<nav>
+<a href="../lessons/0001-the-main-flow.html">← 第一課</a>
+<a href="../RESOURCES.md">Resources</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+</body>
+</html>
