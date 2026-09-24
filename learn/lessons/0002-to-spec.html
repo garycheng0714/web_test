@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0002 · to-spec</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0002 · Matt Pocock 工程流程 · 約 6 分鐘</p>
+<h1>to-spec：把對話收斂成規格</h1>
+<p class="subtitle">這一課只教你一件事：說出 spec 七個區塊各放什麼，並在寫之前先決定「在哪個 seam 測」。</p>
+
+<div class="callout">
+<h3>學完你能做到</h3>
+<p>看著我們的 agent 功能，你能講出 spec 每一區要填什麼，並指出要在哪裡測試它。</p>
+</div>
+
+<h2>先分清 spec 與 ticket</h2>
+<table>
+<thead><tr><th></th><th>範圍</th><th>是否要 handoff</th></tr></thead>
+<tbody>
+<tr><td><strong>spec</strong></td><td>跨多個 session 的工作</td><td>要；本身由多張 ticket 組成</td></tr>
+<tr><td><strong>ticket</strong></td><td>單一 session 的工作</td><td>不用；需要 handoff 代表票太大，要再切</td></tr>
+</tbody>
+</table>
+<p>這就是為什麼主流程在「多 session 的大工作」時走 <code>to-spec → to-tickets</code>。</p>
+
+<h2>to-spec 的流程</h2>
+<div class="flow">1. 探索 codebase（用 CONTEXT.md 的詞彙、尊重相關 ADR）
+2. 勾勒測試 seam（優先用既有 seam；最少、最高最好）
+3. 與使用者確認這些 seam  ← 不能跳過
+4. 用模板寫 spec → 發佈到 tracker，套 ready-for-agent</div>
+
+<p><strong>seam</strong> 是「你測試與觀察行為的公開邊界」。規則：測試只立在事先講好的 seam，不測內部實作。</p>
+
+<h2>我們功能的 seam（提案）</h2>
+<table>
+<thead><tr><th>層級</th><th>Seam</th><th>怎麼測</th></tr></thead>
+<tbody>
+<tr><td>主（最高）</td><td>agent 公開介面</td><td>用 Pydantic AI <code>FunctionModel</code>/<code>TestModel</code> override 模擬 LLM，斷言它呼叫正確工具、寫出正確 <code>.spec.ts</code>、失敗時修復。不開真實瀏覽器。</td></tr>
+<tr><td>副</td><td><code>write_test</code> 路徑驗證</td><td>純函式單元測試：只允許 <code>tests/**.spec.ts</code>。</td></tr>
+</tbody>
+</table>
+<p>並依 <code>codebase-design</code> 讓 <code>run_playwright_cli</code> <strong>接受注入的 runner</strong>，測試時替換掉真實 subprocess。</p>
+
+<p>完整模板見 <a href="../reference/spec-template.html">Spec 模板速查</a>。</p>
+
+<h2>檢索練習</h2>
+<p>先別回頭看。努力回想。</p>
+
+<div class="quiz">
+  <p class="q">Q1. spec 與 ticket 的核心差別是？</p>
+  <ul>
+    <li>
+      <input type="radio" name="q1" id="q1a">
+      <label for="q1a">spec 跨 session 票單一</label>
+      <div class="answer">正確。spec 跨多個 session，由多張單一 session 的 ticket 組成。</div>
+    </li>
+    <li>
+      <input type="radio" name="q1" id="q1b">
+      <label for="q1b">spec 是程式票是測試</label>
+    </li>
+    <li>
+      <input type="radio" name="q1" id="q1c">
+      <label for="q1c">spec 是提案票是核准</label>
+    </li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <p class="q">Q2. 寫 spec 之前，to-spec 要求先做什麼？</p>
+  <ul>
+    <li>
+      <input type="radio" name="q2" id="q2a">
+      <label for="q2a">先與使用者確認 seam</label>
+      <div class="answer">正確。先勾勒 seam 並與使用者確認，才能確保測試立在對的邊界。</div>
+    </li>
+    <li>
+      <input type="radio" name="q2" id="q2b">
+      <label for="q2b">先把程式碼全部寫好</label>
+    </li>
+    <li>
+      <input type="radio" name="q2" id="q2c">
+      <label for="q2c">先把票全部拆出來</label>
+    </li>
+  </ul>
+</div>
+
+<div class="quiz">
+  <p class="q">Q3. Implementation Decisions 不該包含下列何者？</p>
+  <ul>
+    <li>
+      <input type="radio" name="q3" id="q3a">
+      <label for="q3a">具體檔名與程式片段</label>
+      <div class="answer">正確。檔名與程式碼很快過時；改寫成 module 與介面層級的決策。</div>
+    </li>
+    <li>
+      <input type="radio" name="q3" id="q3b">
+      <label for="q3b">要改的 module 介面</label>
+    </li>
+    <li>
+      <input type="radio" name="q3" id="q3c">
+      <label for="q3c">技術與架構決策</label>
+    </li>
+  </ul>
+</div>
+
+<h2>主要來源</h2>
+<p><a href="../../.agents/skills/to-spec/SKILL.md">to-spec SKILL.md</a>。背景動機見 <a href="https://github.com/mattpocock/skills">mattpocock/skills README</a> 的「Why These Skills Exist #4」。</p>
+
+<div class="callout">
+<h3>有問題就問我</h3>
+<p>下一步：我用上面的 seam 提案跟你確認後，就實際把我們的 agent 功能寫成 spec，放進 <code>.scratch/</code>。</p>
+</div>
+
+<footer>
+<nav>
+<a href="0001-the-main-flow.html">← 0001</a>
+<a href="../reference/spec-template.html">Spec 模板 →</a>
+<a href="../reference/main-flow-cheatsheet.html">主流程速查</a>
+</nav>
+<p>Lesson 0002 · 下一課：0003-to-tickets</p>
+</footer>
+
+</body>
+</html>

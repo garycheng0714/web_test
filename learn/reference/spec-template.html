@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>速查：Spec 模板</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<p class="lesson-meta">Reference · 速查 · to-spec</p>
+<h1>Spec 模板速查</h1>
+<p class="subtitle">`to-spec` 產出的檔案就長這樣。搭配第二課 <a href="../lessons/0002-to-spec.html">0002-to-spec</a>。</p>
+
+<h2>七個區塊</h2>
+<table>
+<thead><tr><th>區塊</th><th>放什麼</th></tr></thead>
+<tbody>
+<tr><td><strong>Problem Statement</strong></td><td>使用者視角的問題本身。</td></tr>
+<tr><td><strong>Solution</strong></td><td>使用者視角的解法。</td></tr>
+<tr><td><strong>User Stories</strong></td><td>很長的編號清單：<code>As an &lt;actor&gt;, I want &lt;feature&gt;, so that &lt;benefit&gt;</code>，涵蓋所有面向。</td></tr>
+<tr><td><strong>Implementation Decisions</strong></td><td>要建/改哪些 module、介面、技術決策、schema、API 契約、互動。<strong>不寫檔名與程式碼片段</strong>（會過時）。</td></tr>
+<tr><td><strong>Testing Decisions</strong></td><td>什麼是好測試（只驗外部行為）、哪些 module 要測、可參考的既有測試。</td></tr>
+<tr><td><strong>Out of Scope</strong></td><td>明確不做的事。</td></tr>
+<tr><td><strong>Further Notes</strong></td><td>其他補充。</td></tr>
+</tbody>
+</table>
+
+<h2>兩條硬規則</h2>
+<ul>
+<li><strong>不要寫檔名或程式碼片段</strong>——它們很快過時。唯一例外：原型產出的片段若比文字更精確地編碼了一個決策（狀態機、reducer、schema、型別形狀），可內嵌並註明來自原型，且只留關鍵部分。</li>
+<li><strong>spec vs ticket</strong>：spec 是<strong>跨 session</strong> 的工作，由多張 ticket 組成；ticket 是<strong>單一 session</strong> 的工作範圍。一張 ticket 不該需要 handoff。</li>
+</ul>
+
+<h2>產出位置（本 repo）</h2>
+<pre><code>.scratch/&lt;feature-slug&gt;/spec.md</code></pre>
+<p>發佈後套上 <code>ready-for-agent</code> 標籤（見 <a href="../MISSION.md">MISSION.md</a> 旁的 <code>docs/agents/triage-labels.md</code>）。</p>
+
+<h2>外部來源</h2>
+<ul>
+<li><a href="../../.agents/skills/to-spec/SKILL.md">to-spec SKILL.md</a>（本 repo 第一手規則與模板）</li>
+</ul>
+
+<footer>
+<nav>
+<a href="../lessons/0002-to-spec.html">← 第二課</a>
+<a href="main-flow-cheatsheet.html">主流程速查</a>
+</nav>
+</footer>
+
+</body>
+</html>
