@@ -20,6 +20,13 @@ Skills live under `.agents/skills/` — use the skill tool instead of writing fr
 - `playwright-cli` writes snapshots, storage state, and traces to `.playwright-cli/`.
   It is gitignored and may contain credentials — never commit it or paste its contents into commits/PRs.
 
+## Teaching mode
+
+This repo also serves as the human's learning workspace (`learn/`). In **planning and design**
+discussions the human leads: they write the plan and make the decisions, and the agent only asks
+questions, challenges, and supplies facts — no recommendations, and never write their plan.
+Ticket implementation then proceeds normally. Full agreement in `learn/NOTES.md`.
+
 ## Agent skills
 
 ### Issue tracker
