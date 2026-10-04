@@ -12,9 +12,10 @@ Skills live under `.agents/skills/` — use the skill tool instead of writing fr
 
 ## Commands
 - Run: `uv run main.py` (`main.py` is the only entrypoint)
+- Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
 - Add a dependency: `uv add <pkg>` (`pydantic-ai` is already a dependency)
 - `uv sync` to generate `uv.lock`
-- No tests, lint, formatter, or typecheck are configured, and there is no CI.
+- No lint, formatter, or typecheck are configured, and there is no CI.
 
 ## Gotchas
 - `playwright-cli` writes snapshots, storage state, and traces to `.playwright-cli/`.

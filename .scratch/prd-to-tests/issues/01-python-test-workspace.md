@@ -5,9 +5,18 @@ automation tests can run. No Node workspace.
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] pytest is configured; Playwright's Python bindings are installed via uv
-- [ ] `uv run pytest` runs an existing trivial test and passes
-- [ ] The one-time browser install step is documented
-- [ ] No Node/TypeScript toolchain is introduced
+- [x] pytest is configured; Playwright's Python bindings are installed via uv
+- [x] `uv run pytest` runs an existing trivial test and passes
+- [x] The one-time browser install step is documented
+- [x] No Node/TypeScript toolchain is introduced
+
+## Comments
+
+Implemented. Added `pytest` + `playwright` + `pytest-playwright` to the `dev` dependency
+group, a `[tool.pytest.ini_options] testpaths = ["tests"]` config, a browser-launch smoke test
+(`tests/test_workspace.py`), and setup/install docs in `README.md`. `uv run pytest` passes
+(1 test). No Node toolchain introduced. Code review (Standards + Spec) surfaced a broken
+`--browser firefox` example (only chromium was installed) and a stale "no tests configured"
+line in `AGENTS.md`; both fixed.
