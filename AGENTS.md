@@ -8,6 +8,7 @@ Python 3.13, dependencies managed with `uv`.
 Skills live under `.agents/skills/` — use the skill tool instead of writing from memory. Key ones:
 - `building-pydantic-ai-agents` — agents, tools/capabilities, structured output, streaming, testing.
 - `playwright-cli` — browser automation; drives a browser via the global `playwright-cli` command.
+- `qa-test-case-generation` — manual QA test-case generation from requirements/mockups/templates; vendored from `saleem-daqa/qa-test-case-generation` (not recorded in `skills-lock.json`).
 - The Matt Pocock engineering flow (`ask-matt`, `to-spec`, `to-tickets`, `implement`, `tdd`, …) — configured in the `## Agent skills` section below.
 
 ## Commands
