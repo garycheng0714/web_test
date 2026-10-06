@@ -14,8 +14,9 @@ PRD 中一項可被驗證的功能需求，具有唯一 id；測試案例的追�
 _Avoid_: feature, user story, item
 
 **Test Case**:
-意圖層的一個驗證情境，以 Given/When/Then 描述，對應一條或多條 Requirement，帶
-priority、type、preconditions 與 expected result。
+意圖層的一個驗證情境，對應一條或多條 Requirement（以 `requirement_ids` 追溯），帶
+priority、severity、test type、preconditions、steps 與 expected result。由 PRD 經
+`qa-test-case-generation` skill 產生。
 _Avoid_: 測試項目、測試案例（三者指同一物，勿當成不同東西）
 
 **Step**:
@@ -43,7 +44,8 @@ _Avoid_: page mode
 _Avoid_: script, test code
 
 **Gate**:
-Test Case 設計與自動化之間的**人工審核**點；審核通過才能進入自動化。
+Test Case 設計與自動化之間的**人工審核**點；審核通過才能進入自動化。以 Test Case 文件的
+front-matter `approval`（`draft` → `approved`）表示。
 _Avoid_: approval, checkpoint
 
 **Snapshot**:

@@ -11,10 +11,15 @@ Skills live under `.agents/skills/` — use the skill tool instead of writing fr
 - `qa-test-case-generation` — manual QA test-case generation from requirements/mockups/templates; vendored from `saleem-daqa/qa-test-case-generation` (not recorded in `skills-lock.json`).
 - The Matt Pocock engineering flow (`ask-matt`, `to-spec`, `to-tickets`, `implement`, `tdd`, …) — configured in the `## Agent skills` section below.
 
+**House skill libraries** (loaded at runtime via Pydantic AI Harness `Skills`) live under
+`.agents/libraries/<library>/<skill>/SKILL.md`. `Skills` loads only `SKILL.md`, so a house variant
+inlines any `references/` it needs. Current: `.agents/libraries/test_case_designer/qa-test-case-generation/`
+(adapted from the vendored qa skill; see ADR-0005).
+
 ## Commands
 - Run: `uv run main.py` (`main.py` is the only entrypoint)
 - Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
-- Add a dependency: `uv add <pkg>` (`pydantic-ai` is already a dependency)
+- Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[skills]` are dependencies)
 - `uv sync` to generate `uv.lock`
 - No lint, formatter, or typecheck are configured, and there is no CI.
 

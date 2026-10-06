@@ -47,11 +47,11 @@ template. See `learn/MISSION.md`.
 10. As a QA engineer, I want duplicate scenarios merged across requirements while keeping all source requirement references, so that the suite is not padded.
 11. As a QA engineer, I want cases prioritized and typed with constrained values, so that the suite is filterable and legible.
 12. As a QA engineer, I want each case to declare its preconditions, so that setup is explicit.
-13. As a QA engineer, I want the test cases written in Given/When/Then phrasing, so that they read as behavior.
+13. As a QA engineer, I want each case's steps written as clear, executable steps, so that a manual QA engineer can run them.
 14. As a QA engineer, I want the test cases as a structured markdown file, so that I can review and edit them before automation.
 15. As a QA engineer, I want the pipeline to stop after planning until I approve, so that no test is generated from unreviewed cases.
 16. As a QA engineer, I want approval expressed as a simple state in the test-case file, so that the gate is explicit and auditable.
-17. As a QA engineer, I want the application base URL taken from the PRD but overridable on the command line, so that I can target different environments.
+17. As a QA engineer, I want the automation stage to take the application base URL as a command-line argument, so that I can target different environments.
 18. As a QA engineer, I want each approved case turned into a runnable Playwright Python test, so that I do not hand-write it.
 19. As a QA engineer, I want the automation stage to explore the live app, so that locators and expected values match reality.
 20. As a QA engineer, I want the agent to reuse and extend existing page objects instead of duplicating them, so that the suite does not fork.
@@ -89,24 +89,25 @@ is not an MCP server, a CI job, or a long-running service. The human review gate
 step between the two subcommands.
 
 **PRD input.** A required `--prd <path>` argument, read as markdown or plain text. Images,
-docx, PDF, and URLs are out of scope. A small sample PRD is checked in for acceptance.
-The base URL is a PRD field; a command-line override exists.
+docx, PDF, and URLs are out of scope. A small sample PRD is checked in for acceptance. There is
+**no base-URL field**; the automation stage takes a base URL from elsewhere (e.g. a CLI argument).
 
-**Module — PRD parsing.** Reads the PRD and produces a `PRD` model (base URL + requirement
-list). Whether this is a single structured-output model call or a tool-loop agent is an
-implementation detail; it does **not** need tools if the PRD is text-only.
+**Agent harness.** Use Pydantic AI Harness capabilities as the backbone (ADR-0004): `Skills` loads
+skill instructions on demand; delegation is allowed. The first stage is a single agent (ADR-0005).
 
-**Module — Test Case designer.** A Pydantic AI agent that consumes the `PRD` model and
-produces the structured test-case document. Coverage policy: for each requirement, one case
-per *applicable* technique (happy, negative/validation, boundary/equivalence); no padding.
-It assigns stable requirement IDs when absent, maintains a requirement→case mapping, and
-merges duplicate scenarios across requirements while keeping every source requirement id.
+**Module — Test Case designer.** A single Pydantic AI agent that reads the PRD text and produces
+the test-case document. It loads the `qa-test-case-generation` skill through Pydantic AI Harness
+`Skills` (a deferred capability the model loads with `load_capability`) and returns a structured
+`QaReport`, rendered to the qa table markdown. Coverage policy: for each requirement, one case per
+*applicable* technique (happy, negative/validation, boundary/equivalence); no padding. It records
+`requirement_ids` for traceability, and merges duplicate scenarios while keeping every source
+requirement id. There is no separate PRD parsing module.
 
-**Test-case artifact.** A single structured markdown document per feature, carrying
-front-matter for the base URL and an approval state, a requirement→case mapping, and one
-entry per case with: id, source requirement id(s), priority (P1–P3), type
-(happy/negative/boundary), preconditions, Given/When/Then steps, and expected result. It
-lives with the feature's planning artifacts under the local tracker convention.
+**Test-case artifact.** A single markdown document per feature at
+`.scratch/<feature>/test-cases.md`, in the qa table format, with front-matter `approval:
+draft|approved`. Each row records the test case id, `requirement_ids`, module/feature, scenario,
+preconditions, steps, test data, expected result, and constrained priority/severity/test-type/status
+values. It lives with the feature's planning artifacts under the local tracker convention.
 
 **Module — Test automator.** A Pydantic AI agent that consumes the approved cases and
 produces Playwright **Python** tests. It has function tools to:
@@ -167,8 +168,9 @@ workspace is required.
   it does not assert on internals.
 - **Every module is unit-tested at its seam**, with external dependencies injected.
 - **Primary seam — Test Case designer.** Tests override the model with a Pydantic AI test
-  model, then assert the produced test-case document: coverage per requirement,
-  traceability, dedup, IDs, and the approval gate. No network.
+  model, then assert the produced structured `QaReport` (coverage, traceability via
+  `requirement_ids`, dedup, ids) and the rendered document's `approval` front-matter. No network.
+  The `qa-test-case-generation` skill is loaded via harness `Skills` from `.agents/libraries/`.
 - **Primary seam — Test automator.** Tests override the model to script tool calls, then
   assert the end-to-end effects: correct argv reaches the browser tool, correct page-object
   and test content is written, an existing page object is reused rather than duplicated, a
@@ -204,5 +206,6 @@ workspace is required.
 - First automation run requires a one-time browser install for Playwright's Python bindings.
 - `playwright-cli` keeps a shared default browser session across invocations, so exploration
   commands compose naturally; the session is closed at the end of a run.
-- **Open item:** whether PRD parsing is a single structured-output call or a tool-loop agent
-  is left to the implementing ticket.
+- **Resolved:** the standalone PRD parsing step was dropped; the first stage is a single agent
+  (`PRD text → QaReport`) that loads the `qa-test-case-generation` skill via harness `Skills`
+  (ADR-0005). Base URL is no longer a PRD field.
