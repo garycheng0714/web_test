@@ -9,8 +9,6 @@ DEFAULT_BASE_URL = "https://automationexercise.com"
 
 
 class BasePage(ABC):
-    TITLE: str | None = None
-
     @property
     @abstractmethod
     def path(self) -> str: ...
@@ -24,13 +22,5 @@ class BasePage(ABC):
         self.page.goto(f"{self.base_url}{self.path if path is None else path}")
         return self
 
-    def title(self) -> str:
-        return self.page.title()
-
-    def url(self) -> str:
-        return self.page.url
-
     def expect_loaded(self) -> None:
         expect(self.page).to_have_url(f"{self.base_url}{self.path}")
-        if self.TITLE is not None:
-            expect(self.page).to_have_title(self.TITLE)

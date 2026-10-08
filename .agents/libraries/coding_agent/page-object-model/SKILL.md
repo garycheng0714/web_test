@@ -34,8 +34,9 @@ existing suite and a UI change stays a one-place edit.
    `page.get_by_role("banner").get_by_role("link", name=...)`).
 7. **Assert with Playwright's auto-retrying `expect(...)`.** In tests, wrap locators/queries in
    `expect(...)`; never use a one-shot `is_visible()` as an assertion. A page object MAY own an
-   intrinsic readiness check named `expect_loaded()` that asserts and raises, e.g. a
-   `BasePage.expect_loaded()` checking the page's `path`/`TITLE` plus any page-unique element.
+   intrinsic readiness check named `expect_loaded()` that asserts and raises: `BasePage.expect_loaded()`
+   checks the URL from `path`, and a subclass overrides it (calling `super()`) to add content unique
+   to that page.
 8. **Never name a page-object class with a leading `Test`** — pytest collects those. If the domain
    name really starts with it, set the class attribute `__test__ = False`.
 9. **Do not change shared constants or helpers** (e.g. `DEFAULT_BASE_URL`) to fit one case; follow
@@ -50,8 +51,9 @@ existing suite and a UI change stays a one-place edit.
 
 ## House example (read these before writing)
 
-- `pages/base_page.py` — `BasePage`: `open(path)` action, abstract `path` + `TITLE` and
-  `expect_loaded()` readiness check, composes `Header`.
+- `pages/base_page.py` — `BasePage`: `open(path)` action, abstract `path`, and `expect_loaded()`
+  (URL) readiness check; composes `Header`. Subclasses override `expect_loaded()` to add their own
+  page-unique content (e.g. `HomePage` checks its title).
 - `pages/home_page.py` — `HomePage(BasePage)`: the canonical page object.
 - `components/header.py` — `Header`: component with `NAV_NAMES`, `nav_link(name)`,
   `is_visible()`, `is_logo_visible()`.
