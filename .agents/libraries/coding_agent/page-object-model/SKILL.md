@@ -10,7 +10,8 @@ existing suite and a UI change stays a one-place edit.
 
 ## Where things live
 
-- `pages/` — one page object per screen, subclassing `BasePage`.
+- `pages/` — one page object per screen, subclassing `BasePage` and defining its `path` property
+  (`BasePage.path` is abstract, so a page object without it cannot be instantiated).
 - `components/` — shared UI regions reused across pages (e.g. `Header`).
 - `tests/` — tests and fixtures; pytest fixtures live in `tests/conftest.py`.
 - No `__init__.py`; imports are top-level (e.g. `from pages.home_page import HomePage`),
@@ -19,8 +20,10 @@ existing suite and a UI change stays a one-place edit.
 ## Rules
 
 1. **Encapsulate locators.** Selectors live inside page objects/components. Tests never contain selectors.
-2. **Actions and state queries belong to the page object; assertions belong to the test.** A page
-   object opens/navigates and exposes queries like `title()`, `url()`; the test asserts.
+2. **Actions and state queries belong to the page object; test-specific expectations belong to the
+   test.** A page object navigates and exposes locators/state queries; assertions about what *this
+   test* expects (a specific title, URL, or text) stay in the test — except a page's own readiness
+   check (rule 7).
 3. **Model shared regions as components.** Header/nav/footer go in `components/` and are composed
    into pages (see `BasePage` composing `Header`).
 4. **Reuse and extend before creating.** Read existing `pages/` and `components/` first; extend an
@@ -29,9 +32,10 @@ existing suite and a UI change stays a one-place edit.
    pre-build unused actions.
 6. **Prefer role/accessible-name locators**, scoped to the smallest region (e.g.
    `page.get_by_role("banner").get_by_role("link", name=...)`).
-7. **Assert with Playwright's auto-retrying `expect(...)`** in tests (e.g.
-   `expect(page).to_have_url(...)`, `expect(locator).to_be_visible()`). A page object exposes
-   locators and state queries; do not use a one-shot `is_visible()` as an assertion.
+7. **Assert with Playwright's auto-retrying `expect(...)`.** In tests, wrap locators/queries in
+   `expect(...)`; never use a one-shot `is_visible()` as an assertion. A page object MAY own an
+   intrinsic readiness check named `expect_loaded()` that asserts and raises, e.g. a
+   `BasePage.expect_loaded()` checking the page's `path`/`TITLE` plus any page-unique element.
 8. **Never name a page-object class with a leading `Test`** — pytest collects those. If the domain
    name really starts with it, set the class attribute `__test__ = False`.
 9. **Do not change shared constants or helpers** (e.g. `DEFAULT_BASE_URL`) to fit one case; follow
@@ -39,10 +43,15 @@ existing suite and a UI change stays a one-place edit.
 10. **Use the injected fixtures.** Do not call `page.goto` directly or instantiate page objects
     inside tests.
 11. **Keep comments minimal**, matching the surrounding code; no banner or explanatory comments.
+12. **A readiness check must target content unique to that page** — its URL, title, or an element
+    only that page has. Never assert shared chrome (header/nav/footer/logo): it exists on every
+    page and would pass without navigation. This constrains page readiness only, not tests whose
+    subject *is* the chrome.
 
 ## House example (read these before writing)
 
-- `pages/base_page.py` — `BasePage`: `open(path)` action, `title()`/`url()` queries, composes `Header`.
+- `pages/base_page.py` — `BasePage`: `open(path)` action, abstract `path` + `TITLE` and
+  `expect_loaded()` readiness check, composes `Header`.
 - `pages/home_page.py` — `HomePage(BasePage)`: the canonical page object.
 - `components/header.py` — `Header`: component with `NAV_NAMES`, `nav_link(name)`,
   `is_visible()`, `is_logo_visible()`.
@@ -57,6 +66,7 @@ exactly, pass `exact=True`. If a snapshot or terminal looks clean but a match fa
 
 ## Before you finish
 
-- No selectors in tests; assertions in tests, not in page objects.
+- No selectors in tests. Test-specific assertions stay in tests; a page object owns only its
+  `expect_loaded()` readiness check (rule 12).
 - Reused or extended existing page objects where possible.
 - New files placed in the right directory and importable.

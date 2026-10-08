@@ -31,6 +31,11 @@ _Avoid_: step, operation
 被測應用的一個畫面。
 _Avoid_: screen, view
 
+**Page readiness check**:
+Page Object 對「本頁已就緒」的檢查（`expect_loaded()`）；斷言本頁獨有的 URL／標題／內容，
+不得依賴共享的 header／nav／footer。
+_Avoid_: assertion, visibility check
+
 **Component**:
 跨頁面重用的 UI 區塊（如 Header、Nav），有自己的物件，存放於共用元件庫。
 _Avoid_: widget, fragment

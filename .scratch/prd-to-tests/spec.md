@@ -56,7 +56,7 @@ template. See `learn/MISSION.md`.
 19. As a QA engineer, I want the automation stage to explore the live app, so that locators and expected values match reality.
 20. As a QA engineer, I want the agent to reuse and extend existing page objects instead of duplicating them, so that the suite does not fork.
 21. As a QA engineer, I want locators encapsulated in page objects and shared UI regions (header, nav) modeled as reusable components, so that a change is a one-place edit.
-22. As a QA engineer, I want page objects to expose actions and state queries, with assertions living in the tests, so that page objects stay reusable and specs stay readable.
+22. As a QA engineer, I want page objects to expose actions and state queries (plus an `expect_loaded()` readiness check), with test-specific assertions living in the tests, so that page objects stay reusable and specs stay readable.
 23. As a QA engineer, I want preconditions set up through a shared setup helper (API where possible), so that tests start from a known state without slow UI setup.
 24. As a QA engineer, I want generated tests grouped one file per requirement, so that files map cleanly to coverage.
 25. As a QA engineer, I want to filter generated tests by priority and type, so that I can run a subset.
@@ -133,7 +133,9 @@ API and UI strategies can be swapped.
 
 **Test architecture — Page Object Model (Python).**
 - Locators are encapsulated inside page objects; selectors are not exposed to tests.
-- Page objects expose actions and state queries; **assertions live in the tests**.
+- Page objects expose actions and state queries; **test-specific assertions live in the tests**.
+  Each page object may additionally own an `expect_loaded()` readiness check that verifies its own
+  URL/title plus an element unique to that page — never shared chrome (header/nav/footer).
 - Shared UI regions (header, nav) are modeled as **components** kept in a **shared component
   library**, reused across features.
 - Action catalog is **per feature**: only elements along the approved cases' paths become
