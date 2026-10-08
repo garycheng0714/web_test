@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness capabilities 速查</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<p class="lesson-meta">Reference · Pydantic AI Harness</p>
+<h1>Harness capabilities 速查</h1>
+<p class="subtitle">課 0003 的壓縮版。忘記某個 capability 屬於哪一類、或 <code>Skills</code> 怎麼設，回來看這頁。</p>
+
+<div class="callout">
+<h3>一句話</h3>
+<p><code>pydantic-ai-harness</code> 是官方 capability／harness 庫；每個東西都是一個 capability，丟進 <code>capabilities=[...]</code>。核心 Pydantic AI 供「需要模型或框架支援」者，其餘 30+ 個在 harness。</p>
+</div>
+
+<h2>能力分群</h2>
+<table>
+<thead><tr><th>群</th><th>代表 capability</th><th>做什麼</th></tr></thead>
+<tbody>
+<tr><td>Harnesses（整套）</td><td><a href="coder-composition.html"><code>Coder</code></a>、<code>Researcher</code></td><td>現成完整 stack，本身是多個 capability 的組合，可拆</td></tr>
+<tr><td>執行環境</td><td><code>FileSystem</code>、<code>Shell</code>、Modal／E2B／Sprites sandbox、<code>SSHWorkspace</code></td><td>agent 動手的檔案與命令，本機或隔離沙箱</td></tr>
+<tr><td>工具與原生能力</td><td>MCP、Image Generation、GitHub、Linear、Notion、Slack</td><td>接外部系統與 provider 原生工具</td></tr>
+<tr><td>Web 與研究</td><td>Web Search／Fetch、Exa、You.com、Browser Use、<code>Playwright</code></td><td>上網找、讀、跑真實瀏覽器</td></tr>
+<tr><td>推理／規劃／委派</td><td>Thinking、<code>Planning</code>、<code>SubAgents</code>、<code>DynamicWorkflow</code>、<code>Advisor</code>、<code>BackgroundTools</code></td><td>怎麼想、怎麼分派工作</td></tr>
+<tr><td>Context 管理</td><td><code>CodeMode</code>、Tool Search、Compaction、<code>ToolOutputLimits</code>、<code>WarnOnCacheBusts</code></td><td>省 context 視窗、抗長跑退化</td></tr>
+<tr><td>知識與記憶</td><td><code>Memory</code>、<code>ConversationSearch</code>、<code>Skills</code>、<code>RepoContext</code>、<code>PydanticAIDocs</code></td><td>需要時才載入，不預載</td></tr>
+<tr><td>控制與安全</td><td><code>Guardrails</code>、<code>PromptInjectionDefender</code>、<code>SpendLimits</code>、<code>AskUser</code>、<code>ToolCallJudge</code>、<code>SystemReminders</code>、<code>TrajectoryJudge</code></td><td>限制它做什麼、別偏離指示</td></tr>
+<tr><td>自我擴充</td><td><code>CapabilityCreation</code></td><td>agent 於 run 中寫出並持久化新 capability</td></tr>
+<tr><td>執行 runtime</td><td>Durable execution（Temporal／DBOS／Prefect）、<code>StepPersistence</code>、Instrumentation、<code>LogfireMCP</code>、<code>ManagedPrompt</code></td><td>重啟存活、可觀測、可配置</td></tr>
+</tbody>
+</table>
+<p>完整清單與連結見 <a href="https://pydantic.dev/docs/ai/harness/#capabilities">官方 Capabilities 表</a>。</p>
+
+<h2>progressive disclosure（按需載入）</h2>
+<div class="flow">capability 標 defer_loading=True 且給穩定 id
+  ▼
+初始 prompt 只含 catalog：deferred capability 的 id（＋description）
+  ▼
+有 deferred capability → 框架自動加 load_capability 工具
+  ▼
+模型呼叫 load_capability(id) → 該 capability 的 instructions／tools 才生效</div>
+<p>判斷準則：<strong>大部分回合用不到的，就不要 eager 載入。</strong>少數 coherent 的 bundle 勝過一堆碎 capability。</p>
+
+<h2><code>Skills</code> 設定速查</h2>
+<pre><code>from pydantic_ai import Agent
+from pydantic_ai.workspaces import LocalWorkspaceBackend
+from pydantic_ai_harness import Skills
+
+agent = Agent(
+    "google:gemini-2.5-flash-lite",
+    capabilities=[
+        Skills(
+            ".agents/libraries/test_case_designer",  # library 目錄，非單一 skill
+            include=["qa-test-case-generation"],      # 或 exclude=...，不可同時
+            workspace=LocalWorkspaceBackend("."),     # 必需，否則 run 起頭就失敗
+        )
+    ],
+)</code></pre>
+<table>
+<thead><tr><th>設定</th><th>catalog 內容</th></tr></thead>
+<tbody>
+<tr><td>兩者都省略</td><td>所有掃到的 skill</td></tr>
+<tr><td><code>include=['a','b']</code></td><td>只有 a 與 b</td></tr>
+<tr><td><code>include=[]</code></td><td>沒有 skill</td></tr>
+<tr><td><code>exclude=['a','b']</code></td><td>除 a、b 以外的全部</td></tr>
+</tbody>
+</table>
+<ul>
+<li>掃描<strong>直接子目錄</strong>；<code>skill/references/SKILL.md</code> 不算新 skill。</li>
+<li>只載 <code>SKILL.md</code>；<strong>不</strong>列舉／讀取／執行 <code>references/</code>、<code>assets/</code>、<code>scripts/</code>。</li>
+<li><code>name</code> 可省略（用資料夾名）；<code>description</code> 必填、非空，出現在初始 catalog。</li>
+<li>多個 library 可並存；選中的名字必須唯一。</li>
+<li><code>include</code>／<code>exclude</code> 只控制 catalog 曝光，<strong>非</strong>權限邊界。</li>
+</ul>
+
+<h2>版本政策（重要）</h2>
+<p>Harness 用 <strong>0.x</strong> 版號：API 可能在 minor 版之間變動（改名、改預設、重構），會有 deprecation 警告與遷移說明；patch 不刻意破壞。這是「獨立成套件」換來的演進速度，不代表不成熟。</p>
+
+<h2>來源</h2>
+<ul>
+<li><a href="https://pydantic.dev/docs/ai/harness/">Pydantic AI Harness 官方文件</a></li>
+<li><code>pydantic_ai_harness/skills/README.md</code>（套件內一手說明）</li>
+<li><a href="https://agentskills.io/specification">Agent Skills specification</a></li>
+<li><a href="https://pydantic.dev/docs/ai/capabilities/on-demand/">Capabilities on Demand</a></li>
+<li><a href="https://pydantic.dev/docs/ai/capabilities/overview/">Capabilities overview</a></li>
+</ul>
+
+<footer>
+<nav>
+<a href="../lessons/0003-pydantic-ai-harness.html">← Lesson 0003</a>
+<a href="../RESOURCES.md">Resources</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+</body>
+</html>

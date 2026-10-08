@@ -19,6 +19,10 @@
 - 對應的實作 repo 是上層的 `web_test`（Python/uv + playwright-cli + Pydantic AI）。
 - `GLOSSARY.md` 依規範 lazy 建立：等你「能正確使用」某術語才收錄，不是先寫字典。
 - `learning-records/` 也 lazy：只在出現非顯而易見的洞見、先備知識或觀念修正時才寫。
+- Lesson 0003 起加入 Pydantic AI Harness 線（課 + `reference/harness-capabilities.html`）。
+  教學以 harness **0.54.0**（`uv.lock` 鎖定）為準；harness 是 0.x，minor 版之間 API 可能
+  改名／改預設，升級後要重讀對應 capability 的 README。新增可重用元件：
+  `assets/style.css` 的 `details.reveal`（步驟揭曉）。
 
 ## 已知缺失 (gaps)
 - `ask-matt` SKILL.md 內引用的 smart zone 連結

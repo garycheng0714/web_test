@@ -150,6 +150,36 @@ th { font-weight: 600; }
 
 .quiz input:checked ~ .answer { display: block; }
 
+details.reveal {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: .6rem 1rem;
+  margin: .75rem 0;
+  background: #fff;
+}
+
+details.reveal > summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+details.reveal > summary::-webkit-details-marker { display: none; }
+
+details.reveal > summary::before {
+  content: "▸ ";
+  color: var(--accent);
+}
+
+details.reveal[open] > summary::before { content: "▾ "; }
+
+details.reveal > p {
+  margin: .6rem 0 .2rem;
+  padding-top: .6rem;
+  border-top: 1px dashed var(--rule);
+}
+
 footer {
   margin-top: 4rem;
   padding-top: 1.25rem;

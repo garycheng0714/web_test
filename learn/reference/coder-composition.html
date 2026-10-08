@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coder 組成速查</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<p class="lesson-meta">Reference · Pydantic AI Harness · Coder</p>
+<h1>Coder 由哪些 capability 疊成</h1>
+<p class="subtitle">把 <code>Coder()</code> 拆成它內部的每一顆 capability；標出哪些是私有、公開替代是什麼。供日後查或手動重組時對照。</p>
+
+<div class="callout">
+<h3>一句話</h3>
+<p><code>Coder</code> 是一個 <strong>CombinedCapability</strong>：把檔案、命令、repo 脈絡、委派、context 管理、輸出上限、參數修復疊起來，再加它自己的預設指示。怎麼裝上去，就能怎麼拆下來。</p>
+<p class="mono">來源：<code>pydantic_ai_harness/coder/_capability.py</code>（harness 0.54.0）</p>
+</div>
+
+<h2>組成一覽（依序）</h2>
+<table>
+<thead><tr><th>#</th><th>Capability</th><th>關鍵設定</th><th>公開？</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code>RequireWorkspace('Coder')</code></td><td>沒有 workspace 的 run 起頭即失敗</td><td>私有 <code>pydantic_ai_harness._workspace</code></td></tr>
+<tr><td>2</td><td><code>Capability(id='coder_instructions', …)</code></td><td><code>INSTRUCTIONS</code> ＋（可選）你的 ＋ <code>project_instructions(...)</code></td><td>私有 <code>coder._instructions</code></td></tr>
+<tr><td>3</td><td><code>FileSystem</code></td><td><code>content_hashes=False, max_read_chars=50_000, tools=FILE_TOOL_NAMES, max_retries=5</code></td><td>公開 <code>pydantic_ai_harness.filesystem</code></td></tr>
+<tr><td>4</td><td><code>Shell</code></td><td><code>denied_commands=[], default_timeout=MAX_FOREGROUND_WAIT, allow_interactive=True, tools=['shell']</code></td><td>公開 <code>pydantic_ai_harness.shell</code></td></tr>
+<tr><td>5</td><td><code>RepoContext</code></td><td><code>expose_inventory_tool=False</code>（載 <code>CLAUDE.md</code>/<code>AGENTS.md</code>）</td><td>公開 <code>pydantic_ai_harness.repo_context</code></td></tr>
+<tr><td>6</td><td><code>SubAgents</code></td><td><code>include_self=True, agent_folders=None</code>（<code>delegate_task</code>）</td><td>公開 <code>pydantic_ai_harness.subagents</code></td></tr>
+<tr><td>7</td><td><code>ClearToolResults</code></td><td><code>max_fraction=0.7</code></td><td>公開 <code>pydantic_ai_harness.compaction</code></td></tr>
+<tr><td>8</td><td><code>WarnNearLimits</code></td><td><code>max_context_fraction=0.9</code></td><td>公開 <code>pydantic_ai_harness.compaction</code></td></tr>
+<tr><td>9</td><td><code>_BoundToolOutputs</code></td><td><code>id='coder_tool_output_limits', bands=[Band(over=64_000, action=Truncate(max_chars=64_000))]</code>，且<strong>不掛</strong> spill 工具</td><td>私有子類；公開替代 <code>ToolOutputLimits</code></td></tr>
+<tr><td>10</td><td><code>RepairToolArguments</code></td><td>修復格式錯誤的 JSON 工具參數</td><td>公開 <code>pydantic_ai_harness.repair_tool_arguments</code></td></tr>
+</tbody>
+</table>
+
+<h2>相關常數</h2>
+<table>
+<thead><tr><th>常數</th><th>值</th><th>來源</th></tr></thead>
+<tbody>
+<tr><td><code>FILE_TOOL_NAMES</code></td><td><code>('read_file','write_file','edit_file','list_files','grep')</code></td><td>公開 <code>pydantic_ai_harness.coder</code></td></tr>
+<tr><td><code>MAX_READ_CHARS</code></td><td><code>50_000</code></td><td>私有 <code>coder._capability</code></td></tr>
+<tr><td><code>MAX_OUTPUT_CHARS</code></td><td><code>64_000</code></td><td>私有 <code>coder._capability</code></td></tr>
+<tr><td><code>MAX_FILE_TOOL_RETRIES</code></td><td><code>5</code></td><td>私有 <code>coder._capability</code></td></tr>
+<tr><td><code>MAX_FOREGROUND_WAIT</code></td><td>Shell 的 <code>default_timeout</code></td><td>公開 <code>pydantic_ai_harness.shell</code></td></tr>
+</tbody>
+</table>
+
+<h2>私有項 → 公開替代</h2>
+<table>
+<thead><tr><th>私有</th><th>手動重組時的替代</th></tr></thead>
+<tbody>
+<tr><td><code>RequireWorkspace('Coder')</code></td><td>可略過（只要你永遠掛 <code>LocalWorkspace</code>）；否則自行在 run 起頭檢查 workspace</td></tr>
+<tr><td><code>INSTRUCTIONS</code> / <code>project_instructions</code></td><td>寫你自己的指示；或在 <code>Agent(instructions=...)</code> 補上「investigate → implement → verify、依 repo 慣例、跑測試」等重點</td></tr>
+<tr><td><code>_BoundToolOutputs</code></td><td><code>ToolOutputLimits(bands=[Band(over=64_000, action=Truncate(max_chars=64_000))])</code>；注意公開版可能多掛一個 spill 檢索工具，屬差異</td></tr>
+</tbody>
+</table>
+
+<h2>Coder 預設指示在做什麼（摘要）</h2>
+<p><code>INSTRUCTIONS</code>（<code>coder/_instructions.py</code>）要點：用工具去 investigate／implement／verify；讀既有碼、依 repo 慣例；修因不修果；務實套用 DRY/YAGNI/SOLID/Zen；自主做到完、只在缺需求/憑證/不可逆動作時才問；跑聚焦測試、回報**實際**驗證了什麼；只留要求的變更、別留 scratch 檔。另加 <code>project_instructions</code> 點名工作目錄。</p>
+
+<h2>手動重組骨架（公開 API）</h2>
+<pre><code>from pydantic_ai import Agent
+from pydantic_ai.capabilities import LocalWorkspace
+from pydantic_ai_harness.coder import FILE_TOOL_NAMES
+from pydantic_ai_harness.compaction import ClearToolResults, WarnNearLimits
+from pydantic_ai_harness.filesystem import FileSystem
+from pydantic_ai_harness.repair_tool_arguments import RepairToolArguments
+from pydantic_ai_harness.repo_context import RepoContext
+from pydantic_ai_harness.shell import Shell
+from pydantic_ai_harness.subagents import SubAgents
+from pydantic_ai_harness.tool_output_limits import Band, ToolOutputLimits, Truncate
+
+CODING_CAPABILITIES = [
+    FileSystem(content_hashes=False, max_read_chars=50_000, tools=FILE_TOOL_NAMES, max_retries=5),
+    Shell(denied_commands=[], default_timeout=270, allow_interactive=True, tools=["shell"]),
+    RepoContext(expose_inventory_tool=False),
+    SubAgents(include_self=True),
+    ClearToolResults(max_fraction=0.7),
+    WarnNearLimits(max_context_fraction=0.9),
+    ToolOutputLimits(bands=[Band(over=64_000, action=Truncate(max_chars=64_000))]),
+    RepairToolArguments(),
+]
+
+agent = Agent(
+    model,
+    capabilities=[LocalWorkspace(workspace_dir), *CODING_CAPABILITIES],
+)</code></pre>
+<p>要點：<code>SubAgents(include_self=True)</code> 必須以 <code>Agent(capabilities=[...])</code> 綁定（不能用 <code>run()</code> 傳入）；<code>FileSystem</code>／<code>Shell</code> 在 run 的 workspace 工作，沒有 workspace 會失敗。</p>
+
+<h2>版本提醒</h2>
+<p>Harness 為 <strong>0.x</strong>；上表的私有路徑（<code>coder._capability</code>、<code>coder._instructions</code>、<code>_workspace</code>）與常數值可能隨 minor 版變動。手動重組請以公開 API 為主，私有項僅作對照。</p>
+
+<h2>來源</h2>
+<ul>
+<li><code>pydantic_ai_harness/coder/_capability.py</code>（本機 0.54.0）</li>
+<li><code>pydantic_ai_harness/coder/README.md</code>（Composition 一節）</li>
+<li><a href="https://pydantic.dev/docs/ai/harness/coder/">Pydantic AI Harness · Coder</a></li>
+</ul>
+
+<footer>
+<nav>
+<a href="harness-capabilities.html">← Harness capabilities 速查</a>
+<a href="../lessons/0003-pydantic-ai-harness.html">Lesson 0003</a>
+<a href="../RESOURCES.md">Resources</a>
+</nav>
+</footer>
+
+</body>
+</html>
