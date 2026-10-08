@@ -13,3 +13,15 @@
 - **影響**: 精確比對／grounding 時容易被遮蔽；accessible name 含不可見字元，可能影響輔具朗讀。
 - **發現於**: ticket 02 header grounding。
 - **狀態**: open；處置未定（SUT 為第三方網站，我們無法修改其 HTML）。
+
+## automationexercise.com — Google 廣告 vignette 干擾導覽
+
+- **SUT / page**: https://automationexercise.com/（Google AdSense 插頁）
+- **現象**: 頁面載入時 `adsbygoogle.js` 會注入全螢幕廣告插頁並把 URL 加上
+  `#google_vignette`，遮住 header；點連結被吃掉，導覽不發生 → 測試間歇性失敗。
+- **證據**: 失敗時 `to_have_url(.../test_cases)` 實際值為
+  `https://automationexercise.com/#google_vignette`；約每 3 次出現 1 次。
+- **處置**: 在 `tests/conftest.py` 以 autouse fixture 於 BrowserContext 網路層攔截並 `abort()`
+  廣告網域（`googlesyndication.com`、`doubleclick.net` 等）；`test_test_cases.py` 連跑 6/6 穩定。
+- **發現於**: Stage A（TC-ENG-004）。
+- **狀態**: mitigated（網路層封鎖）；SUT 為第三方網站，無法修改其 HTML。

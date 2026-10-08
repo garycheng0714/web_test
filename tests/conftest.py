@@ -1,9 +1,21 @@
+import re
+
 import pytest
-from playwright.sync_api import Page
+from playwright.sync_api import BrowserContext, Page
 
 from components.header import Header
 from pages.home_page import HomePage
 from pages.test_cases_page import TestCasesPage
+
+AD_URL_PATTERN = re.compile(
+    r"googlesyndication\.com|doubleclick\.net|googleadservices\.com|"
+    r"googletagservices\.com|adtrafficquality\.google"
+)
+
+
+@pytest.fixture(autouse=True)
+def block_ads(context: BrowserContext) -> None:
+    context.route(AD_URL_PATTERN, lambda route: route.abort())
 
 
 @pytest.fixture
