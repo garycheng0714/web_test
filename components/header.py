@@ -23,6 +23,9 @@ class Header:
             .get_by_role("link", name=name)
         )
 
+    def click_nav_link(self, name: str) -> None:
+        self.nav_link(name).click()
+
     def is_visible(self) -> bool:
         return self.page.get_by_role("banner").is_visible()
 

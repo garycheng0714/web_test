@@ -36,7 +36,9 @@ existing suite and a UI change stays a one-place edit.
    `expect(...)`; never use a one-shot `is_visible()` as an assertion. A page object MAY own an
    intrinsic readiness check named `expect_loaded()` that asserts and raises: `BasePage.expect_loaded()`
    checks the URL from `path`, and a subclass overrides it (calling `super()`) to add content unique
-   to that page.
+   to that page. `expect_loaded()` and page actions return `self`, so same-page calls chain — wrap the
+   chain in parentheses to break it across lines (`home_page.open().expect_loaded()`, or one call per
+   line with a leading `.` inside `(...)`). Do not chain across page transitions.
 8. **Never name a page-object class with a leading `Test`** — pytest collects those. If the domain
    name really starts with it, set the class attribute `__test__ = False`.
 9. **Do not change shared constants or helpers** (e.g. `DEFAULT_BASE_URL`) to fit one case; follow
@@ -48,6 +50,9 @@ existing suite and a UI change stays a one-place edit.
     only that page has. Never assert shared chrome (header/nav/footer/logo): it exists on every
     page and would pass without navigation. This constrains page readiness only, not tests whose
     subject *is* the chrome.
+13. **A shared component owns the actions on its own elements**, and a page delegates to it — e.g.
+    `Header.click_nav_link(name)` plus `HomePage.click_nav_link(name)`. Tests never reach through a
+    component (`page.header.nav_link(...).click()`).
 
 ## House example (read these before writing)
 

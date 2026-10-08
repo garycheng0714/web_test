@@ -22,5 +22,6 @@ class BasePage(ABC):
         self.page.goto(f"{self.base_url}{self.path if path is None else path}")
         return self
 
-    def expect_loaded(self) -> None:
+    def expect_loaded(self) -> Self:
         expect(self.page).to_have_url(f"{self.base_url}{self.path}")
+        return self

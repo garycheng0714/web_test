@@ -135,9 +135,12 @@ API and UI strategies can be swapped.
 - Locators are encapsulated inside page objects; selectors are not exposed to tests.
 - Page objects expose actions and state queries; **test-specific assertions live in the tests**.
   Each page object may additionally own an `expect_loaded()` readiness check that verifies its own
-  URL plus content unique to that page — never shared chrome (header/nav/footer).
+  URL plus content unique to that page — never shared chrome (header/nav/footer). `expect_loaded()`
+  returns the page so same-page calls chain (optionally across lines inside parentheses).
 - Shared UI regions (header, nav) are modeled as **components** kept in a **shared component
-  library**, reused across features.
+  library**, reused across features. A component owns the actions on its own elements (e.g.
+  `Header.click_nav_link`), with pages delegating to them; tests never reach through a component
+  to click.
 - Action catalog is **per feature**: only elements along the approved cases' paths become
   actions, so no unused actions accumulate; shared components are the exception and live in
   the shared library.
