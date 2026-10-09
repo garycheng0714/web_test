@@ -9,6 +9,7 @@ from pydantic_ai_harness import Coder, Skills
 from web_test._run import run_sync
 from web_test.model import resolve_model
 from web_test.paths import REPO_ROOT
+from web_test.write_guard import write_guard
 
 # `Skills` takes a *library* directory (its immediate child directories with a `SKILL.md`), not a
 # single skill. This library holds the page-object-model skill; `include` keeps the catalog to it.
@@ -51,6 +52,7 @@ def create_automation(
         capabilities=[
             LocalWorkspace(str(workspace_dir)),
             Coder(),
+            write_guard,
             Skills(
                 str(SKILL_LIBRARY),
                 include=[SKILL_NAME],
