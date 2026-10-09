@@ -6,7 +6,7 @@ from pydantic_ai_harness import Skills
 from web_test._run import run_sync
 from web_test.model import resolve_model
 from web_test.paths import REPO_ROOT, PRD_PATH
-from web_test.schema import QaReport
+from web_test.planning.schema import QaReport
 
 # `Skills` takes a *library* directory, not a single skill: it scans the immediate child
 # directories and turns each one that has a `SKILL.md` into a deferred capability. This

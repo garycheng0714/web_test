@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from web_test.paths import TEST_CASES_PATH
-from web_test.schema import Case, QaReport
+from web_test.planning.schema import Case, QaReport
 
 DRAFT = "draft"
 APPROVED = "approved"

@@ -1,9 +1,9 @@
 import pytest
 from pydantic_ai.models.test import TestModel
 
-from web_test.document import ApprovedDocumentError
-from web_test.plan import generate_test_cases
-from web_test.schema import QaReport
+from web_test.planning.document import ApprovedDocumentError
+from web_test.planning.plan import generate_test_cases
+from web_test.planning.schema import QaReport
 
 SAMPLE = {
     "requirement_summary": ["Users can sign up"],

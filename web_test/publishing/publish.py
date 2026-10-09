@@ -1,10 +1,10 @@
 from datetime import date
 
 from web_test import write_guard
-from web_test.git import GitProtocol
-from web_test.github import GitHubProtocol
 from web_test.paths import FEATURE
-from web_test.suite import SuiteProtocol
+from web_test.publishing.git import GitProtocol
+from web_test.publishing.github import GitHubProtocol
+from web_test.publishing.suite import SuiteProtocol
 
 BOT_NAME = "github-actions[bot]"
 BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com"

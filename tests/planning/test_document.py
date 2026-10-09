@@ -1,7 +1,7 @@
 import pytest
 
-from web_test.document import ApprovedDocumentError, is_approved, render, write_report
-from web_test.schema import QaReport
+from web_test.planning.document import ApprovedDocumentError, is_approved, render, write_report
+from web_test.planning.schema import QaReport
 
 SAMPLE = {
     "requirement_summary": ["Users can sign up"],

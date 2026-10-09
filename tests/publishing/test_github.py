@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from web_test.github import GitHub
 from web_test.process import CommandResult
+from web_test.publishing.github import GitHub
 
 
 class FakeRunner:

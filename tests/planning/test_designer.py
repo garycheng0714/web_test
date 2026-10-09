@@ -2,8 +2,8 @@ import pytest
 from pydantic import ValidationError
 from pydantic_ai.models.test import TestModel
 
-from web_test.qa_designer import design_test_cases
-from web_test.schema import CaseStatus, CaseType, QaReport
+from web_test.planning.designer import design_test_cases
+from web_test.planning.schema import CaseStatus, CaseType, QaReport
 
 SAMPLE = {
     "requirement_summary": ["Users can sign up for an account"],

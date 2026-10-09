@@ -2,10 +2,10 @@ from pathlib import Path
 
 from pydantic_ai.models import Model
 
-from web_test.document import write_report
 from web_test.paths import PRD_PATH, TEST_CASES_PATH
-from web_test.qa_designer import design_test_cases
-from web_test.schema import QaReport
+from web_test.planning.designer import design_test_cases
+from web_test.planning.document import write_report
+from web_test.planning.schema import QaReport
 
 
 def generate_test_cases(

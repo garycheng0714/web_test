@@ -1,6 +1,6 @@
 from datetime import date
 
-from web_test.publish import allowed_paths, branch_name, publish
+from web_test.publishing.publish import allowed_paths, branch_name, publish
 
 
 class RecordingGit:

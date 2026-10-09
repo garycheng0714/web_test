@@ -10,11 +10,11 @@
 
 <p class="lesson-meta">Lesson 0003 · Pydantic AI Harness · 約 8 分鐘</p>
 <h1>Harness：模型之外的那一圈</h1>
-<p class="subtitle">這一課只教你一件事：說出 harness 與 capability 的關係，並指出你的 <code>qa_designer</code> 如何用 <code>Skills</code> 把領域知識按需載入。</p>
+<p class="subtitle">這一課只教你一件事：說出 harness 與 capability 的關係，並指出你的 <code>designer</code> 如何用 <code>Skills</code> 把領域知識按需載入。</p>
 
 <div class="callout">
 <h3>學完你能做到</h3>
-<p>打開 <a href="../../web_test/qa_designer.py">web_test/qa_designer.py</a>，你能指出哪一行是 harness、哪一行是 core，並講出這個 agent 在第一個模型回合「看到」什麼、<code>load_capability</code> 之後又多出什麼。</p>
+<p>打開 <a href="../../web_test/planning/designer.py">web_test/planning/designer.py</a>，你能指出哪一行是 harness、哪一行是 core，並講出這個 agent 在第一個模型回合「看到」什麼、<code>load_capability</code> 之後又多出什麼。</p>
 </div>
 
 <h2>先一句話定義 harness</h2>
@@ -56,7 +56,7 @@
 <p>注意：<code>include</code>/<code>exclude</code> 控制的是「catalog 曝光」，<strong>不是</strong>檔案權限或存取邊界。只從你信任的來源載入 library。</p>
 
 <h2>動手：追一次你的 run</h2>
-<p>這是 <a href="../../web_test/qa_designer.py">web_test/qa_designer.py</a> 的核心。先別往下滑，用你的話回答兩個問題，再展開對答案。</p>
+<p>這是 <a href="../../web_test/planning/designer.py">web_test/planning/designer.py</a> 的核心。先別往下滑，用你的話回答兩個問題，再展開對答案。</p>
 
 <pre><code>1  SKILL_LIBRARY = REPO_ROOT / ".agents" / "libraries" / "test_case_designer"
 2  SKILL_NAME = "qa-test-case-generation"
@@ -91,7 +91,7 @@
 </details>
 
 <p>想親眼確認它跑得動（用 <code>TestModel</code>，不呼叫真模型）：</p>
-<pre><code>uv run pytest tests/test_qa_designer.py -q</code></pre>
+<pre><code>uv run pytest tests/planning/test_designer.py -q</code></pre>
 <p>可選小實驗：在 <code>design_test_cases</code> 內把 agent 的初始能力 catalog 印出來，觀察 <code>load_capability</code> 出現、而 skill 本文尚未出現。</p>
 
 <h2>檢索練習</h2>
