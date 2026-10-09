@@ -7,10 +7,28 @@ driving git and the GitHub CLI; it is not a model action.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Collects the changed files and keeps only the paths the write guard already permits (test, page, and component Python files)
-- [ ] Re-runs the suite itself; when it is not green it performs no git or gh action
-- [ ] On green: sets a git identity, creates a branch named from the feature and date, commits all changed files once with a message derived from the test case ids, pushes, and opens a PR against main
-- [ ] All command execution goes through an injected runner, so the behavior is unit-tested (correct args, and the no-op-on-red path) without network
-- [ ] The PR body is passed in, not generated here
+- [x] Collects the changed files and keeps only the paths the write guard already permits (test, page, and component Python files)
+- [x] Re-runs the suite itself; when it is not green it performs no git or gh action
+- [x] On green: sets a git identity, creates a branch named from the feature and date, commits all changed files once with a message derived from the test case ids, pushes, and opens a PR against main
+- [x] All command execution goes through an injected runner, so the behavior is unit-tested (correct args, and the no-op-on-red path) without network
+- [x] The PR body is passed in, not generated here
+
+## Comments
+
+Implemented as a package of small modules rather than one file:
+
+- `process.py` — `CommandResult`, `Runner`, `subprocess_runner`, `run_checked`.
+- `git.py` — `Git` facade (`changed_paths`, `set_identity`, `create_branch`, `add`, `commit`, `push`)
+  plus the pure `parse_git_status`; `GitProtocol` is the injected seam.
+- `github.py` — `GitHub.open_pull_request` + `GitHubProtocol`.
+- `suite.py` — `Suite.is_green` (the publisher re-runs the suite) + `SuiteProtocol`.
+- `publish.py` — policy + orchestration: `allowed_paths` (write-guard filter), `branch_name`,
+  `commit_message`, and `publish(case_ids, body, git, pr, suite, today)`. It takes the collaborators as
+  arguments; the CI entrypoint wires the real ones (ticket 05).
+
+Tests: `test_git.py` (argv per method + failure + `parse_git_status`), `test_github.py` (`gh pr create`
+argv + failure), `test_publish.py` (injects `RecordingGit`/`RecordingGitHub`/`StubSuite`; asserts the
+call sequence, allowlist filtering, and the no-op-on-red / no-changes paths — no network). Full suite is
+green.
