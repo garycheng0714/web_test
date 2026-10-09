@@ -6,6 +6,7 @@ Python 3.13, dependencies managed with `uv`.
 
 ## Bundled skills (load before coding)
 Skills live under `.agents/skills/` — use the skill tool instead of writing from memory. Key ones:
+- `ponytail` — this repo's coding mode: the smallest change that fully solves the task. Load it before writing code.
 - `building-pydantic-ai-agents` — agents, tools/capabilities, structured output, streaming, testing.
 - `playwright-cli` — browser automation; drives a browser via the global `playwright-cli` command.
 - `qa-test-case-generation` — manual QA test-case generation from requirements/mockups/templates; vendored from `saleem-daqa/qa-test-case-generation` (not recorded in `skills-lock.json`).
@@ -22,6 +23,9 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[skills]` are dependencies)
 - `uv sync` to generate `uv.lock`
 - No lint, formatter, or typecheck are configured, and there is no CI.
+
+## Conventions
+- Boundary data — model output, config, external input — is a Pydantic `BaseModel`; it validates and serializes. Data passed between our own modules is a `@dataclass`: it is light, stores callables naturally, and needs no validation.
 
 ## Gotchas
 - `playwright-cli` writes snapshots, storage state, and traces to `.playwright-cli/`.
