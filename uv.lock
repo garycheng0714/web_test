@@ -1308,6 +1308,10 @@ wheels = [
 coder = [
     { name = "ripgrep", marker = "sys_platform != 'android'" },
 ]
+playwright = [
+    { name = "idna" },
+    { name = "playwright" },
+]
 skills = [
     { name = "pyyaml" },
 ]
@@ -2056,7 +2060,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "pydantic-ai" },
-    { name = "pydantic-ai-harness", extra = ["coder", "skills"] },
+    { name = "pydantic-ai-harness", extra = ["coder", "playwright", "skills"] },
 ]
 
 [package.dev-dependencies]
@@ -2069,7 +2073,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "pydantic-ai", specifier = ">=2.54.0" },
-    { name = "pydantic-ai-harness", extras = ["coder", "skills"], specifier = ">=0.54.0" },
+    { name = "pydantic-ai-harness", extras = ["coder", "playwright", "skills"], specifier = ">=0.54.0" },
 ]
 
 [package.metadata.requires-dev]
