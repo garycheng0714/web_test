@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import MagicMock, call
 
 import pytest
 
@@ -6,61 +7,46 @@ from web_test.command import CommandResult
 from web_test.publishing.git import Git, parse_git_status
 
 
-class FakeRunner:
-    def __init__(self, *, stdout: str = "", returncode: int = 0) -> None:
-        self.stdout = stdout
-        self.returncode = returncode
-        self.calls: list[list[str]] = []
-
-    def __call__(self, args: list[str], *, cwd: object = None) -> CommandResult:
-        self.calls.append(list(args))
-        stderr = "boom" if self.returncode else ""
-        return CommandResult(self.returncode, stdout=self.stdout, stderr=stderr)
-
-    def git(self) -> Git:
-        return Git(self, Path("/ws"))
-
-
 def test_changed_paths_runs_status_and_parses() -> None:
-    runner = FakeRunner(stdout=" M tests/test_a.py\n")
+    runner = MagicMock(return_value=CommandResult(0, stdout=" M tests/test_a.py\n"))
 
-    assert runner.git().changed_paths() == ["tests/test_a.py"]
-    assert runner.calls == [["git", "status", "--porcelain"]]
+    assert Git(runner, Path("/ws")).changed_paths() == ["tests/test_a.py"]
+    runner.assert_called_once_with(["git", "status", "--porcelain"], cwd=Path("/ws"))
 
 
 def test_set_identity_configures_name_and_email() -> None:
-    runner = FakeRunner()
+    runner = MagicMock(return_value=CommandResult(0))
 
-    runner.git().set_identity("bot", "bot@example.com")
+    Git(runner, Path("/ws")).set_identity("bot", "bot@example.com")
 
-    assert runner.calls == [
-        ["git", "config", "user.name", "bot"],
-        ["git", "config", "user.email", "bot@example.com"],
+    assert runner.call_args_list == [
+        call(["git", "config", "user.name", "bot"], cwd=Path("/ws")),
+        call(["git", "config", "user.email", "bot@example.com"], cwd=Path("/ws")),
     ]
 
 
 def test_branch_add_commit_push_argv() -> None:
-    runner = FakeRunner()
-    git = runner.git()
+    runner = MagicMock(return_value=CommandResult(0))
+    git = Git(runner, Path("/ws"))
 
     git.create_branch("b")
     git.add(["tests/a.py", "pages/p.py"])
     git.commit("msg")
     git.push("b")
 
-    assert runner.calls == [
-        ["git", "checkout", "-b", "b"],
-        ["git", "add", "--", "tests/a.py", "pages/p.py"],
-        ["git", "commit", "-m", "msg"],
-        ["git", "push", "-u", "origin", "b"],
+    assert runner.call_args_list == [
+        call(["git", "checkout", "-b", "b"], cwd=Path("/ws")),
+        call(["git", "add", "--", "tests/a.py", "pages/p.py"], cwd=Path("/ws")),
+        call(["git", "commit", "-m", "msg"], cwd=Path("/ws")),
+        call(["git", "push", "-u", "origin", "b"], cwd=Path("/ws")),
     ]
 
 
 def test_failed_command_raises() -> None:
-    runner = FakeRunner(returncode=1)
+    runner = MagicMock(return_value=CommandResult(1, stderr="boom"))
 
     with pytest.raises(RuntimeError):
-        runner.git().commit("msg")
+        Git(runner, Path("/ws")).commit("msg")
 
 
 def test_parse_git_status_handles_status_chars_renames_and_quotes() -> None:
