@@ -11,11 +11,12 @@ from web_test._run import run_sync
 from web_test.automation.coding_agent import (
     GROUNDING_POLICY,
     INSTRUCTIONS,
+    AutomationResult,
     build_automation_agent,
 )
 
 
-def _browser_capability(agent: Agent[object, str]) -> PlaywrightBrowser:
+def _browser_capability(agent: Agent[object, AutomationResult]) -> PlaywrightBrowser:
     found: list[object] = []
     agent.root_capability.apply(found.append)
     return next(c for c in found if isinstance(c, PlaywrightBrowser))
@@ -47,7 +48,7 @@ def _scripted(*responses: ModelResponse) -> FunctionModel:
     return FunctionModel(function=respond, stream_function=stream)
 
 
-def _tool_returns(result: AgentRunResult[str]) -> dict[str, object]:
+def _tool_returns(result: AgentRunResult[AutomationResult]) -> dict[str, object]:
     return {
         part.tool_name: part.content
         for message in result.all_messages()
@@ -88,13 +89,11 @@ def test_browser_tools_are_dispatched_through_the_agent(tmp_path: Path) -> None:
     model = _scripted(
         ModelResponse(
             parts=[
-                ToolCallPart(
-                    tool_name="navigate", args={"url": "https://automationexercise.com"}
-                )
+                ToolCallPart(tool_name="navigate", args={"url": "https://automationexercise.com"})
             ]
         ),
         ModelResponse(parts=[ToolCallPart(tool_name="snapshot", args={})]),
-        ModelResponse(parts=[TextPart(content="grounded")]),
+        ModelResponse(parts=[ToolCallPart(tool_name="final_result", args={"pr_body": None})]),
     )
     agent = build_automation_agent(model, workspace_dir=tmp_path)
 
@@ -103,3 +102,28 @@ def test_browser_tools_are_dispatched_through_the_agent(tmp_path: Path) -> None:
     returns = _tool_returns(result)
     assert "navigate" in returns
     assert "ref=e" in returns["snapshot"]
+
+
+def test_green_run_produces_a_pr_body(tmp_path: Path) -> None:
+    body = "## Summary\n\n...\n\n## Evidence\n\n...\n\n## Merge Danger\n\n..."
+    model = _scripted(
+        ModelResponse(parts=[ToolCallPart(tool_name="load_capability", args={"id": "pr"})]),
+        ModelResponse(parts=[ToolCallPart(tool_name="final_result", args={"pr_body": body})]),
+    )
+    agent = build_automation_agent(model, workspace_dir=tmp_path)
+
+    result = run_sync(agent.run("Automate the approved cases"))
+
+    assert "# Skill: pr" in str(_tool_returns(result)["load_capability"])
+    assert result.output.pr_body == body
+
+
+def test_red_run_produces_no_pr_body(tmp_path: Path) -> None:
+    model = _scripted(
+        ModelResponse(parts=[ToolCallPart(tool_name="final_result", args={"pr_body": None})]),
+    )
+    agent = build_automation_agent(model, workspace_dir=tmp_path)
+
+    result = run_sync(agent.run("Automate the approved cases"))
+
+    assert result.output.pr_body is None
