@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-from web_test.process import Runner
+from web_test.command import Runner
 
 
 class SuiteProtocol(Protocol):

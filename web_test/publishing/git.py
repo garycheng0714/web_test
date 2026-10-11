@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-from web_test.process import Runner, run_checked
+from web_test.command import CommandResult, Runner
 
 
 def parse_git_status(stdout: str) -> list[str]:
@@ -32,22 +32,24 @@ class Git:
     run: Runner
     workspace: Path
 
+    def _git(self, *args: str) -> CommandResult:
+        return self.run(["git", *args], cwd=self.workspace)
+
     def changed_paths(self) -> list[str]:
-        stdout = self.run(["git", "status", "--porcelain"], cwd=self.workspace).stdout
-        return parse_git_status(stdout)
+        return parse_git_status(self._git("status", "--porcelain").stdout)
 
     def set_identity(self, name: str, email: str) -> None:
-        run_checked(self.run, ["git", "config", "user.name", name], cwd=self.workspace)
-        run_checked(self.run, ["git", "config", "user.email", email], cwd=self.workspace)
+        self._git("config", "user.name", name).check()
+        self._git("config", "user.email", email).check()
 
     def create_branch(self, branch: str) -> None:
-        run_checked(self.run, ["git", "checkout", "-b", branch], cwd=self.workspace)
+        self._git("checkout", "-b", branch).check()
 
     def add(self, paths: list[str]) -> None:
-        run_checked(self.run, ["git", "add", "--", *paths], cwd=self.workspace)
+        self._git("add", "--", *paths).check()
 
     def commit(self, message: str) -> None:
-        run_checked(self.run, ["git", "commit", "-m", message], cwd=self.workspace)
+        self._git("commit", "-m", message).check()
 
     def push(self, branch: str, remote: str = "origin") -> None:
-        run_checked(self.run, ["git", "push", "-u", remote, branch], cwd=self.workspace)
+        self._git("push", "-u", remote, branch).check()

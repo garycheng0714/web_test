@@ -19,7 +19,7 @@ driving git and the GitHub CLI; it is not a model action.
 
 Implemented as a package of small modules rather than one file:
 
-- `process.py` — `CommandResult`, `Runner`, `subprocess_runner`, `run_checked`.
+- `command.py` — `CommandResult` (with `check()`), `Runner`, `subprocess_runner`.
 - `git.py` — `Git` facade (`changed_paths`, `set_identity`, `create_branch`, `add`, `commit`, `push`)
   plus the pure `parse_git_status`; `GitProtocol` is the injected seam.
 - `github.py` — `GitHub.open_pull_request` + `GitHubProtocol`.

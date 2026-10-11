@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from web_test.process import CommandResult
+from web_test.command import CommandResult
 from web_test.publishing.git import Git, parse_git_status
 
 
