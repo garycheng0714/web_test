@@ -5,7 +5,12 @@ import pytest
 from pydantic import HttpUrl, ValidationError
 
 from web_test.automation.coding_agent import AutomationResult
-from web_test.automation.entrypoint import automate, parse_case
+from web_test.automation.entrypoint import (
+    AutomationOutcome,
+    AutomationStatus,
+    automate,
+    parse_case,
+)
 
 SAMPLE = """\
 ---
@@ -68,7 +73,9 @@ def test_automate_publishes_on_green(tmp_path: Path) -> None:
     agent = MagicMock(return_value=AutomationResult(pr_body="## Summary\n\nbody"))
     git, pr, suite = _deps(files=["tests/a.py"], green=True)
 
-    assert automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite) == PR_URL
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome == AutomationOutcome(AutomationStatus.PUBLISHED, pr_url=PR_URL)
     assert agent.call_args == call(SAMPLE, workspace_dir=tmp_path)
     assert git.changed_paths.called
     assert pr.open_pull_request.called
@@ -79,7 +86,9 @@ def test_automate_skips_publish_when_the_agent_reports_red(tmp_path: Path) -> No
     agent = MagicMock(return_value=AutomationResult(pr_body=None))
     git, pr, suite = _deps(files=["tests/a.py"], green=True)
 
-    assert automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite) is None
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome == AutomationOutcome(AutomationStatus.AGENT_RED)
     suite.is_green.assert_not_called()
     pr.assert_not_called()
 
@@ -89,7 +98,9 @@ def test_automate_skips_publish_when_the_suite_is_red(tmp_path: Path) -> None:
     agent = MagicMock(return_value=AutomationResult(pr_body="body"))
     git, pr, suite = _deps(files=["tests/a.py"], green=False)
 
-    assert automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite) is None
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome == AutomationOutcome(AutomationStatus.SUITE_RED)
     git.changed_paths.assert_not_called()
     pr.assert_not_called()
 
@@ -99,7 +110,9 @@ def test_automate_skips_publish_when_nothing_changed(tmp_path: Path) -> None:
     agent = MagicMock(return_value=AutomationResult(pr_body="body"))
     git, pr, suite = _deps(files=[], green=True)
 
-    assert automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite) is None
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome == AutomationOutcome(AutomationStatus.NO_CHANGES)
     pr.assert_not_called()
 
 

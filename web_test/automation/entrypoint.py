@@ -1,5 +1,7 @@
 import argparse
 from collections.abc import Callable
+from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 
 import yaml
@@ -13,6 +15,21 @@ from web_test.publishing.github import GitHub
 from web_test.publishing.publish import Publisher
 from web_test.publishing.suite import Suite
 from web_test.write_guard import allowed_paths
+
+
+class AutomationStatus(StrEnum):
+    PUBLISHED = "published"
+    AGENT_RED = "agent_red"
+    SUITE_RED = "suite_red"
+    NO_CHANGES = "no_changes"
+
+
+@dataclass(frozen=True)
+class AutomationOutcome:
+    """How an automation run ended, and the opened PR's URL when there is one."""
+
+    status: AutomationStatus
+    pr_url: HttpUrl | None = None
 
 
 class CaseFile(BaseModel):
@@ -52,25 +69,27 @@ def automate(
     git: Git,
     pr: GitHub,
     suite: Suite,
-) -> HttpUrl | None:
-    """Implement the tests for one merged test-case artifact and open a PR when green.
-
-    Returns the opened PR's URL, else `None` (the agent reported a red suite, the
-    suite is red, or nothing permitted changed).
-    """
+) -> AutomationOutcome:
+    """Implement the tests for one merged test-case artifact, and publish when green."""
     path = Path(case_path)
     _validate_case_path(path)
     text = path.read_text(encoding="utf-8")
     case = parse_case(text)
     result = agent(text, workspace_dir=workspace)
+
     if result.pr_body is None:
-        return None
+        return AutomationOutcome(AutomationStatus.AGENT_RED)
+
     if not suite.is_green():
-        return None
+        return AutomationOutcome(AutomationStatus.SUITE_RED)
+
     files = allowed_paths(git.changed_paths())
     if not files:
-        return None
-    return Publisher(git=git, pr=pr).publish(case_id=case.id, body=result.pr_body, files=files)
+        return AutomationOutcome(AutomationStatus.NO_CHANGES)
+
+    pr_url = Publisher(git=git, pr=pr).publish(case_id=case.id, body=result.pr_body, files=files)
+
+    return AutomationOutcome(AutomationStatus.PUBLISHED, pr_url=pr_url)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -80,14 +99,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     workspace = Path(args.workspace)
-    pr_url = automate(
+    outcome = automate(
         args.case,
         workspace=workspace,
         git=Git(subprocess_runner, workspace),
         pr=GitHub(subprocess_runner, workspace),
         suite=Suite(subprocess_runner, workspace),
     )
-    print(pr_url or "no PR created")
+    print(outcome.pr_url or outcome.status.value)
     return 0
 
 
