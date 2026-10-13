@@ -1,7 +1,8 @@
 # AGENTS.md
 
 ## Project
-`web-test` — a Pydantic AI agent that drives a browser via `playwright-cli`.
+`web-test` — a Pydantic AI coding agent that turns merged QA test cases into Playwright Python
+tests, grounding the live page through the Pydantic AI Harness `PlaywrightBrowser` capability.
 Python 3.13, dependencies managed with `uv`.
 
 ## Bundled skills (load before coding)
@@ -18,11 +19,12 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 (adapted from the vendored qa skill; see ADR-0005).
 
 ## Commands
-- Run: `uv run main.py` (`main.py` is the only entrypoint)
+- Run the navigation demo: `uv run main.py`
+- Implement one merged test case: `uv run python -m web_test.automation.entrypoint --case test-case/<id>.md --workspace .`
 - Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
-- Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[skills]` are dependencies)
+- Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[coder,playwright,skills]` are dependencies)
 - `uv sync` to generate `uv.lock`
-- No lint, formatter, or typecheck are configured, and there is no CI.
+- No lint, formatter, or typecheck are configured. CI: `.github/workflows/ci.yml` (suite on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
 
 ## Conventions
 - Boundary data — model output, config, external input — is a Pydantic `BaseModel`; it validates and serializes. Data passed between our own modules is a `@dataclass`: it is light, stores callables naturally, and needs no validation.

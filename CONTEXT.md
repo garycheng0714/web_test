@@ -49,8 +49,8 @@ _Avoid_: page mode
 _Avoid_: script, test code
 
 **Gate**:
-Test Case 設計與自動化之間的**人工審核**點；審核通過才能進入自動化。以 Test Case 文件的
-front-matter `approval`（`draft` → `approved`）表示。
+Test Case 設計與自動化之間的**人工審核**點；審核通過才能進入自動化。以「新增 `test-case/<id>.md`
+的 PR 被 merge」表示。
 _Avoid_: approval, checkpoint
 
 **Snapshot**:
