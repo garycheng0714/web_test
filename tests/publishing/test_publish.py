@@ -1,107 +1,88 @@
-from datetime import date
+from unittest.mock import MagicMock, call
 
-from web_test.publishing.publish import allowed_paths, branch_name, publish
+from pydantic import HttpUrl
 
+from web_test.publishing.github import PullRequest
+from web_test.publishing.publish import (
+    PublishPlan,
+    allowed_paths,
+    branch_name,
+    commit_message,
+    plan_publish,
+    publish,
+)
 
-class RecordingGit:
-    def __init__(self, paths: list[str] | None = None) -> None:
-        self.paths = paths or []
-        self.calls: list[tuple] = []
-
-    def changed_paths(self) -> list[str]:
-        return list(self.paths)
-
-    def set_identity(self, name: str, email: str) -> None:
-        self.calls.append(("set_identity", name, email))
-
-    def create_branch(self, branch: str) -> None:
-        self.calls.append(("create_branch", branch))
-
-    def add(self, paths: list[str]) -> None:
-        self.calls.append(("add", list(paths)))
-
-    def commit(self, message: str) -> None:
-        self.calls.append(("commit", message))
-
-    def push(self, branch: str) -> None:
-        self.calls.append(("push", branch))
+CASE_ID = "test-case-0001"
+BODY = "## Summary\n\nbody"
+BRANCH = "automation/test-case-0001"
+PR_URL = HttpUrl("https://github.com/o/r/pull/7")
 
 
-class RecordingGitHub:
-    def __init__(self) -> None:
-        self.calls: list[dict] = []
-
-    def open_pull_request(self, *, base: str, head: str, title: str, body: str) -> None:
-        self.calls.append({"base": base, "head": head, "title": title, "body": body})
+def _git(paths: list[str]) -> MagicMock:
+    git = MagicMock()
+    git.changed_paths.return_value = list(paths)
+    return git
 
 
-class StubSuite:
-    def __init__(self, *, green: bool) -> None:
-        self.green = green
-
-    def is_green(self) -> bool:
-        return self.green
+def _suite(*, green: bool) -> MagicMock:
+    suite = MagicMock()
+    suite.is_green.return_value = green
+    return suite
 
 
-def _publish(git: RecordingGit, pr: RecordingGitHub, suite: StubSuite) -> str | None:
-    return publish(
-        case_ids=["TC-1", "TC-2"],
-        body="## Summary\n\nbody",
-        git=git,
-        pr=pr,
-        suite=suite,
-        today=date(2026, 10, 9),
-    )
+def test_plan_red_suite_is_none() -> None:
+    git = _git(["tests/a.py"])
+
+    assert plan_publish(case_id=CASE_ID, body=BODY, git=git, suite=_suite(green=False)) is None
+    assert git.method_calls == []
 
 
-def test_red_suite_publishes_nothing() -> None:
-    git = RecordingGit(paths=["tests/a.py"])
-    pr = RecordingGitHub()
+def test_plan_no_changes_is_none() -> None:
+    git = _git([])
 
-    assert _publish(git, pr, StubSuite(green=False)) is None
-    assert git.calls == []
-    assert pr.calls == []
+    assert plan_publish(case_id=CASE_ID, body=BODY, git=git, suite=_suite(green=True)) is None
+    assert git.method_calls == [call.changed_paths()]
 
 
-def test_no_changes_publishes_nothing() -> None:
-    git = RecordingGit(paths=[])
-    pr = RecordingGitHub()
+def test_plan_on_green_keeps_only_permitted_files() -> None:
+    git = _git(["tests/a.py", "README.md", "pages/p.py"])
 
-    assert _publish(git, pr, StubSuite(green=True)) is None
-    assert git.calls == []
-    assert pr.calls == []
+    plan = plan_publish(case_id=CASE_ID, body=BODY, git=git, suite=_suite(green=True))
+
+    assert plan == PublishPlan(case_id=CASE_ID, body=BODY, files=["tests/a.py", "pages/p.py"])
 
 
-def test_publishes_on_green() -> None:
-    git = RecordingGit(paths=["tests/a.py", "README.md", "pages/p.py"])
-    pr = RecordingGitHub()
+def test_publish_commits_and_opens_a_pr() -> None:
+    git = MagicMock()
+    pr = MagicMock()
+    pr.open_pull_request.return_value = PR_URL
+    plan = PublishPlan(case_id=CASE_ID, body=BODY, files=["tests/a.py", "pages/p.py"])
 
-    branch = _publish(git, pr, StubSuite(green=True))
-
-    assert branch == "automation/automationexercise-2026-10-09"
-    assert git.calls == [
-        (
-            "set_identity",
-            "github-actions[bot]",
-            "41898282+github-actions[bot]@users.noreply.github.com",
+    assert publish(plan, git=git, pr=pr) == PR_URL
+    assert git.method_calls == [
+        call.set_identity(
+            "github-actions[bot]", "41898282+github-actions[bot]@users.noreply.github.com"
         ),
-        ("create_branch", branch),
-        ("add", ["tests/a.py", "pages/p.py"]),
-        ("commit", "Add automated tests for TC-1, TC-2"),
-        ("push", branch),
+        call.create_branch(BRANCH),
+        call.add(["tests/a.py", "pages/p.py"]),
+        call.commit("Add automated tests for test-case-0001"),
+        call.push(BRANCH),
     ]
-    assert pr.calls == [
-        {
-            "base": "main",
-            "head": branch,
-            "title": "Add automated tests for TC-1, TC-2",
-            "body": "## Summary\n\nbody",
-        }
+    assert pr.method_calls == [
+        call.open_pull_request(
+            PullRequest(
+                base="main",
+                head=BRANCH,
+                title="Add automated tests for test-case-0001",
+                body=BODY,
+            )
+        )
     ]
 
 
-def test_branch_name_uses_feature_and_date() -> None:
-    assert branch_name("feature-x", date(2026, 1, 2)) == "automation/feature-x-2026-01-02"
+def test_branch_and_commit_use_case_id() -> None:
+    assert branch_name(CASE_ID) == "automation/test-case-0001"
+    assert commit_message(CASE_ID) == "Add automated tests for test-case-0001"
 
 
 def test_allowed_paths_keeps_only_guard_permitted() -> None:

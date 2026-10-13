@@ -1,12 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
 
 from web_test.command import Runner
-
-
-class SuiteProtocol(Protocol):
-    def is_green(self) -> bool: ...
 
 
 @dataclass(frozen=True)

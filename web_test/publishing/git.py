@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
 
 from web_test.command import CommandResult, Runner
 
@@ -16,15 +15,6 @@ def parse_git_status(stdout: str) -> list[str]:
             path = path.split(" -> ", 1)[1]
         paths.append(path.strip().strip('"'))
     return paths
-
-
-class GitProtocol(Protocol):
-    def changed_paths(self) -> list[str]: ...
-    def set_identity(self, name: str, email: str) -> None: ...
-    def create_branch(self, branch: str) -> None: ...
-    def add(self, paths: list[str]) -> None: ...
-    def commit(self, message: str) -> None: ...
-    def push(self, branch: str) -> None: ...
 
 
 @dataclass(frozen=True)
