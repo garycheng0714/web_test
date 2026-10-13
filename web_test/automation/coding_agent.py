@@ -79,7 +79,7 @@ def build_automation_agent(
         instructions=INSTRUCTIONS,
         capabilities=[
             LocalWorkspace(str(workspace_dir)),
-            Coder(),
+            Coder(sub_agents=False, repo_context=False),
             write_guard,
             Skills(
                 [str(SKILL_LIBRARY), str(PR_SKILL_LIBRARY)],
