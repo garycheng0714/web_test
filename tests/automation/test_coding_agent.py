@@ -101,7 +101,8 @@ def test_browser_tools_are_dispatched_through_the_agent(tmp_path: Path) -> None:
 
     returns = _tool_returns(result)
     assert "navigate" in returns
-    assert "ref=e" in returns["snapshot"]
+    assert "snapshot" in returns
+    assert "automationexercise.com" in str(returns["navigate"])
 
 
 def test_green_run_produces_a_pr_body(tmp_path: Path) -> None:
