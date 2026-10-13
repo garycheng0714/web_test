@@ -10,8 +10,9 @@ from web_test.command import subprocess_runner
 from web_test.planning.schema import CaseType, Priority
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub
-from web_test.publishing.publish import Publisher, allowed_paths
+from web_test.publishing.publish import Publisher
 from web_test.publishing.suite import Suite
+from web_test.write_guard import allowed_paths
 
 
 class CaseFile(BaseModel):

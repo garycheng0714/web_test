@@ -5,7 +5,6 @@ from pydantic import HttpUrl
 from web_test.publishing.github import PullRequest
 from web_test.publishing.publish import (
     Publisher,
-    allowed_paths,
     branch_name,
     commit_message,
 )
@@ -50,9 +49,3 @@ def test_publisher_commits_and_opens_a_pr() -> None:
 def test_branch_and_commit_use_case_id() -> None:
     assert branch_name(CASE_ID) == "automation/test-case-0001"
     assert commit_message(CASE_ID) == "Add automated tests for test-case-0001"
-
-
-def test_allowed_paths_keeps_only_guard_permitted() -> None:
-    paths = ["tests/a.py", "web_test/x.py", "README.md", "pages/p.py", "tests/n.txt"]
-
-    assert allowed_paths(paths) == ["tests/a.py", "pages/p.py"]

@@ -1,17 +1,11 @@
 from pydantic import HttpUrl
 
-from web_test import write_guard
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub, PullRequest
 
 BOT_NAME = "github-actions[bot]"
 BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com"
 BASE_BRANCH = "main"
-
-
-def allowed_paths(paths: list[str]) -> list[str]:
-    """The subset the write guard permits."""
-    return [path for path in paths if write_guard.check_write_permission(path).allow]
 
 
 def branch_name(case_id: str) -> str:

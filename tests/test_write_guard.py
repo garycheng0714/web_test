@@ -8,7 +8,7 @@ from pydantic_ai.models.function import FunctionModel
 from pydantic_ai_harness.filesystem import FileSystem
 
 from web_test._run import run_sync
-from web_test.write_guard import check_write_permission, write_guard
+from web_test.write_guard import allowed_paths, check_write_permission, write_guard
 
 
 @pytest.mark.parametrize(
@@ -25,6 +25,12 @@ def test_check_write_permission_allows(path: str) -> None:
 )
 def test_check_write_permission_rejects(path: str) -> None:
     assert not check_write_permission(path).allow
+
+
+def test_allowed_paths_keeps_only_permitted() -> None:
+    paths = ["tests/a.py", "web_test/x.py", "README.md", "pages/p.py", "tests/n.txt"]
+
+    assert allowed_paths(paths) == ["tests/a.py", "pages/p.py"]
 
 
 def _write_call(path: str) -> ModelResponse:

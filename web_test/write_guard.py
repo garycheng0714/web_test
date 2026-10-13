@@ -24,6 +24,11 @@ def check_write_permission(path: str) -> WritePermission:
     return WritePermission(error_msg=_rejection_reason(path))
 
 
+def allowed_paths(paths: list[str]) -> list[str]:
+    """The subset of `paths` the write guard permits."""
+    return [path for path in paths if check_write_permission(path).allow]
+
+
 def _rejection_reason(path: str) -> str | None:
     candidate = PurePosixPath(path)
     if candidate.is_absolute():
