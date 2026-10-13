@@ -1,10 +1,11 @@
 import argparse
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import HttpUrl
+from pydantic import ValidationError
 
 from web_test.automation.case_file import CaseFile
 from web_test.automation.coding_agent import AutomationResult, create_automation
@@ -21,14 +22,15 @@ class AutomationStatus(StrEnum):
     AGENT_RED = "agent_red"
     SUITE_RED = "suite_red"
     NO_CHANGES = "no_changes"
+    FAILED = "failed"
 
 
 @dataclass(frozen=True)
 class AutomationOutcome:
-    """How an automation run ended, and the opened PR's URL when there is one."""
+    """How an automation run ended, with a failure reason when there is one."""
 
     status: AutomationStatus
-    pr_url: HttpUrl | None = None
+    error: str | None = None
 
 
 def automate(
@@ -47,16 +49,19 @@ def automate(
     if result.pr_body is None:
         return AutomationOutcome(AutomationStatus.AGENT_RED)
 
-    if not suite.is_green():
-        return AutomationOutcome(AutomationStatus.SUITE_RED)
+    try:
+        if not suite.is_green():
+            return AutomationOutcome(AutomationStatus.SUITE_RED)
 
-    files = allowed_paths(git.changed_paths())
-    if not files:
-        return AutomationOutcome(AutomationStatus.NO_CHANGES)
+        files = allowed_paths(git.changed_paths())
+        if not files:
+            return AutomationOutcome(AutomationStatus.NO_CHANGES)
 
-    pr_url = Publisher(git=git, pr=pr).publish(case_id=case.id, body=result.pr_body, files=files)
+        Publisher(git=git, pr=pr).publish(case_id=case.id, body=result.pr_body, files=files)
+    except (RuntimeError, ValidationError, OSError) as error:
+        return AutomationOutcome(AutomationStatus.FAILED, error=str(error))
 
-    return AutomationOutcome(AutomationStatus.PUBLISHED, pr_url=pr_url)
+    return AutomationOutcome(AutomationStatus.PUBLISHED)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -73,7 +78,10 @@ def main(argv: list[str] | None = None) -> int:
         pr=GitHub(subprocess_runner, workspace),
         suite=Suite(subprocess_runner, workspace),
     )
-    print(outcome.pr_url or outcome.status.value)
+    if outcome.status is AutomationStatus.FAILED:
+        print(f"failed: {outcome.error}", file=sys.stderr)
+        return 1
+    print(outcome.status.value)
     return 0
 
 

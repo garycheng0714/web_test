@@ -2,7 +2,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, call
 
 import pytest
-from pydantic import HttpUrl
 
 from web_test.automation.coding_agent import AutomationResult
 from web_test.automation.entrypoint import AutomationOutcome, AutomationStatus, automate
@@ -19,8 +18,6 @@ test_type: Functional
 # Test Case 6: Contact Us Form
 """
 
-PR_URL = HttpUrl("https://github.com/o/r/pull/7")
-
 
 def _write_case(tmp_path: Path) -> Path:
     case_dir = tmp_path / "test-case"
@@ -34,7 +31,6 @@ def _deps(*, files: list[str], green: bool) -> tuple[MagicMock, MagicMock, Magic
     git = MagicMock()
     git.changed_paths.return_value = list(files)
     pr = MagicMock()
-    pr.open_pull_request.return_value = PR_URL
     suite = MagicMock()
     suite.is_green.return_value = green
     return git, pr, suite
@@ -47,7 +43,7 @@ def test_automate_publishes_on_green(tmp_path: Path) -> None:
 
     outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
 
-    assert outcome == AutomationOutcome(AutomationStatus.PUBLISHED, pr_url=PR_URL)
+    assert outcome == AutomationOutcome(AutomationStatus.PUBLISHED)
     assert agent.call_args == call(SAMPLE, workspace_dir=tmp_path)
     assert git.changed_paths.called
     assert pr.open_pull_request.called
@@ -97,3 +93,25 @@ def test_automate_rejects_a_non_artifact_path(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         automate(path, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
     agent.assert_not_called()
+
+
+def test_automate_reports_a_publish_failure(tmp_path: Path) -> None:
+    case = _write_case(tmp_path)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/a.py"], green=True)
+    pr.open_pull_request.side_effect = RuntimeError("gh boom")
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome == AutomationOutcome(AutomationStatus.FAILED, error="gh boom")
+
+
+def test_automate_reports_a_suite_failure(tmp_path: Path) -> None:
+    case = _write_case(tmp_path)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/a.py"], green=True)
+    suite.is_green.side_effect = FileNotFoundError("uv")
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.FAILED

@@ -1,7 +1,5 @@
 from unittest.mock import MagicMock, call
 
-from pydantic import HttpUrl
-
 from web_test.publishing.github import PullRequest
 from web_test.publishing.publish import (
     Publisher,
@@ -12,19 +10,18 @@ from web_test.publishing.publish import (
 CASE_ID = "test-case-0001"
 BODY = "## Summary\n\nbody"
 BRANCH = "automation/test-case-0001"
-PR_URL = HttpUrl("https://github.com/o/r/pull/7")
 
 
 def test_publisher_commits_and_opens_a_pr() -> None:
     git = MagicMock()
     pr = MagicMock()
-    pr.open_pull_request.return_value = PR_URL
 
-    url = Publisher(git=git, pr=pr).publish(
-        case_id=CASE_ID, body=BODY, files=["tests/a.py", "pages/p.py"]
+    assert (
+        Publisher(git=git, pr=pr).publish(
+            case_id=CASE_ID, body=BODY, files=["tests/a.py", "pages/p.py"]
+        )
+        is None
     )
-
-    assert url == PR_URL
     assert git.method_calls == [
         call.set_identity(
             "github-actions[bot]", "41898282+github-actions[bot]@users.noreply.github.com"

@@ -1,5 +1,3 @@
-from pydantic import HttpUrl
-
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub, PullRequest
 
@@ -23,7 +21,7 @@ class Publisher:
         self.git = git
         self.pr = pr
 
-    def publish(self, *, case_id: str, body: str, files: list[str]) -> HttpUrl:
+    def publish(self, *, case_id: str, body: str, files: list[str]) -> None:
         branch = branch_name(case_id)
         message = commit_message(case_id)
 
@@ -32,6 +30,6 @@ class Publisher:
         self.git.add(files)
         self.git.commit(message)
         self.git.push(branch)
-        return self.pr.open_pull_request(
+        self.pr.open_pull_request(
             PullRequest(base=BASE_BRANCH, head=branch, title=message, body=body)
         )
