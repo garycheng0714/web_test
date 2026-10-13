@@ -44,3 +44,8 @@ Implemented as a single agent (ADR-0005):
 argument). The qa mockup/live-URL sections are out of v1 scope.
 
 `uv run pytest`: 12 passed, 1 failed — only the pre-existing header PUA test.
+
+**Artifact shape superseded (ADR-0006).** The designer agent and `QaReport` stand, but the
+artifact it feeds changed: cases are now one `test-case/<id>.md` per case with a front-matter, opened
+as a PR — not a single qa-table document at `.scratch/<feature>/test-cases.md` with `approval`. The
+`render` / `is_approved` path is replaced by the ticket-06 rewrite.

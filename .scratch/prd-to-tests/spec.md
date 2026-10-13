@@ -2,6 +2,12 @@
 
 Status: ready-for-agent
 
+> **Revised (ADR-0006).** The gate is now the **merge** of a PR that adds a `test-case/<id>.md`
+> file (one case per file), and the automation side runs in CI, triggered by that merge (no manual
+> `automate` call, no `approval` front-matter). Grounding uses the in-process Pydantic AI Harness
+> `PlaywrightBrowser` capability, not `playwright-cli`. The `plan`→PR rewrite is tracked in
+> `issues/06-plan-cli.md` and is not yet implemented; the user stories below keep their intent.
+
 ## Problem Statement
 
 The builder is a test engineer who knows the QA workflow deeply: reading a PRD, deriving
@@ -20,12 +26,12 @@ hand-writing everything or blindly delegating to it.
 Build a QA automation agent as the vehicle, and learn how to build it by doing:
 
 1. **Plan** — the agent reads a PRD and, acting as a QA engineer, derives structured test
-   cases (happy, negative/validation, boundary/equivalence), traceable to requirements,
-   written to a human-reviewable markdown file.
-2. **Human review gate** — the builder reviews, edits, and approves the cases.
-3. **Automate** — the agent turns each approved case into a runnable Playwright **Python**
-   test built on the Page Object Model, exploring the live application to ground locators
-   and expected values, then runs the tests and self-heals failures.
+   cases (happy, negative/validation, boundary/equivalence), traceable to requirements, and
+   opens a PR that adds one `test-case/<id>.md` per case (front-matter ids and base URL).
+2. **Human review gate** — the builder reviews and merges that PR; the merge is the approval.
+3. **Automate** — the merge triggers a CI run: the coding agent turns the case into a runnable
+   Playwright **Python** test on the Page Object Model, explores the live application to ground
+   locators and expected values, runs the tests, and opens a PR when green.
 
 **Learning method (not a product feature).** The builder stays the one doing the thinking:
 OpenCode acts as a Socratic coach that asks questions and gives reasoned feedback *after*
@@ -48,10 +54,10 @@ template. See `learn/MISSION.md`.
 11. As a QA engineer, I want cases prioritized and typed with constrained values, so that the suite is filterable and legible.
 12. As a QA engineer, I want each case to declare its preconditions, so that setup is explicit.
 13. As a QA engineer, I want each case's steps written as clear, executable steps, so that a manual QA engineer can run them.
-14. As a QA engineer, I want the test cases as a structured markdown file, so that I can review and edit them before automation.
-15. As a QA engineer, I want the pipeline to stop after planning until I approve, so that no test is generated from unreviewed cases.
-16. As a QA engineer, I want approval expressed as a simple state in the test-case file, so that the gate is explicit and auditable.
-17. As a QA engineer, I want the automation stage to take the application base URL as a command-line argument, so that I can target different environments.
+14. As a QA engineer, I want each test case as its own markdown file, so that I can review and edit it before automation.
+15. As a QA engineer, I want automation to start only after I merge the test-case PR, so that no test is generated from unreviewed cases.
+16. As a QA engineer, I want approval to be the merge of the test-case PR, so that the gate is explicit in version control.
+17. As a QA engineer, I want the base URL declared in each test-case file, so that a case targets its application.
 18. As a QA engineer, I want each approved case turned into a runnable Playwright Python test, so that I do not hand-write it.
 19. As a QA engineer, I want the automation stage to explore the live app, so that locators and expected values match reality.
 20. As a QA engineer, I want the agent to reuse and extend existing page objects instead of duplicating them, so that the suite does not fork.
@@ -68,7 +74,7 @@ template. See `learn/MISSION.md`.
 31. As a maintainer, I want the two stages as separate agents/modules, so that each has a focused prompt and can be tested alone.
 32. As a maintainer, I want the Page Object conventions encoded as short rules plus a checked-in example, so that generated tests match a house style without always-loaded bloat.
 33. As a maintainer, I want every module unit-testable, so that each seam is verified directly.
-34. As a maintainer, I want the command runner injectable, so that tests run without spawning a browser.
+34. As a maintainer, I want the git/gh command runner injectable, so that tests never touch a real repository.
 35. As a maintainer, I want the file-write guard to be a pure function, so that the allowed-and-rejected paths are unit-tested directly.
 36. As a maintainer, I want the state-setup helper to be its own module, so that it can be swapped between API and UI setup.
 37. As a maintainer, I want the snapshot-cleaning step to be its own module, so that its selection rule is testable.
@@ -79,18 +85,17 @@ template. See `learn/MISSION.md`.
 
 ## Implementation Decisions
 
-**Pipeline shape.** Two stages with a human gate between, exposed as one CLI with two
-subcommands: `plan` (PRD → test cases) and `automate` (test cases → Playwright Python tests).
-`automate` refuses to run unless the test-case file is marked approved. Review is a state in
-the artifact, not a separate service.
+**Pipeline shape.** An artifact hand-off, not one CLI with a gate flag. `plan` (PRD → one
+`test-case/<id>.md` per case) opens a PR; **merging it is the Gate**; the merge triggers the
+automation workflow, which runs the entrypoint on the merged file and opens a test PR when green.
+There is no `approval` state and no `automate` argument that refuses unreviewed cases.
 
-**Final form — local CLI.** v1 runs on the builder's machine, against the test repository. It
-is not an MCP server, a CI job, or a long-running service. The human review gate is a local
-step between the two subcommands.
+**Where it runs.** The automation side runs in CI (GitHub Actions), because the Gate is a GitHub
+merge. `plan` may run locally. The earlier "local CLI only" framing is superseded.
 
 **PRD input.** A required `--prd <path>` argument, read as markdown or plain text. Images,
-docx, PDF, and URLs are out of scope. A small sample PRD is checked in for acceptance. There is
-**no base-URL field**; the automation stage takes a base URL from elsewhere (e.g. a CLI argument).
+docx, PDF, and URLs are out of scope. A small sample PRD is checked in for acceptance. The PRD
+has no base-URL field; the **base URL lives in each test-case file's front-matter** (`base_url`).
 
 **Agent harness.** Use Pydantic AI Harness capabilities as the backbone (ADR-0004): `Skills` loads
 skill instructions on demand; delegation is allowed. The first stage is a single agent (ADR-0005).
@@ -98,30 +103,24 @@ skill instructions on demand; delegation is allowed. The first stage is a single
 **Module — Test Case designer.** A single Pydantic AI agent that reads the PRD text and produces
 the test-case document. It loads the `qa-test-case-generation` skill through Pydantic AI Harness
 `Skills` (a deferred capability the model loads with `load_capability`) and returns a structured
-`QaReport`, rendered to the qa table markdown. Coverage policy: for each requirement, one case per
+`QaReport` (ticket 06 renders each case to its own `test-case/<id>.md`). Coverage policy: for each
+requirement, one case per
 *applicable* technique (happy, negative/validation, boundary/equivalence); no padding. It records
 `requirement_ids` for traceability, and merges duplicate scenarios while keeping every source
 requirement id. There is no separate PRD parsing module.
 
-**Test-case artifact.** A single markdown document per feature at
-`.scratch/<feature>/test-cases.md`, in the qa table format, with front-matter `approval:
-draft|approved`. Each row records the test case id, `requirement_ids`, module/feature, scenario,
-preconditions, steps, test data, expected result, and constrained priority/severity/test-type/status
-values. It lives with the feature's planning artifacts under the local tracker convention.
+**Test-case artifact.** One file per case at `test-case/test-case-<id>.md`, with YAML front-matter:
+required `id` and `base_url`; optional `requirement_ids`, `priority`, `test_type`. The body is the
+human-reviewable case (scenario, steps, expected result). Merging the PR that adds the file is the
+Gate; the workflow acts on exactly the newly added file.
 
-**Module — Test automator.** A Pydantic AI agent that consumes the approved cases and
-produces Playwright **Python** tests. It has function tools to:
-- run a `playwright-cli` command from an argv list (returning stdout/stderr);
-- inspect the test repository — list, glob, grep, and read files — to reuse existing page
-  objects and follow the repo's conventions (read-only);
-- write a generated artifact (see the write guard);
-- run the generated tests with the test runner and return the result.
-
-Its instructions encode the workflow: inspect the repo → explore the live app → ground
-locators → write page objects and tests → run → diagnose and repair on failure (bounded to
-three attempts). One test file per requirement, cases grouped inside it; priority and type
-become test markers; non-automatable cases become a visible fixme with a reason and are
-listed in the report.
+**Module — Test automator.** A Pydantic AI coding agent (`web_test/automation/coding_agent.py`) that
+takes one merged case and produces Playwright **Python** tests. Its capabilities are the Harness
+`Coder` (file/shell tools), the write guard, `Skills`, and `PlaywrightBrowser` (grounding). Its
+instructions encode the workflow: load the page-object-model skill → inspect the repo → ground the
+pages live via the browser capability → write/reuse page objects and tests → run `uv run pytest` →
+repair on failure (bounded) → when green, load the `pr` skill and emit the PR body as
+`AutomationResult.pr_body`. Non-automatable cases become a visible fixme with a reason.
 
 **Module — Snapshot cleaner.** Before grounding, a dedicated step turns a raw page snapshot
 plus a case's keywords into a pruned snapshot (only the relevant nodes). It is its own
@@ -151,13 +150,13 @@ under the tests directory, page objects under the pages directory, and the fixtu
 files. Everything else (traversal, source files, config, other extensions) is rejected. The
 guard is a pure function.
 
-**Shared browser module.** A single deep module wraps `playwright-cli`: it owns argv
-construction, timeouts, and output truncation, and it accepts an injected command runner so
-tests can substitute a fake. It also exposes a close helper. The navigation entrypoint is
-refactored to use it.
+**Shared browser module (superseded).** The earlier plan to wrap the external `playwright-cli` in a
+shared module is dropped; grounding goes through the in-process `PlaywrightBrowser` capability
+(ADR-0006).
 
-**Grounding and the TypeScript gap.** `playwright-cli` emits TypeScript; the emitted code is
-treated as reference material and translated to Python (see ADR-0003).
+**Grounding (revised).** Grounding uses the `PlaywrightBrowser` capability: `navigate` then
+`snapshot` returns an accessibility tree with `aria-ref` handles to target. The `playwright-cli`
+TypeScript-to-Python translation gap no longer applies.
 
 **Model.** Default to a stronger model for the reasoning stages, configurable via environment
 variable.
@@ -174,25 +173,29 @@ workspace is required.
 - **Every module is unit-tested at its seam**, with external dependencies injected.
 - **Primary seam — Test Case designer.** Tests override the model with a Pydantic AI test
   model, then assert the produced structured `QaReport` (coverage, traceability via
-  `requirement_ids`, dedup, ids) and the rendered document's `approval` front-matter. No network.
-  The `qa-test-case-generation` skill is loaded via harness `Skills` from `.agents/libraries/`.
-- **Primary seam — Test automator.** Tests override the model to script tool calls, then
-  assert the end-to-end effects: correct argv reaches the browser tool, correct page-object
-  and test content is written, an existing page object is reused rather than duplicated, a
-  failing run triggers repair, and unautomatable cases become fixme. No browser or network.
+  `requirement_ids`, dedup, ids). No network. The `qa-test-case-generation` skill is loaded via
+  harness `Skills` from `.agents/libraries/`.
+- **Primary seam — Test automator.** Tests override the model to script tool calls, then assert
+  the end-to-end effects: the grounding tools are attached, page-object/test content is written,
+  an existing page object is reused rather than duplicated, a failing run triggers repair, and
+  unautomatable cases become fixme. Unit tests spawn no browser or network; the browser toolset is
+  exercised against the SUT in its own tests.
+- **Entrypoint seam.** `automate` takes injected `agent`, `git`, `pr`, and `suite`; tests inject
+  fakes and assert the `AutomationOutcome`
+  (`published`/`agent_red`/`suite_red`/`no_changes`/`failed`).
 - **Secondary seam — write guard**, a pure function: accepts test files, page objects, and
   setup files; rejects traversal, other extensions, source files, config, and writes outside
   the allowed directories.
 - **Secondary seam — snapshot cleaner**, a pure function: given a raw snapshot and a case's
   keywords, keeps only the relevant nodes.
 - **Secondary seam — state setup**: asserted with a fake API/UI adapter.
-- **Secondary seam — CLI gate**: `automate` refuses unreviewed cases.
-- The command runner is injected so no seam spawns `playwright-cli`.
-- Prior art: none — this repo has no test suite yet; this feature introduces the first tests.
+- The command runner is injected so no seam runs real git/gh in tests.
+- Prior art: the suite under `tests/`.
 
 ## Out of Scope
 
-- Other delivery forms — an MCP server, a CI job, or a long-running service; v1 is a local CLI.
+- Other delivery forms — an MCP server or a long-running service; the automation side runs as a
+  merge-triggered CI job.
 - Delegating code edits to an existing coding agent (see ADR-0001).
 - PRD formats other than markdown/plain text: images, docx, PDF, URL.
 - A PR review gate after automation; only the test-case review gate exists in v1.
@@ -209,8 +212,8 @@ workspace is required.
 - This spec supersedes the earlier `playwright-test-generator` spec, which covered only the
   automation stage and mis-stated the problem, and the earlier TypeScript direction.
 - First automation run requires a one-time browser install for Playwright's Python bindings.
-- `playwright-cli` keeps a shared default browser session across invocations, so exploration
-  commands compose naturally; the session is closed at the end of a run.
+- The `PlaywrightBrowser` capability starts Chromium on the first tool call and closes it when the
+  run ends; a run that never browses never launches one.
 - **Resolved:** the standalone PRD parsing step was dropped; the first stage is a single agent
   (`PRD text → QaReport`) that loads the `qa-test-case-generation` skill via harness `Skills`
-  (ADR-0005). Base URL is no longer a PRD field.
+  (ADR-0005). The base URL lives in each test-case file's front-matter, not the PRD.

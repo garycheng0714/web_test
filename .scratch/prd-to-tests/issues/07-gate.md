@@ -6,7 +6,7 @@ command).
 
 **Blocked by:** 05
 
-**Status:** ready-for-human
+**Status:** wontfix
 
 - [x] The test-case document carries an explicit approval state with defined values (`draft` → `approved`)
 - [x] A pure function reports whether the document is approved
@@ -15,18 +15,10 @@ command).
 
 ## Comments
 
-The qa table has its own per-case `status` column (`NotRun`…); the document-level gate uses a
-separate front-matter field to avoid the collision:
+**Superseded (wontfix).** The gate is no longer a front-matter `approval` state on a single
+document. It is now the **merge** of the PR that adds a `test-case/<id>.md` file; the automation
+workflow runs on that merge (agent-in-ci ticket 06). Approval by editing a file line gives way to
+the GitHub review/merge. See ADR-0006, which supersedes ADR-0002's gate medium.
 
-```yaml
----
-approval: draft   # draft | approved
----
-```
-
-- `web_test/document.py` — `is_approved(path)` reads the front-matter and returns a bool (pure,
-  unit-tested for both states).
-- `write_report()` refuses to overwrite an `approved` file unless `force=True`, so re-running the
-  designer cannot silently discard a human approval.
-
-Implemented together with ticket 05. `uv run pytest`: 12 passed, 1 failed (pre-existing header PUA).
+`is_approved` / `ApprovedDocumentError` (`web_test/planning/document.py`) remain only until the
+`plan` rewrite (ticket 06) replaces the single qa-table document; they are not part of the new gate.
