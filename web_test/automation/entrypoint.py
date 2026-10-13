@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from web_test.automation.case_file import CaseFile
 from web_test.automation.coding_agent import AutomationResult, create_automation
 from web_test.command import subprocess_runner
+from web_test.observability import configure_observability
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub
 from web_test.publishing.publish import Publisher
@@ -70,6 +71,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workspace", default=".", help="repository the agent reads and edits")
     args = parser.parse_args(argv)
 
+    configure_observability()
     workspace = Path(args.workspace)
     outcome = automate(
         args.case,

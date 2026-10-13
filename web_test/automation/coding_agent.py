@@ -10,6 +10,7 @@ from pydantic_ai_harness.playwright import EgressPolicy, PlaywrightBrowser
 
 from web_test._run import run_sync
 from web_test.model import resolve_model
+from web_test.observability import log_usage
 from web_test.paths import REPO_ROOT
 from web_test.write_guard import write_guard
 
@@ -103,4 +104,6 @@ def create_automation(
     A run without a workspace fails at its start, so it is required.
     """
     agent = build_automation_agent(model or resolve_model(), workspace_dir=workspace_dir)
-    return run_sync(agent.run(test_steps)).output
+    result = run_sync(agent.run(test_steps))
+    log_usage(result)
+    return result.output

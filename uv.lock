@@ -2059,6 +2059,7 @@ name = "web-test"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "logfire" },
     { name = "pydantic-ai" },
     { name = "pydantic-ai-harness", extra = ["coder", "playwright", "skills"] },
     { name = "pyyaml" },
@@ -2073,6 +2074,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "logfire", specifier = ">=5.1.0" },
     { name = "pydantic-ai", specifier = ">=2.54.0" },
     { name = "pydantic-ai-harness", extras = ["coder", "playwright", "skills"], specifier = ">=0.54.0" },
     { name = "pyyaml", specifier = ">=6.0" },
