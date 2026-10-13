@@ -4,12 +4,11 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-import yaml
-from pydantic import BaseModel, HttpUrl
+from pydantic import HttpUrl
 
+from web_test.automation.case_file import CaseFile
 from web_test.automation.coding_agent import AutomationResult, create_automation
 from web_test.command import subprocess_runner
-from web_test.planning.schema import CaseType, Priority
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub
 from web_test.publishing.publish import Publisher
@@ -32,35 +31,6 @@ class AutomationOutcome:
     pr_url: HttpUrl | None = None
 
 
-class CaseFile(BaseModel):
-    """The machine-readable front-matter of a merged test-case artifact."""
-
-    id: str
-    base_url: HttpUrl
-    requirement_ids: list[str] = []
-    priority: Priority = Priority.MEDIUM
-    test_type: CaseType = CaseType.FUNCTIONAL
-
-
-def _front_matter(text: str) -> dict[str, object]:
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return {}
-    for index, line in enumerate(lines[1:], start=1):
-        if line.strip() == "---":
-            return yaml.safe_load("\n".join(lines[1:index])) or {}
-    return {}
-
-
-def parse_case(text: str) -> CaseFile:
-    return CaseFile.model_validate(_front_matter(text))
-
-
-def _validate_case_path(path: Path) -> None:
-    if path.parent.name != "test-case" or not path.name.startswith("test-case-") or path.suffix != ".md":
-        raise ValueError(f"{path} is not a test-case artifact (expected test-case/<id>.md).")
-
-
 def automate(
     case_path: str | Path,
     *,
@@ -71,10 +41,7 @@ def automate(
     suite: Suite,
 ) -> AutomationOutcome:
     """Implement the tests for one merged test-case artifact, and publish when green."""
-    path = Path(case_path)
-    _validate_case_path(path)
-    text = path.read_text(encoding="utf-8")
-    case = parse_case(text)
+    case, text = CaseFile.from_path(case_path)
     result = agent(text, workspace_dir=workspace)
 
     if result.pr_body is None:
