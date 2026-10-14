@@ -14,9 +14,10 @@ from web_test.automation.coding_agent import (
     AutomationResult,
     build_automation_agent,
 )
+from web_test.automation.repair_guard import AutomationDeps
 
 
-def _browser_capability(agent: Agent[object, AutomationResult]) -> PlaywrightBrowser:
+def _browser_capability(agent: Agent[AutomationDeps, AutomationResult]) -> PlaywrightBrowser:
     found: list[object] = []
     agent.root_capability.apply(found.append)
     return next(c for c in found if isinstance(c, PlaywrightBrowser))

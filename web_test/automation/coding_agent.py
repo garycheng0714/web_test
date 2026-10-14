@@ -9,8 +9,14 @@ from pydantic_ai_harness import Coder, Skills
 from pydantic_ai_harness.playwright import EgressPolicy, PlaywrightBrowser
 
 from web_test._run import run_sync
+from web_test.automation.repair_guard import (
+    REPAIR_ATTEMPTS,
+    AutomationDeps,
+    RepairBudgetExceeded,
+    repair_guard,
+)
 from web_test.model import resolve_model
-from web_test.observability import log_usage
+from web_test.observability import log_trace, log_usage
 from web_test.paths import REPO_ROOT
 from web_test.write_guard import write_guard
 
@@ -22,7 +28,6 @@ SKILL_LIBRARY = REPO_ROOT / ".agents" / "libraries" / "coding_agent"
 PR_SKILL_LIBRARY = REPO_ROOT / ".agents" / "skills"
 SKILL_NAME = "page-object-model"
 PR_SKILL_NAME = "pr"
-
 
 class AutomationResult(BaseModel):
     """What an automation run returns: the PR body, or nothing when the suite stayed red."""
@@ -56,18 +61,36 @@ INSTRUCTIONS = (
     "browser starts on first use and closes when the run ends, so there is no close step. Take "
     "the base URL from the case's front-matter `base_url`. If it cannot be determined, stop and "
     "report what is missing rather than guessing.\n\n"
-    "Verify: after writing, run `uv run pytest <path> -q`. If it fails, fix it and rerun, up to 3 "
-    "attempts. Only claim success when the run is green. When it is green, call "
+    "Tests: build locators from the snapshot's roles and accessible names. Before creating a page "
+    "object, read `pages/base_page.py` and an existing page object; follow the base class's "
+    "constructor and patterns. Write test and page-object code with Playwright's **Python** API "
+    "(`page.goto`, `page.click`, `expect`, `page.on(\"dialog\", lambda d: d.accept())`); the browser "
+    "tools you grounded with (`navigate`, `snapshot`, `click`, `handle_next_dialog`, `tabs`) are not "
+    "Python APIs and must not appear in the code. After opening a page, wait for it to settle "
+    "(`page.wait_for_load_state(\"networkidle\")`) before reading or interacting: a URL/title check "
+    "can pass before the page's scripts load, and a submit handler attached by script then ignores "
+    "the click. Locate content that "
+    "appears only after an interaction (a success message, a confirmation dialog) with a locator "
+    "that resolves to exactly one element — scope it to its region or use a specific class chain; "
+    "every locator (for an action as well as an assertion) must be unique, since an ambiguous one "
+    "fails with a strict-mode violation. Create any file "
+    "a test needs with pytest's `tmp_path`: take `tmp_path` as a test parameter and write the file "
+    "with `(tmp_path / \"name\").write_text(...)`; upload via the page object's "
+    "`set_input_files(str(tmp_path / \"name\"))`. Never use `pytest.tmp_path` or a `page.context.set_*` "
+    "method. Write generated tests directly under `tests/`. The write tool accepts only Python files "
+    "under `tests/`, `pages/`, and `components/`, so never write data files into the workspace.\n\n"
+    "Verify: after writing, run `uv run pytest <path> -q`. If it fails, fix it and rerun, up to "
+    f"{REPAIR_ATTEMPTS} attempts. Only claim success when the run is green. When it is green, call "
     f"load_capability('{PR_SKILL_NAME}') and write the pull-request body for these changes in that "
-    "skill's template, returning it as `pr_body`. When the suite is still red after 3 attempts, "
-    "stop and return `pr_body` as null — never write a body for a red suite. Keep comments "
+    f"skill's template, returning it as `pr_body`. When the suite is still red after {REPAIR_ATTEMPTS} "
+    "attempts, stop and return `pr_body` as null — never write a body for a red suite. Keep comments "
     "minimal, matching the surrounding code."
 )
 
 
 def build_automation_agent(
     model: Model | str, *, workspace_dir: str | Path
-) -> Agent[object, AutomationResult]:
+) -> Agent[AutomationDeps, AutomationResult]:
     """Assemble the coding agent that grounds and writes tests inside `workspace_dir`.
 
     Kept separate from `create_automation` so a test can inspect the agent's capabilities and
@@ -82,6 +105,7 @@ def build_automation_agent(
             LocalWorkspace(str(workspace_dir)),
             Coder(sub_agents=False, repo_context=False),
             write_guard,
+            repair_guard,
             Skills(
                 [str(SKILL_LIBRARY), str(PR_SKILL_LIBRARY)],
                 include=[SKILL_NAME, PR_SKILL_NAME],
@@ -104,6 +128,10 @@ def create_automation(
     A run without a workspace fails at its start, so it is required.
     """
     agent = build_automation_agent(model or resolve_model(), workspace_dir=workspace_dir)
-    result = run_sync(agent.run(test_steps))
+    try:
+        result = run_sync(agent.run(test_steps, deps=AutomationDeps()))
+    except RepairBudgetExceeded:
+        return AutomationResult(pr_body=None)
     log_usage(result)
+    log_trace(result)
     return result.output
