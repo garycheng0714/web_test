@@ -30,34 +30,18 @@ class CaseType(StrEnum):
     DATA_PERSISTENCE = "DataPersistence"
 
 
-class CaseStatus(StrEnum):
-    NOT_RUN = "NotRun"
-    PASS = "Pass"
-    FAIL = "Fail"
-    BLOCKED = "Blocked"
+class Step(BaseModel):
+    action: str
+    expected_result: str
 
 
 class Case(BaseModel):
-    test_case_id: str
     requirement_ids: list[str]
     module_feature: str
     test_scenario: str
-    preconditions: list[str]
-    test_steps: list[str]
-    test_data: str | None = None
-    expected_result: str
+    preconditions: list[str] = []
+    steps: list[Step]
     priority: Priority
     severity: Severity
     test_type: CaseType
-    status: CaseStatus = CaseStatus.NOT_RUN
     notes: str = ""
-
-
-class QaReport(BaseModel):
-    requirement_summary: list[str]
-    coverage_areas: list[str]
-    assumptions: list[str]
-    clarifications_needed: list[str]
-    test_cases: list[Case]
-    missing_unclear_requirements: list[str]
-    suggested_improvements: list[str]

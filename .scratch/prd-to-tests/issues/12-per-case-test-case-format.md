@@ -6,16 +6,16 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] `Case.steps` is a list of `Step(action, expected_result)`; `QaReport` and its report-level fields are removed
-- [ ] `design_test_cases` returns `list[Case]` and the designer agent's `output_type` is `list[Case]`
-- [ ] `Case` keeps `requirement_ids`, `module_feature`, `test_scenario`, `preconditions`, `priority`, `severity`, `test_type`, `notes`; drops `test_case_id`, `test_data`, `status`
-- [ ] A pure `render_case(case, *, id, base_url) -> str` produces the file; unit-tested
-- [ ] File layout: hand-written front-matter template (inline `requirement_ids`, key order `id`, `base_url`, `requirement_ids`, `priority`, `test_type`), `# {module_feature}: {test_scenario}`, `**Severity:** …`, `## Preconditions`, `## Test Steps` table, `## Notes` (empty Preconditions/Notes sections omitted)
-- [ ] The rendered front-matter parses with `web_test/automation/case_file.py`'s `CaseFile`
-- [ ] The house skill `qa-test-case-generation/SKILL.md` output returns only cases, and its `clarifications_needed` wording moves to the case-level `notes`
-- [ ] Old `render` / `write_report` / `is_approved` / `ApprovedDocumentError` removed; `tests/planning/*` updated
+- [x] `Case.steps` is a list of `Step(action, expected_result)`; `QaReport` and its report-level fields are removed
+- [x] `design_test_cases` returns `list[Case]` and the designer agent's `output_type` is `list[Case]`
+- [x] `Case` keeps `requirement_ids`, `module_feature`, `test_scenario`, `preconditions`, `priority`, `severity`, `test_type`, `notes`; drops `test_case_id`, `test_data`, `status`
+- [x] A pure `render_case(case, *, id, base_url) -> str` produces the file; unit-tested
+- [x] File layout: hand-written front-matter template (inline `requirement_ids`, key order `id`, `base_url`, `requirement_ids`, `priority`, `test_type`), `# {module_feature}: {test_scenario}`, `**Severity:** …`, `## Preconditions`, `## Test Steps` table, `## Notes` (empty Preconditions/Notes sections omitted)
+- [x] The rendered front-matter parses with `web_test/automation/case_file.py`'s `CaseFile`
+- [x] The house skill `qa-test-case-generation/SKILL.md` output returns only cases, and its `clarifications_needed` wording moves to the case-level `notes`
+- [x] Old `render` / `write_report` / `is_approved` / `ApprovedDocumentError` removed; `tests/planning/*` updated
 
 ## Comments
 
@@ -35,3 +35,30 @@ Decisions from review:
 
 The reference `test-case-0001.md` was a hand-written sample (see ticket 05's comment), so it is the
 target shape by agreement, not because it was a spec.
+
+Implemented:
+
+- `web_test/planning/schema.py` — added `Step(action, expected_result)`; `Case` now
+  `requirement_ids`, `module_feature`, `test_scenario`, `preconditions`, `steps`, `priority`,
+  `severity`, `test_type`, `notes`; removed `QaReport` and `CaseStatus`.
+- `web_test/planning/designer.py` — `design_test_cases(...) -> list[Case]`, `output_type=list[Case]`,
+  reworded `INSTRUCTIONS`; dropped the unused `PRD_PATH` import.
+- `web_test/planning/document.py` — replaced the qa-table `render` / `write_report` / `is_approved` /
+  `ApprovedDocumentError` with `render_case(case, *, id, base_url) -> str`: hand-written front-matter
+  (`id`, `base_url`, inline `requirement_ids`, `priority`, `test_type`), `# {module}: {scenario}`,
+  `**Severity:** …`, `## Preconditions`, `## Test Steps` table, `## Notes`; empty Preconditions/Notes
+  omitted; `|`/newlines escaped in table cells.
+- Removed `web_test/planning/plan.py` (old single-doc path) and `paths.TEST_CASES_PATH`; ticket 13
+  builds the new `plan` command.
+- `.agents/libraries/test_case_designer/qa-test-case-generation/SKILL.md` — Output returns only the
+  cases (new fields, per-step `expected_result`); `clarifications_needed` and `test_data` wording
+  removed (ambiguity → the case's `notes`, representative values → the step).
+- Tests: rewrote `tests/planning/test_designer.py` (list output; unknown `test_type` rejected) and
+  `tests/planning/test_document.py` (`render_case` format, empty-section omission, and a
+  `CaseFile.from_text` round-trip); deleted `tests/planning/test_plan.py`.
+
+`uv run pytest`: 62 passed, 1 skipped.
+
+Not done (out of this ticket's scope): `docs/adr/0005`, `docs/adr/0006`, and
+`.scratch/prd-to-tests/spec.md` still describe `QaReport` / the old artifact; the spec rewrite is
+tracked separately (see ticket 06's/AI-CI notes).

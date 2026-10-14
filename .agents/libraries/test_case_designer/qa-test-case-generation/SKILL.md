@@ -36,7 +36,7 @@ Extract and organize:
   ranges, date rules, and file constraints.
 - Search, filter, sort, pagination, reset, save/submit/cancel, refresh/reopen, persistence,
   duplicates, notifications, and messages.
-- Track unclear or missing details under `clarifications_needed`; do not hide ambiguity inside
+- Track unclear or missing details in the affected case's `notes`; do not hide ambiguity inside
   test cases.
 
 ### 2. Test Case Design
@@ -106,7 +106,7 @@ Apply before finalizing.
   preconditions, action under test, input category, and expected result. Different wording alone
   does not justify a separate case.
 - Merge cases that test the same behavior and differ only by minor examples; list the
-  representative values in `test_data`.
+  representative values on the relevant step.
 - Keep cases separate when role, permission, ownership, status/workflow stage, validation rule or
   boundary, error message or expected behavior, risk/severity, UI vs backend behavior, or
   save/submit/delete outcome changes meaningfully.
@@ -115,21 +115,15 @@ Apply before finalizing.
 
 ## Output
 
-Return the structured result (fields: `requirement_summary`, `coverage_areas`, `assumptions`,
-`clarifications_needed`, `test_cases`, `missing_unclear_requirements`, `suggested_improvements`).
+Return only the test cases, as a list. Each case records:
 
-Each test case records:
-
-- `test_case_id`: unique, stable (e.g. `TC-<MODULE>-001`).
 - `requirement_ids`: the requirement id(s) it covers.
-- `module_feature`, `test_scenario`, `preconditions`, `test_steps`, `test_data`,
-  `expected_result`.
+- `module_feature`, `test_scenario`, `preconditions`, `notes`.
+- `steps`: a list where each step is an `action` with its own `expected_result`.
 - `priority`: `High`, `Medium`, or `Low`.
 - `severity`: `Critical`, `Major`, `Minor`, or `Trivial`.
 - `test_type`: one of `Functional`, `Negative`, `Boundary`, `Validation`, `UI`, `Permission`,
   `Workflow`, `Integration`, `Regression`, `Usability`, `DataPersistence`.
-- `status`: initial value `NotRun`.
-- `notes`.
 
-Put prerequisites in `preconditions`, not the first step. Put concrete values in `test_data`.
-Use `notes` for source or assumptions when a case is inferred rather than stated.
+Put prerequisites in `preconditions`, not the first step. Use `notes` for source or assumptions when
+a case is inferred rather than stated.
