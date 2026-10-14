@@ -1,9 +1,9 @@
 # 05: Automation entrypoint and approval gate
 
-**What to build:** A single automation entrypoint that reads the approved test-case document, refuses to
-do anything unless the document is approved (the human Gate), hands the whole document to the coding
-agent, then hands the resulting changed files and PR body to the publisher. It is the seam the CI
-workflow calls.
+**What to build:** A single automation entrypoint that reads one merged `test-case/<id>.md`, has the
+coding agent implement it, and hands the resulting PR body to the publisher. It is the seam the CI
+workflow calls. (The approval gate is the PR merge, handled by the trigger in ticket 06 — not a
+runtime check.)
 
 **Blocked by:** 02 Deterministic publisher, 03 Grounding on the in-process browser capability,
 04 Agent-produced PR body.
@@ -14,7 +14,7 @@ workflow calls.
 - [x] Validates the artifact (path shape + front-matter `id`/`base_url`); rejects anything else
 - [x] Wires the coding agent to the publisher, passing the workspace through; branch/commit come from the case id
 - [x] Runnable from the command line and importable for tests
-- [x] Unit-tested with a fake agent and a fake publisher (ordering, red skips publish, path validation)
+- [x] Unit-tested with a fake agent and fake `git`/`pr`/`suite` (ordering, red skips publish, path validation)
 
 ## Comments
 
