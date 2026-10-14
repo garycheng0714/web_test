@@ -6,7 +6,7 @@ merge then triggers the automation workflow. Not yet implemented.
 
 **Blocked by:** 05
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 - [ ] `plan --prd <path>` is a required-argument command; a missing argument prints usage and exits
 - [ ] Each case is written to `test-case/test-case-<id>.md` (front-matter: `id`, `base_url`, `requirement_ids`, `priority`, `test_type`) per ADR-0006
@@ -15,6 +15,10 @@ merge then triggers the automation workflow. Not yet implemented.
 - [ ] Unit-tested with the model overridden; no network
 
 ## Comments
+
+**Superseded (wontfix) by ticket 13.** The scope is the same, but the per-case file format changed
+(ADR-0006 → the `test-case-0001.md` shape): the schema/renderer is ticket 12 and the command is
+ticket 13. This ticket's id policy (`test-case-%04d`, assigned by scanning `test-case/`) carries over.
 
 Replaces the earlier "write `.scratch/<feature>/test-cases.md` with `approval: draft`" design (which
 ADR-0006 supersedes). The designer agent (ticket 05) still produces the structured `QaReport`; this
