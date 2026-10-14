@@ -38,3 +38,26 @@ Tests live in `tests/` and run under pytest with Playwright's Python bindings. T
 `pytest-playwright` plugin provides the `page` fixture and defaults to chromium; pass `--headed`
 to watch a run. To use another browser, install it first with `uv run playwright install firefox`
 before passing `--browser firefox`. No Node/TypeScript toolchain is required.
+
+## Configuration
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `WEB_TEST_MODEL` | `openai-chat:kimi-k2.7-code` | Override the model resolved by `resolve_model()`. |
+| `OPENCODE_API_KEY` | — | OpenCode Go key for the default model. |
+| `WEB_TEST_REPAIR_ATTEMPTS` | `3` | Max fix cycles for a failing suite (the automate workflow sets `10`). |
+| `WEB_TEST_USAGE` | unset | Print the run's token usage and cost to stderr when set. |
+| `WEB_TEST_TRACE` | unset | Print the tool-call sequence and per-request usage when set. |
+| `LOGFIRE_TOKEN` | unset | Send pydantic-ai spans to Logfire; without it they print to the console. |
+
+Debug a run's cost with the usage log:
+
+```bash
+WEB_TEST_USAGE=1 WEB_TEST_REPAIR_ATTEMPTS=10 \
+uv run python -m web_test.automation.entrypoint --case test-case/<id>.md --workspace .
+```
+
+## Models
+
+Model runs with cost/quality notes: `.scratch/agent-in-ci/model-runs.md`.
+
