@@ -25,3 +25,17 @@
   廣告網域（`googlesyndication.com`、`doubleclick.net` 等）；`test_test_cases.py` 連跑 6/6 穩定。
 - **發現於**: Stage A（TC-ENG-004）。
 - **狀態**: mitigated（網路層封鎖）；SUT 為第三方網站，無法修改其 HTML。
+
+## automationexercise.com — 聯絡表單成功訊息有隱藏重複節點
+
+- **SUT / page**: https://automationexercise.com/contact_us（送出並接受 confirm 對話框後的狀態）
+- **現象**: 成功訊息被渲染在**兩個** div：`div.status.alert.alert-success`（可見）與
+  `div.alert-success.alert`（**隱藏**，文字相同）。
+- **證據**: `page.get_by_text("Success! Your details have been submitted successfully.")` 命中 **2**
+  個（一個 visible、一個 hidden）；`expect(locator).to_be_visible()` 在「命中多個」時失敗，
+  即使訊息明明可見。`page.locator(".status.alert.alert-success")` 只命中可見那個 → 通過。
+- **影響**: 以 text locator 斷言成功訊息會**穩定失敗**（不是 flake）。
+- **處置**: 用**唯一** locator（明確 class/role 鏈或 `.first`），別用會命中隱藏重複節點的
+  `get_by_text`。
+- **發現於**: automation 量測（grounding via `PlaywrightBrowser` capability）。
+- **狀態**: open（SUT 為第三方網站，無法修改其 HTML）。
