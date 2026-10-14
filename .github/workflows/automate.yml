@@ -29,7 +29,9 @@ jobs:
       - name: Find the merged test case
         id: case
         run: |
-          mapfile -t files < <(git diff --name-only --diff-filter=A "${{ github.event.pull_request.base.sha }}" HEAD -- 'test-case/*.md')
+          # The merged PR's own changes: the last commit on the base branch. Covers merge and squash
+          # merges (GitHub's default); a multi-commit rebase merge would show only its last commit.
+          mapfile -t files < <(git diff --name-only --diff-filter=A HEAD^ HEAD -- 'test-case/*.md')
           if [ "${#files[@]}" -ne 1 ]; then
             echo "expected exactly one added test-case file, got ${#files[@]}"
             printf '%s\n' "${files[@]}"
@@ -39,7 +41,8 @@ jobs:
 
       - name: Implement the tests and open a PR
         env:
-          WEB_TEST_MODEL: ${{ vars.WEB_TEST_MODEL }}
+          WEB_TEST_MODEL: ${{ vars.WEB_TEST_MODEL || 'google:gemini-2.5-flash' }}
+          WEB_TEST_REPAIR_ATTEMPTS: ${{ vars.WEB_TEST_REPAIR_ATTEMPTS || '10' }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uv run python -m web_test.automation.entrypoint --case "${{ steps.case.outputs.path }}" --workspace .
