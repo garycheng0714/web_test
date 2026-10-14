@@ -2,8 +2,10 @@ import subprocess
 
 from pydantic_ai import Agent
 
+from web_test.model import resolve_model
+
 agent = Agent(
-    "google:gemini-2.5-flash-lite",
+    resolve_model(),
     name="web_test_agent",
     instructions=(
         "You drive a real browser through the `playwright_cli` tool. "

@@ -24,9 +24,9 @@ Implemented against the new PR-merge gate (see `docs/adr/0006-pr-merge-gate-and-
   installs Chromium, finds the **single newly added** `test-case/*.md` via
   `git diff --name-only --diff-filter=A HEAD^ HEAD -- 'test-case/*.md'` (covers merge/squash merges;
   fails when it is not exactly one), then runs
-  `python -m web_test.automation.entrypoint --case <file> --workspace .` with `GOOGLE_API_KEY` (secret),
-  `GH_TOKEN` (`GITHUB_TOKEN`, same-repo PRs only), and — since the run needs a capable model and enough
-  repair budget — `WEB_TEST_MODEL` (`vars.WEB_TEST_MODEL || 'google:gemini-2.5-flash'`) and
+  `python -m web_test.automation.entrypoint --case <file> --workspace .` with `OPENCODE_API_KEY`
+  (secret), `GH_TOKEN` (`GITHUB_TOKEN`, same-repo PRs only), and — since the run needs a capable model
+  and enough repair budget — `WEB_TEST_MODEL` (`vars.WEB_TEST_MODEL || 'openai-chat:kimi-k2.7-code'`) and
   `WEB_TEST_REPAIR_ATTEMPTS` (`vars.WEB_TEST_REPAIR_ATTEMPTS || '10'`), both overridable via repo
   variables.
 - `.github/workflows/ci.yml` — new; runs `uv run pytest -q` on every pull request, so the coding agent's

@@ -30,8 +30,9 @@ uv run playwright install chromium
 
 `.github/workflows/ci.yml` runs the suite on every pull request. `.github/workflows/automate.yml`
 runs when a `test-case/**` pull request is **merged**: it finds the newly added case file, has the
-coding agent implement its tests, and opens a PR when the suite is green. It needs a model key secret
-(`GOOGLE_API_KEY`) and the default `GITHUB_TOKEN` (same-repo PRs only).
+coding agent implement its tests, and opens a PR when the suite is green. It needs an OpenCode Go
+model key secret (`OPENCODE_API_KEY`; the model defaults to `openai-chat:kimi-k2.7-code`) and the
+default `GITHUB_TOKEN` (same-repo PRs only).
 
 Tests live in `tests/` and run under pytest with Playwright's Python bindings. The
 `pytest-playwright` plugin provides the `page` fixture and defaults to chromium; pass `--headed`

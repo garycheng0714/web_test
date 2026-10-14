@@ -41,8 +41,8 @@ jobs:
 
       - name: Implement the tests and open a PR
         env:
-          WEB_TEST_MODEL: ${{ vars.WEB_TEST_MODEL || 'google:gemini-2.5-flash' }}
+          WEB_TEST_MODEL: ${{ vars.WEB_TEST_MODEL || 'openai-chat:kimi-k2.7-code' }}
           WEB_TEST_REPAIR_ATTEMPTS: ${{ vars.WEB_TEST_REPAIR_ATTEMPTS || '10' }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uv run python -m web_test.automation.entrypoint --case "${{ steps.case.outputs.path }}" --workspace .
