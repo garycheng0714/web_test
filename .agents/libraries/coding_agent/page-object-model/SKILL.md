@@ -13,7 +13,8 @@ existing suite and a UI change stays a one-place edit.
 - `pages/` — one page object per screen, subclassing `BasePage` and defining its `path` property
   (`BasePage.path` is abstract, so a page object without it cannot be instantiated).
 - `components/` — shared UI regions reused across pages (e.g. `Header`).
-- `tests/` — tests and fixtures; pytest fixtures live in `tests/conftest.py`.
+- `tests/` — tests and fixtures; pytest fixtures live in `tests/conftest.py`. Generated tests go
+  **directly under `tests/`**, not in a subdirectory.
 - No `__init__.py`; imports are top-level (e.g. `from pages.home_page import HomePage`),
   resolved by `pythonpath = ["."]`.
 
@@ -53,6 +54,25 @@ existing suite and a UI change stays a one-place edit.
 13. **A shared component owns the actions on its own elements**, and a page delegates to it — e.g.
     `Header.click_nav_link(name)` plus `HomePage.click_nav_link(name)`. Tests never reach through a
     component (`page.header.nav_link(...).click()`).
+14. **A page object defines only its `path` and its actions/queries — it inherits
+    `BasePage.__init__(page, header, base_url=...)`.** Do not define `__init__`; if you must, call
+    `super().__init__(page, header)`. The shared `Header` comes through the base class.
+15. **To upload a file, take `tmp_path` as a test parameter** (not `pytest.tmp_path`), write the
+    fixture there — `(tmp_path / "f.txt").write_text("...")` — and call the page object's method that
+    runs `set_input_files(str(tmp_path / "f.txt"))`. Never call a `page.context.set_*` method.
+16. **The code you write uses Playwright's Python API** (`page.goto`, `page.click`, `expect`,
+    `page.on("dialog", lambda d: d.accept())`, ...). The browser **tools** you used to ground
+    (`navigate`, `snapshot`, `click`, `handle_next_dialog`, `tabs`) are not Python APIs and must
+    never appear in test or page-object code.
+17. **Every locator must resolve to exactly one element** — for an action as well as an assertion. A
+    bare text/role locator can match a hidden duplicate or a same-named element elsewhere (a page
+    "Home" link plus the header's), which fails with a strict-mode violation; scope it to its region
+    (`page.locator("#contact-page").get_by_role(...)`) or use a specific class chain
+    (`.status.alert.alert-success`), never a page-wide ambiguous locator.
+18. **After navigating, wait for the page to settle before interacting** —
+    `page.wait_for_load_state("networkidle")`. A URL/title/heading check can pass before the page's
+    scripts load, and a form whose submit handler is attached by script then ignores the click: no
+    dialog fires and nothing is submitted.
 
 ## House example (read these before writing)
 
@@ -66,6 +86,10 @@ existing suite and a UI change stays a one-place edit.
 - `tests/test_home_page.py` — how a test drives a page object and asserts.
 
 ## Locator caution
+
+Content that appears only after an interaction (a success message, a confirmation dialog) is not in
+the page's initial snapshot; locate it with a unique locator scoped to its region or a specific class
+chain (rule 17), not a bare `get_by_text(...)` that can match a hidden duplicate.
 
 Accessible-name matching is substring and case-insensitive by default. When a name must match
 exactly, pass `exact=True`. If a snapshot or terminal looks clean but a match fails, inspect
