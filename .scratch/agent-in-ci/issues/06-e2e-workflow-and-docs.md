@@ -12,8 +12,8 @@ behind. The change is documented.
 - [x] CI runs the suite on every pull request (`.github/workflows/ci.yml`)
 - [x] README and AGENTS updated (two entrypoints; CI now exists)
 - [x] An ADR records the decisions; the spec rewrite is deferred to the `plan` work
-- [ ] An end-to-end merge lands one commit on a new branch and an open PR whose body follows the `pr` skill
-- [ ] A merged PR whose suite ends red creates no branch and no PR (the no-op is unit-tested in the publisher; not dispatch-verified)
+- [x] An end-to-end merge lands one commit on a new branch and an open PR whose body follows the `pr` skill
+- [x] A merged PR whose suite ends red creates no branch and no PR (the no-op is unit-tested in the publisher; not dispatch-verified)
 
 ## Comments
 
@@ -35,10 +35,26 @@ Implemented against the new PR-merge gate (see `docs/adr/0006-pr-merge-gate-and-
 - `CONTEXT.md` — the **Gate** term now means "the `test-case/<id>.md` PR is merged" (was: front-matter
   `approval`).
 
-Not verified: the two end-to-end items need a push and a real merged PR on GitHub; the runner dispatch
-has not been executed (same limitation ticket 01 recorded), so the workflow's model/repair settings and
-its `HEAD^` file detection are set from local findings, not runner-verified. The red-→-no-PR behavior is
-covered by `tests/publishing/test_publish.py` at the unit level.
+Not verified: the red-→-no-PR behavior is covered by `tests/publishing/test_publish.py` at the unit level
+only; it was not dispatch-verified (a dispatch red would need a case whose generated suite stays red).
+
+Dispatch-verified (item 1): another merged `test-case/**` PR, `test-case/test-case-0003.md`
+(squash-merged as `af01225`), triggered `automate` run
+[`38530673108`](https://github.com/garycheng0714/web_test/actions/runs/38530673108) — green in 12m57s.
+It pushed exactly one commit (`300521e`, "Add automated tests for test-case-0003") on the new branch
+`automation/test-case-0003` and opened PR
+[#4](https://github.com/garycheng0714/web_test/pull/4) (base `main`) whose body follows the `pr`
+skill (Summary / Evidence / Merge Danger). Notes for a rerun:
+
+- The repo needs **Settings → Actions → General → Allow GitHub Actions to create and approve pull
+  requests** (`can_approve_pull_request_reviews: true`). Without it, the run reaches the publisher,
+  pushes the branch, then fails at `gh pr create` with "GitHub Actions is not permitted to create or
+  approve pull requests" (this happened on the first attempt, run `38527852533`; the branch
+  `automation/test-case-0002` was left orphaned, and its `pr_body` was lost).
+- `default_workflow_permissions` is `read`, which is fine: `automate.yml` declares
+  `permissions: contents: write, pull-requests: write`, and the branch push already succeeded under it.
+- Re-running needs a **new** `test-case/<id>.md`; editing an existing one adds no file and fails the
+  `--diff-filter=A` "exactly one added" check.
 
 Deferred: the `plan` agent's PR creation and the `prd-to-tests/spec.md` rewrite (the spec still describes
 the old gate/artifact); the front-matter schema in ADR-0006 is the contract they must follow.
