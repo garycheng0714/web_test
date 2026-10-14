@@ -21,10 +21,14 @@ Implemented against the new PR-merge gate (see `docs/adr/0006-pr-merge-gate-and-
 
 - `.github/workflows/automate.yml` — now `on: pull_request: types:[closed]` + `paths: ['test-case/**']`,
   gated by `if: github.event.pull_request.merged == true`. It checks out with full history, syncs deps,
-  installs Chromium, finds the **single newly added** `test-case/*.md` (`git diff --diff-filter=A`,
-  failing when it is not exactly one), then runs
+  installs Chromium, finds the **single newly added** `test-case/*.md` via
+  `git diff --name-only --diff-filter=A HEAD^ HEAD -- 'test-case/*.md'` (covers merge/squash merges;
+  fails when it is not exactly one), then runs
   `python -m web_test.automation.entrypoint --case <file> --workspace .` with `GOOGLE_API_KEY` (secret),
-  `WEB_TEST_MODEL` (var, optional) and `GH_TOKEN` (`GITHUB_TOKEN`, same-repo PRs only).
+  `GH_TOKEN` (`GITHUB_TOKEN`, same-repo PRs only), and — since the run needs a capable model and enough
+  repair budget — `WEB_TEST_MODEL` (`vars.WEB_TEST_MODEL || 'google:gemini-2.5-flash'`) and
+  `WEB_TEST_REPAIR_ATTEMPTS` (`vars.WEB_TEST_REPAIR_ATTEMPTS || '10'`), both overridable via repo
+  variables.
 - `.github/workflows/ci.yml` — new; runs `uv run pytest -q` on every pull request, so the coding agent's
   test PR has a status check before a human merges it.
 - `README.md`, `AGENTS.md` — document the two entrypoints and the two workflows.
@@ -32,8 +36,9 @@ Implemented against the new PR-merge gate (see `docs/adr/0006-pr-merge-gate-and-
   `approval`).
 
 Not verified: the two end-to-end items need a push and a real merged PR on GitHub; the runner dispatch
-has not been executed (same limitation ticket 01 recorded). The red-→-no-PR behavior is covered by
-`tests/publishing/test_publish.py` at the unit level.
+has not been executed (same limitation ticket 01 recorded), so the workflow's model/repair settings and
+its `HEAD^` file detection are set from local findings, not runner-verified. The red-→-no-PR behavior is
+covered by `tests/publishing/test_publish.py` at the unit level.
 
 Deferred: the `plan` agent's PR creation and the `prd-to-tests/spec.md` rewrite (the spec still describes
 the old gate/artifact); the front-matter schema in ADR-0006 is the contract they must follow.
