@@ -74,3 +74,54 @@ Open (decide before implementing):
 Boundaries: Jev supplies judgments, not facts; it is not an authorization or security gate. Counts and
 arithmetic (e.g. coverage tallies) stay in code. It must not generate cases, render the artifact, or
 decide "what the requirement should be" — it only checks what the supplied text supports.
+
+## Research — Jev experiment on the `register-login` artifact (2026-10-15)
+
+Method: built batched requests from the PRD text and the `DesignOutput` / rendered artifact
+(`test-case/test-case-register-login.md`, 7 cases, 11 open questions); ran
+`jev-decide decide ... --provider typesafe` (model `jev-1.13.0`); read the answers and the exit code.
+
+Summary:
+
+| Check | Jev question | Signal this run | Verdict |
+| --- | --- | --- | --- |
+| Per-requirement coverage | `noul` × 6 | 6/6, all `p = 0.99` | Drop from Jev → do as a code count |
+| Groundedness | `noul` per case × 7 | 7/7 grounded, `p` 0.93–0.97 | **Add** (core) |
+| Dedup | pairwise `noul` × 21 | 0 duplicate pairs, `P(dup) ≤ 0.10` | **Add** |
+| Boundary-policy | `noul` per case × 7 | Vacuous — no boundary/UI/validation cases; 7/7 still in policy (`p` 0.89–0.93) | Defer |
+| Open-question validity | `noul` + `choice` × 11 | 11/11 valid (`p` 0.56–0.94); all `missing_rule`; **#11 flagged at `p = 0.56` (exit 2)** — a test-data/process question, not a product gap | Advisory + fix the class in the skill |
+
+Results:
+
+- **Per-requirement coverage** (`noul` × 6): 6/6 covered, every `p = 0.99`. Near-zero signal — the
+  policy keeps it trivially true.
+- **Groundedness** (`noul` per case × 7): 7/7 grounded (`p` 0.93–0.97). Clean on the right-sized
+  output; this is the check that would catch a return to inferred cases.
+- **Dedup** (pairwise `noul` × 21): 0 duplicate pairs (`P(dup) ≤ 0.10`). Matches the manual read.
+- **Boundary-policy** (`noul` per case): the run has **no boundary/UI/validation cases** (all
+  Functional/Workflow/Negative), so the check is **vacuous**; every case is nonetheless in policy
+  (`p` 0.89–0.93).
+- **Open-question validity** (`noul` + `choice` × 11): all 11 judged genuinely undefined
+  (`p` 0.56–0.94), all classified `missing_rule` (`p` 0.70–0.99). **One flagged** — OQ #11
+  ("where does the pre-existing test account come from?") at `p = 0.56`, exit `2`: it is a
+  **test-data/process** question, not a product-behaviour gap (and it cites `PRD §9#4`, which does
+  discuss the topic), i.e. an off-type open question.
+- **Cost**: two batches, ~6.8k/0.7k and ~8.6k/0.9k tokens; `exit 2` fired on the low-confidence item
+  (default `min_probability` 0.8). CJK (Chinese PRD + English cases) judged with high confidence, so
+  the CJK caveat is not acute for these checks.
+
+Conclusion (recommendation):
+
+- **Add**: **groundedness** and **dedup** — the two checks that key off the failure mode this repo
+  actually had (inferred cases, restated cases), as an on-demand advisory review.
+- **Do not use Jev for coverage** — always ~0.99; make it a code count instead ("does each FR have a
+  grounded happy-path case?").
+- **Defer** the boundary-policy check — vacuous on healthy output; groundedness/dedup already catch
+  the over-generation it would flag.
+- **Open-question validity**: keep as advisory (it caught a real off-type question), but fix the class
+  at the source: add a skill rule that an `open_question` must be a product-behaviour gap, never a
+  test-data/process question. Then Jev's `oq` check is a backstop, not the primary defence.
+
+So the "baseline three" is really **two**: groundedness + dedup. Coverage moves to code; the rest is
+deferred or handled in the skill.
+
