@@ -111,6 +111,8 @@ Each case records:
   `Workflow`, `Integration`, `Regression`, `Usability`, `DataPersistence`.
 
 `open_questions`: the behaviours the PRD leaves undefined or contradictory, each phrased as a question
-for the product owner. Never turn an open question into a case.
+for the product owner. An open question must be about the **product's behaviour** — never about test
+data, the test environment, or the test process (e.g. where a fixture account comes from). Never turn
+an open question into a case.
 
 Put prerequisites in `preconditions`, not the first step. Use `notes` for the source of a case.
