@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 from web_test.planning.cases_writer import CaseWriter, escape_cell
 from web_test.planning.schema import Case
 from web_test.publishing.git import Git
@@ -7,7 +9,8 @@ from web_test.publishing.publish import BASE_BRANCH, BOT_EMAIL, BOT_NAME
 TEST_CASE_DIR = "test-case"
 
 
-def plan_pr_body(prd_stem: str, cases: list[Case]) -> str:
+def plan_pr_body(prd_stem: str, cases: list[Case], open_questions: Iterable[str] = ()) -> str:
+    questions = list(open_questions)
     lines = [
         f"Adds {len(cases)} test cases from `{prd_stem}.md`.",
         "",
@@ -19,6 +22,12 @@ def plan_pr_body(prd_stem: str, cases: list[Case]) -> str:
         f"| {escape_cell(', '.join(case.requirement_ids))} |"
         for index, case in enumerate(cases, start=1)
     ]
+    if questions:
+        lines += [
+            "",
+            f"**Open questions ({len(questions)})** — the PRD leaves these undefined:",
+            *(f"- {question}" for question in questions),
+        ]
     return "\n".join(lines) + "\n"
 
 
@@ -30,14 +39,22 @@ class PlanPublisher:
         self.pr = pr
         self.writer = writer
 
-    def publish(self, *, branch: str, message: str, prd_stem: str, cases: list[Case]) -> list[str]:
+    def publish(
+        self,
+        *,
+        branch: str,
+        message: str,
+        prd_stem: str,
+        cases: list[Case],
+        open_questions: Iterable[str] = (),
+    ) -> list[str]:
         # Branch from a freshly fetched main before writing, so the new (untracked) file never
         # collides with origin/main's checkout.
         self.git.set_identity(BOT_NAME, BOT_EMAIL)
         self.git.fetch()
         self.git.create_branch(branch, base=f"origin/{BASE_BRANCH}")
 
-        name = self.writer.write(prd_stem, cases)
+        name = self.writer.write(prd_stem, cases, open_questions)
         files = [f"{TEST_CASE_DIR}/{name}"]
 
         self.git.add(files)
@@ -48,7 +65,7 @@ class PlanPublisher:
                 base=BASE_BRANCH,
                 head=branch,
                 title=message,
-                body=plan_pr_body(prd_stem, cases),
+                body=plan_pr_body(prd_stem, cases, open_questions),
             )
         )
         return files

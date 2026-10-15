@@ -45,3 +45,10 @@ class Case(BaseModel):
     severity: Severity
     test_type: CaseType
     notes: str = ""
+
+
+class DesignOutput(BaseModel):
+    """The designer's result: the test cases, plus the behaviours the PRD left undefined."""
+
+    cases: list[Case]
+    open_questions: list[str] = []

@@ -102,17 +102,18 @@ has no base-URL field; the **base URL lives in each test-case file's front-matte
 skill instructions on demand; delegation is allowed. The first stage is a single agent (ADR-0005).
 
 **Module — Test Case designer.** A single Pydantic AI agent that reads the PRD text and produces
-the test cases as a `list[Case]`. It loads the `qa-test-case-generation` skill through Pydantic AI
-Harness `Skills` (a deferred capability the model loads with `load_capability`). Coverage policy: for
-each requirement, one case per
-*applicable* technique (happy, negative/validation, boundary/equivalence); no padding. It records
-`requirement_ids` for traceability, and merges duplicate scenarios while keeping every source
-requirement id. There is no separate PRD parsing module.
+`DesignOutput` (`cases` + `open_questions`). It loads the `qa-test-case-generation` skill through
+Pydantic AI Harness `Skills` (a deferred capability the model loads with `load_capability`). Coverage
+policy: per requirement, one happy-path case, at most one negative/validation case, and a boundary
+case only when the PRD states the boundary or the UI exposes it; no padding. Behaviour the PRD leaves
+undefined is returned as `open_questions`, never as a case. It records `requirement_ids` for
+traceability and merges duplicate scenarios. There is no separate PRD parsing module.
 
 **Test-case artifact (ADR-0007).** One file per PRD at `test-case/test-case-<prd-stem>.md`, with YAML
 front-matter `id` (＝the PRD stem) and `base_url`. The body has a PRD-level title and one section per
 case; each section carries a small machine-readable block (`requirement_ids`, `priority`,
-`test_type`) plus the human-reviewable case (preconditions, steps, expected result). Re-planning the
+`test_type`) plus the human-reviewable case (preconditions, steps, expected result), and an optional
+`## Open Questions` section lists the behaviours the PRD leaves undefined. Re-planning the
 same PRD overwrites the file. Merging the PR that adds the file is the Gate; the workflow acts on the
 newly added file.
 

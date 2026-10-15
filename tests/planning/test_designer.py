@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from pydantic_ai.models.test import TestModel
 
 from web_test.planning.designer import design_test_cases
-from web_test.planning.schema import Case, CaseType
+from web_test.planning.schema import Case, CaseType, DesignOutput
 
 
 def _case(**overrides):
@@ -24,18 +24,20 @@ def _case(**overrides):
     }
 
 
-def test_design_test_cases_returns_cases():
-    model = TestModel(custom_output_args=[_case()], call_tools=[])
+def test_design_test_cases_returns_cases_and_open_questions():
+    args = {"cases": [_case()], "open_questions": ["What is the password policy?"]}
+    model = TestModel(custom_output_args=args, call_tools=[])
 
-    cases = design_test_cases("# PRD\n\nUsers can sign up.", model=model)
+    result = design_test_cases("# PRD\n\nUsers can sign up.", model=model)
 
-    assert isinstance(cases, list)
-    case = cases[0]
+    assert isinstance(result, DesignOutput)
+    case = result.cases[0]
     assert isinstance(case, Case)
     assert case.requirement_ids == ["FR-ACC-01"]
     assert case.test_type is CaseType.FUNCTIONAL
     assert case.steps[0].action == "Enter a name"
     assert case.steps[0].expected_result == "The name is accepted"
+    assert result.open_questions == ["What is the password policy?"]
 
 
 def test_case_rejects_an_unknown_test_type():

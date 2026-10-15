@@ -13,7 +13,7 @@ from web_test.observability import configure_observability
 from web_test.planning.cases_writer import CaseWriter
 from web_test.planning.designer import design_test_cases
 from web_test.planning.publisher import TEST_CASE_DIR, PlanPublisher
-from web_test.planning.schema import Case
+from web_test.planning.schema import DesignOutput
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub
 
@@ -46,7 +46,7 @@ def plan(
     *,
     base_url: str,
     workspace: str | Path,
-    agent: Callable[..., list[Case]] = design_test_cases,
+    agent: Callable[..., DesignOutput] = design_test_cases,
     git: Git,
     pr: GitHub,
     now: datetime | None = None,
@@ -55,8 +55,8 @@ def plan(
     prd = Path(prd_path)
     workspace = Path(workspace)
     try:
-        cases = agent(prd.read_text(encoding="utf-8"))
-        if not cases:
+        design = agent(prd.read_text(encoding="utf-8"))
+        if not design.cases:
             return PlanOutcome(PlanStatus.NO_CASES)
 
         publisher = PlanPublisher(
@@ -67,7 +67,8 @@ def plan(
             branch=plan_branch(prd.stem, now or datetime.now(timezone.utc)),
             message=commit_message(prd.name),
             prd_stem=prd.stem,
-            cases=cases,
+            cases=design.cases,
+            open_questions=design.open_questions,
         )
     except (RuntimeError, ValidationError, OSError) as error:
         return PlanOutcome(PlanStatus.FAILED, error=str(error))

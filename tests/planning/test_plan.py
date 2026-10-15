@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from web_test.planning.entrypoint import PlanStatus, commit_message, main, plan, plan_branch
-from web_test.planning.schema import Case
+from web_test.planning.schema import Case, DesignOutput
 
 NOW = datetime(2026, 10, 14, 12, 0, 0, tzinfo=timezone.utc)
 
@@ -30,7 +30,11 @@ def _prd(tmp_path):
 
 
 def test_plan_writes_files_and_opens_one_pr(tmp_path):
-    agent = MagicMock(return_value=[_case(), _case(test_scenario="Login")])
+    agent = MagicMock(
+        return_value=DesignOutput(
+            cases=[_case(), _case(test_scenario="Login")], open_questions=["Q?"]
+        )
+    )
     git, pr = MagicMock(), MagicMock()
 
     outcome = plan(
@@ -50,7 +54,7 @@ def test_plan_writes_files_and_opens_one_pr(tmp_path):
 
 
 def test_plan_opens_no_pr_when_there_are_no_cases(tmp_path):
-    agent = MagicMock(return_value=[])
+    agent = MagicMock(return_value=DesignOutput(cases=[]))
     git, pr = MagicMock(), MagicMock()
 
     outcome = plan(
@@ -63,7 +67,7 @@ def test_plan_opens_no_pr_when_there_are_no_cases(tmp_path):
 
 
 def test_plan_reports_a_git_failure(tmp_path):
-    agent = MagicMock(return_value=[_case()])
+    agent = MagicMock(return_value=DesignOutput(cases=[_case()]))
     git, pr = MagicMock(), MagicMock()
     git.commit.side_effect = RuntimeError("boom")
 

@@ -58,6 +58,12 @@ def _notes(case: Case) -> str | None:
     return f"### Notes\n\n{case.notes}"
 
 
+def _open_questions(questions: Iterable[str]) -> str | None:
+    if not questions:
+        return None
+    return "\n".join(["## Open Questions", "", *(f"- {question}" for question in questions)])
+
+
 def render_case_section(case: Case, *, index: int) -> str:
     """Render one case as a `## Case N` section with a machine-readable metadata block."""
     return _join(
@@ -72,11 +78,13 @@ def render_case_section(case: Case, *, index: int) -> str:
     )
 
 
-def render_document(cases: list[Case], *, id: str, base_url: str, title: str) -> str:
-    """Render one test-case file: front-matter, a title, and one section per case."""
+def render_document(
+    cases: list[Case], *, id: str, base_url: str, title: str, open_questions: Iterable[str] = ()
+) -> str:
+    """Render one test-case file: front-matter, a title, one section per case, and open questions."""
     front_matter = f"---\nid: {id}\nbase_url: {base_url}\n---"
     sections = (render_case_section(case, index=index) for index, case in enumerate(cases, start=1))
-    return _join([front_matter, f"# {title}", *sections]) + "\n"
+    return _join([front_matter, f"# {title}", *sections, _open_questions(open_questions)]) + "\n"
 
 
 @dataclass(frozen=True)
@@ -86,12 +94,18 @@ class CaseWriter:
     directory: Path
     base_url: str
 
-    def write(self, prd_stem: str, cases: list[Case]) -> str:
+    def write(
+        self, prd_stem: str, cases: list[Case], open_questions: Iterable[str] = ()
+    ) -> str:
         """Render and write the PRD's file; return the file name."""
         self.directory.mkdir(parents=True, exist_ok=True)
         name = f"test-case-{prd_stem}.md"
         content = render_document(
-            cases, id=prd_stem, base_url=self.base_url, title=title_from_stem(prd_stem)
+            cases,
+            id=prd_stem,
+            base_url=self.base_url,
+            title=title_from_stem(prd_stem),
+            open_questions=open_questions,
         )
         (self.directory / name).write_text(content, encoding="utf-8")
         return name

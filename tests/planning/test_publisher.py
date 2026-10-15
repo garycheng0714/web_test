@@ -28,11 +28,11 @@ def test_plan_publisher_branches_writes_commits_and_opens_a_pr():
     cases = [_case(), _case(test_scenario="Login")]
 
     files = PlanPublisher(git=git, pr=pr, writer=writer).publish(
-        branch=BRANCH, message=MESSAGE, prd_stem="prd-register", cases=cases
+        branch=BRANCH, message=MESSAGE, prd_stem="prd-register", cases=cases, open_questions=["Q?"]
     )
 
     assert files == ["test-case/prd-register.md"]
-    writer.write.assert_called_once_with("prd-register", cases)
+    writer.write.assert_called_once_with("prd-register", cases, ["Q?"])
     assert git.method_calls == [
         call.set_identity(
             "github-actions[bot]", "41898282+github-actions[bot]@users.noreply.github.com"
@@ -47,6 +47,7 @@ def test_plan_publisher_branches_writes_commits_and_opens_a_pr():
     opened = pr.open_pull_request.call_args.args[0]
     assert (opened.base, opened.head, opened.title) == ("main", BRANCH, MESSAGE)
     assert "FR-ACC-01" in opened.body
+    assert "Q?" in opened.body
 
 
 def test_plan_pr_body_escapes_pipes():

@@ -87,6 +87,28 @@ def test_render_document_has_front_matter_title_and_case_sections():
     assert text.endswith("\n")
 
 
+def test_render_document_appends_open_questions():
+    text = render_document(
+        [_case()],
+        id="register-login",
+        base_url="https://example.com",
+        title="Register Login",
+        open_questions=["What is the password policy?", "Is the email case-insensitive?"],
+    )
+
+    assert "## Open Questions" in text
+    assert "- What is the password policy?" in text
+    assert text.rstrip().endswith("Is the email case-insensitive?")
+
+
+def test_render_document_omits_open_questions_when_empty():
+    text = render_document(
+        [_case()], id="register-login", base_url="https://example.com", title="Register Login"
+    )
+
+    assert "## Open Questions" not in text
+
+
 def test_rendered_front_matter_parses_with_case_file():
     text = render_document(
         [_case()], id="register-login", base_url="https://automationexercise.com", title="Register Login"
