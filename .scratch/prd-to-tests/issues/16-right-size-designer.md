@@ -42,4 +42,18 @@ Implemented:
 
 Effect: the sample PRD went **26 → 12 cases (+14 open questions)**.
 
+**Follow-up tightening (same PRD → 7 cases + 11 open questions):** the 12-case run still emitted four
+cases derived from the PRD's §8 grounding notes (DOB dropdown ranges, Country option set/default,
+Email pre-filled/disabled, Title no-default). Those are observations "for automation", not
+requirements, and the happy path already exercises those controls. So the skill now:
+
+- drops "or the UI exposes it" as a basis for a boundary case;
+- adds: a boundary case only when **the PRD states a limit or rule that the happy path does not
+  already exercise**; and
+- explicitly forbids deriving cases from grounding/observation details (option sets, defaults,
+  disabled/read-only fields, unselected-by-default controls).
+
+The sample PRD now yields **7 cases** (one per FR happy path, plus the two PRD-stated negatives —
+duplicate email and failed login; Create Account + Continue merged) and **11 open questions**.
+
 `uv run pytest`: 86 passed, 1 skipped.

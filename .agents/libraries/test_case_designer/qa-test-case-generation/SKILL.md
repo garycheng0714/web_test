@@ -58,10 +58,13 @@ Add only cases the PRD actually supports. Keep the suite small and dense — do 
 requirement:
 
 1. **One happy-path case** (the primary success behavior).
-2. **At most one** negative/validation case, and only when the PRD states a validation rule or the
-   UI clearly marks the field required.
-3. **A boundary case only when the PRD states the boundary** (a documented limit, format or range) or
-   the UI exposes it (a dropdown's option set, a required marker).
+2. **At most one** negative/validation case, only when the PRD states a validation rule.
+3. **A boundary case only when the PRD states a limit or rule that the happy-path case does not
+   already exercise.**
+
+Do not derive cases from the PRD's grounding or observation notes: observed option sets, default
+values, disabled/read-only fields, or unselected-by-default controls are for automation, not
+requirements, and a happy-path case already exercises the controls it uses.
 
 Anything the PRD leaves undefined or contradictory — validation messages, error recovery, field
 formats, case-sensitivity, trimming, session persistence, permission redirects, race conditions,
@@ -70,9 +73,10 @@ a guess will fail against the real system.
 
 ## Boundary and Edge Cases
 
-Include a boundary case **only** when the PRD states the rule or the UI exposes the constraint. Do not
-invent boundaries, races, or rare-user behavior for behavior the PRD does not define — put those under
-`open_questions`.
+Include a boundary case **only** when the PRD states a limit or rule and the happy path does not cover
+it. Do not invent boundaries, races, or rare-user behaviour, and do not turn observed UI details
+(option sets, default values, disabled/read-only fields, unselected-by-default controls) into cases.
+Put undefined behaviour under `open_questions`.
 
 ## Deduplication
 
