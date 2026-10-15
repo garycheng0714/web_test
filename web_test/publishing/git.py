@@ -32,8 +32,12 @@ class Git:
         self._git("config", "user.name", name).check()
         self._git("config", "user.email", email).check()
 
-    def create_branch(self, branch: str) -> None:
-        self._git("checkout", "-b", branch).check()
+    def fetch(self, remote: str = "origin") -> None:
+        self._git("fetch", remote).check()
+
+    def create_branch(self, branch: str, *, base: str | None = None) -> None:
+        args = ["checkout", "-b", branch, *([base] if base else [])]
+        self._git(*args).check()
 
     def add(self, paths: list[str]) -> None:
         self._git("add", "--", *paths).check()

@@ -42,6 +42,19 @@ def test_branch_add_commit_push_argv() -> None:
     ]
 
 
+def test_fetch_and_create_branch_from_a_base() -> None:
+    runner = MagicMock(return_value=CommandResult(0))
+    git = Git(runner, Path("/ws"))
+
+    git.fetch()
+    git.create_branch("b", base="origin/main")
+
+    assert runner.call_args_list == [
+        call(["git", "fetch", "origin"], cwd=Path("/ws")),
+        call(["git", "checkout", "-b", "b", "origin/main"], cwd=Path("/ws")),
+    ]
+
+
 def test_failed_command_raises() -> None:
     runner = MagicMock(return_value=CommandResult(1, stderr="boom"))
 

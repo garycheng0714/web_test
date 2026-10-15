@@ -62,3 +62,7 @@ Implemented:
 Not done (out of this ticket's scope): `docs/adr/0005`, `docs/adr/0006`, and
 `.scratch/prd-to-tests/spec.md` still describe `QaReport` / the old artifact; the spec rewrite is
 tracked separately (see ticket 06's/AI-CI notes).
+
+**Moved by ticket 13's refactor:** `render_case` (and the id scan) now live in
+`web_test/planning/cases_writer.py` as `render_case` / `assign_ids` / `CaseWriter`;
+`web_test/planning/document.py` is gone and its tests merged into `tests/planning/test_cases.py`.
