@@ -125,3 +125,52 @@ Conclusion (recommendation):
 So the "baseline three" is really **two**: groundedness + dedup. Coverage moves to code; the rest is
 deferred or handled in the skill.
 
+**Revisited — reduced to groundedness only.** Dedup is already the skill's job (the
+`qa-test-case-generation` skill has a `## Deduplication` section and a "no case that merely restates
+others" rule), the two experiments returned **0 duplicates**, and it is the **O(N²)** check (7 cases →
+21 questions, 30 → 435) — the most expensive, lowest-signal one. Open-question validity was dropped
+too: the open questions are already listed in the PR body, and on the right-sized output the check was
+mostly green with occasional low-confidence noise. **Kept: per-case groundedness** — the one check
+that keys off the failure mode this repo actually had (inferred cases) and stays O(N). The review is a
+regression sentinel over skill compliance; the human Gate remains the only guarantee.
+
+## Implementation
+
+Decisions: run **in `plan`** (in-process), a single check — **per-case groundedness** (no coverage, no
+dedup, no open-question validity), appended to the **PR body**, advisory, silently skipped when
+unavailable.
+
+- `web_test/planning/review.py` — the state models (`ReviewCase`/`ReviewState`), the
+  `ReviewRequest`/`Verdict` dataclasses, `build_request(prd_text, design)` (one groundedness `noul`
+  per case), and `run_review(prd_text, design, *, system_one=…) -> dict[str, Verdict] | None`: it
+  builds the request, calls Jev, and returns the verdicts (or `None`). Degrades to `None` on any
+  exception (no key, network/SDK error, empty answers).
+- `web_test/planning/review_report.py` — the **pure renderer**:
+  `render_report(verdicts, design, *, threshold=0.8) -> str` (a `**Groundedness:** x/N grounded` line +
+  findings + "needs review"), split from the side-effecting call so it is testable without the SDK.
+  "Needs review" uses the verdict's **confidence** — a `noul` reports P(yes), so a `False` answer is
+  inverted (`1 - probability`).
+- **Transport: the `typesafe-sdk` directly** (not the `jev-decide` CLI). The request and answers are
+  typed: `build_request(prd_text, design) -> ReviewRequest` where `state` is a Pydantic `ReviewState`
+  (`prd`, `cases: list[ReviewCase]`; each case's steps flattened to an `action -> expected` line) and
+  `questions` is a `Mapping[str, Noul]` of SDK question objects; answers come back as
+  `Verdict(value, probability)` dataclasses. `SystemOne` is the injected seam:
+  `Callable[[ReviewRequest], dict[str, Verdict]]`; the default `_typesafe_system_one` calls
+  `AsyncTypeSafeClient().system_one(request.state.model_dump(), questions, model='jev-latest')` under
+  `run_sync` and normalizes the typed answers (`NoulAnswer.noul`). Reads
+  `TYPESAFE_API_KEY`/`TYPESAFE_BASE_URL` (default `api.typesafe.ai`); no Pydantic AI Gateway needed. The
+  earlier CLI shell-out was dropped: it depended on a globally-installed `jev-decide`, parsed JSON by
+  hand, and stored a temp request file. Added `typesafe-sdk` as a dependency.
+- `web_test/planning/entrypoint.py` — `plan(..., reviewer: Reviewer = run_review)`; reads the PRD once,
+  runs the review after the designer (`verdicts = reviewer(prd_text, design)`), renders it
+  (`render_report(verdicts, design)`), and hands the text to `publish`.
+- `web_test/planning/publisher.py` — `publish(..., review=None)`; appends it to the PR body via
+  `plan_pr_body(prd_stem, cases, open_questions, review)` (after a `---` separator). The review is
+  computed before the PR is opened, so the body carries it in the single `gh pr create` call.
+- Tests: `tests/planning/test_review.py` (request shape + `run_review` returning verdicts/degrade paths
+  via an injected `system_one`), `tests/planning/test_review_report.py` (report rendering incl. the
+  confidence inversion), publisher body, and `plan` rendering the verdicts into the PR body.
+
+Effect: `plan` now appends a `## Jev review (advisory)` section (per-case groundedness) to the Gate PR
+body and skips it when Jev is unavailable. It never blocks. `uv run pytest`: 96 passed, 1 skipped.
+

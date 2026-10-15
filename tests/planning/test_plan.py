@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from web_test.planning.entrypoint import PlanStatus, commit_message, main, plan, plan_branch
+from web_test.planning.review import Verdict
 from web_test.planning.schema import Case, DesignOutput
 
 NOW = datetime(2026, 10, 14, 12, 0, 0, tzinfo=timezone.utc)
@@ -29,6 +30,10 @@ def _prd(tmp_path):
     return prd
 
 
+def _no_review(*args, **kwargs):
+    return None
+
+
 def test_plan_writes_files_and_opens_one_pr(tmp_path):
     agent = MagicMock(
         return_value=DesignOutput(
@@ -42,6 +47,7 @@ def test_plan_writes_files_and_opens_one_pr(tmp_path):
         base_url="https://example.com",
         workspace=tmp_path,
         agent=agent,
+        reviewer=_no_review,
         git=git,
         pr=pr,
         now=NOW,
@@ -53,12 +59,56 @@ def test_plan_writes_files_and_opens_one_pr(tmp_path):
     assert pr.open_pull_request.call_count == 1
 
 
+def test_plan_puts_the_review_in_the_pr_body(tmp_path):
+    agent = MagicMock(return_value=DesignOutput(cases=[_case()]))
+    git, pr = MagicMock(), MagicMock()
+
+    outcome = plan(
+        _prd(tmp_path),
+        base_url="https://e.com",
+        workspace=tmp_path,
+        agent=agent,
+        reviewer=lambda text, design: {"grounded_1": Verdict(True, 0.9)},
+        git=git,
+        pr=pr,
+        now=NOW,
+    )
+
+    assert outcome.status is PlanStatus.PLANNED
+    assert "**Groundedness:** 1/1 grounded" in pr.open_pull_request.call_args.args[0].body
+
+
+def test_plan_omits_the_review_section_without_one(tmp_path):
+    agent = MagicMock(return_value=DesignOutput(cases=[_case()]))
+    git, pr = MagicMock(), MagicMock()
+
+    plan(
+        _prd(tmp_path),
+        base_url="https://e.com",
+        workspace=tmp_path,
+        agent=agent,
+        reviewer=_no_review,
+        git=git,
+        pr=pr,
+        now=NOW,
+    )
+
+    assert "Jev review" not in pr.open_pull_request.call_args.args[0].body
+
+
 def test_plan_opens_no_pr_when_there_are_no_cases(tmp_path):
     agent = MagicMock(return_value=DesignOutput(cases=[]))
     git, pr = MagicMock(), MagicMock()
 
     outcome = plan(
-        _prd(tmp_path), base_url="https://e.com", workspace=tmp_path, agent=agent, git=git, pr=pr, now=NOW
+        _prd(tmp_path),
+        base_url="https://e.com",
+        workspace=tmp_path,
+        agent=agent,
+        reviewer=_no_review,
+        git=git,
+        pr=pr,
+        now=NOW,
     )
 
     assert outcome.status is PlanStatus.NO_CASES
@@ -72,7 +122,14 @@ def test_plan_reports_a_git_failure(tmp_path):
     git.commit.side_effect = RuntimeError("boom")
 
     outcome = plan(
-        _prd(tmp_path), base_url="https://e.com", workspace=tmp_path, agent=agent, git=git, pr=pr, now=NOW
+        _prd(tmp_path),
+        base_url="https://e.com",
+        workspace=tmp_path,
+        agent=agent,
+        reviewer=_no_review,
+        git=git,
+        pr=pr,
+        now=NOW,
     )
 
     assert outcome.status is PlanStatus.FAILED
@@ -95,6 +152,7 @@ def test_plan_reports_a_missing_prd(tmp_path):
         base_url="https://e.com",
         workspace=tmp_path,
         agent=MagicMock(),
+        reviewer=_no_review,
         git=MagicMock(),
         pr=MagicMock(),
         now=NOW,

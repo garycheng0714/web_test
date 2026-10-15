@@ -9,6 +9,7 @@ dependencies = [
     "pydantic-ai>=2.54.0",
     "pydantic-ai-harness[coder,playwright,skills]>=0.54.0",
     "pyyaml>=6.0",
+    "typesafe-sdk>=0.7.5",
 ]
 
 [dependency-groups]

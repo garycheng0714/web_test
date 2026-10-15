@@ -9,7 +9,9 @@ from web_test.publishing.publish import BASE_BRANCH, BOT_EMAIL, BOT_NAME
 TEST_CASE_DIR = "test-case"
 
 
-def plan_pr_body(prd_stem: str, cases: list[Case], open_questions: Iterable[str] = ()) -> str:
+def plan_pr_body(
+    prd_stem: str, cases: list[Case], open_questions: Iterable[str] = (), review: str | None = None
+) -> str:
     questions = list(open_questions)
     lines = [
         f"Adds {len(cases)} test cases from `{prd_stem}.md`.",
@@ -28,6 +30,8 @@ def plan_pr_body(prd_stem: str, cases: list[Case], open_questions: Iterable[str]
             f"**Open questions ({len(questions)})** — the PRD leaves these undefined:",
             *(f"- {question}" for question in questions),
         ]
+    if review:
+        lines += ["", "---", "", review.rstrip()]
     return "\n".join(lines) + "\n"
 
 
@@ -47,6 +51,7 @@ class PlanPublisher:
         prd_stem: str,
         cases: list[Case],
         open_questions: Iterable[str] = (),
+        review: str | None = None,
     ) -> list[str]:
         # Branch from a freshly fetched main before writing, so the new (untracked) file never
         # collides with origin/main's checkout.
@@ -65,7 +70,7 @@ class PlanPublisher:
                 base=BASE_BRANCH,
                 head=branch,
                 title=message,
-                body=plan_pr_body(prd_stem, cases, open_questions),
+                body=plan_pr_body(prd_stem, cases, open_questions, review),
             )
         )
         return files

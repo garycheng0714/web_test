@@ -54,3 +54,22 @@ def test_plan_pr_body_escapes_pipes():
     body = plan_pr_body("prd-register", [_case(module_feature="A | B")])
 
     assert "A \\| B" in body
+
+
+def test_plan_pr_body_includes_the_review():
+    body = plan_pr_body("prd-register", [_case()], review="## Jev review (advisory)")
+
+    assert "\n---\n\n## Jev review (advisory)" in body
+
+
+def test_plan_publisher_puts_the_review_in_the_pr_body():
+    git, pr = MagicMock(), MagicMock()
+    writer = MagicMock()
+    writer.write.return_value = "prd-register.md"
+
+    PlanPublisher(git=git, pr=pr, writer=writer).publish(
+        branch=BRANCH, message=MESSAGE, prd_stem="prd-register", cases=[_case()], review="## Jev review"
+    )
+
+    opened = pr.open_pull_request.call_args.args[0]
+    assert "## Jev review" in opened.body
