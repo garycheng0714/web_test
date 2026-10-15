@@ -1,8 +1,6 @@
 from pathlib import Path
 from unittest.mock import MagicMock, call
 
-import pytest
-
 from web_test.automation.coding_agent import AutomationResult
 from web_test.automation.entrypoint import AutomationOutcome, AutomationStatus, automate
 
@@ -84,14 +82,46 @@ def test_automate_skips_publish_when_nothing_changed(tmp_path: Path) -> None:
     pr.assert_not_called()
 
 
-def test_automate_rejects_a_non_artifact_path(tmp_path: Path) -> None:
+def test_automate_reports_a_non_artifact_path(tmp_path: Path) -> None:
     path = tmp_path / "test-case-0001.md"
     path.write_text(SAMPLE, encoding="utf-8")
     agent = MagicMock()
     git, pr, suite = _deps(files=["tests/a.py"], green=True)
 
-    with pytest.raises(ValueError):
-        automate(path, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+    outcome = automate(path, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.FAILED
+    agent.assert_not_called()
+
+
+def test_automate_reports_a_missing_case_file(tmp_path: Path) -> None:
+    agent = MagicMock()
+    git, pr, suite = _deps(files=["tests/a.py"], green=True)
+
+    outcome = automate(
+        tmp_path / "test-case" / "test-case-missing.md",
+        workspace=tmp_path,
+        agent=agent,
+        git=git,
+        pr=pr,
+        suite=suite,
+    )
+
+    assert outcome.status is AutomationStatus.FAILED
+    agent.assert_not_called()
+
+
+def test_automate_reports_invalid_front_matter(tmp_path: Path) -> None:
+    directory = tmp_path / "test-case"
+    directory.mkdir()
+    path = directory / "test-case-broken.md"
+    path.write_text("---\nid: test-case-broken\n---\n", encoding="utf-8")
+    agent = MagicMock()
+    git, pr, suite = _deps(files=["tests/a.py"], green=True)
+
+    outcome = automate(path, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.FAILED
     agent.assert_not_called()
 
 

@@ -5,8 +5,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import ValidationError
-
 from web_test.automation.case_file import CaseFile
 from web_test.automation.coding_agent import AutomationResult, create_automation
 from web_test.command import subprocess_runner
@@ -44,13 +42,13 @@ def automate(
     suite: Suite,
 ) -> AutomationOutcome:
     """Implement the tests for one merged test-case artifact, and publish when green."""
-    case, text = CaseFile.from_path(case_path)
-    result = agent(text, workspace_dir=workspace)
-
-    if result.pr_body is None:
-        return AutomationOutcome(AutomationStatus.AGENT_RED)
-
     try:
+        case, text = CaseFile.from_path(case_path)
+        result = agent(text, workspace_dir=workspace)
+
+        if result.pr_body is None:
+            return AutomationOutcome(AutomationStatus.AGENT_RED)
+
         if not suite.is_green():
             return AutomationOutcome(AutomationStatus.SUITE_RED)
 
@@ -59,7 +57,7 @@ def automate(
             return AutomationOutcome(AutomationStatus.NO_CHANGES)
 
         Publisher(git=git, pr=pr).publish(case_id=case.id, body=result.pr_body, files=files)
-    except (RuntimeError, ValidationError, OSError) as error:
+    except (RuntimeError, ValueError, OSError) as error:
         return AutomationOutcome(AutomationStatus.FAILED, error=str(error))
 
     return AutomationOutcome(AutomationStatus.PUBLISHED)
