@@ -4,7 +4,7 @@ from pydantic_ai.workspaces import LocalWorkspaceBackend
 from pydantic_ai_harness import Skills
 
 from web_test._run import run_sync
-from web_test.model import resolve_model
+from web_test.model import resolve_design_model
 from web_test.paths import REPO_ROOT
 from web_test.planning.schema import Case
 
@@ -24,7 +24,7 @@ INSTRUCTIONS = (
 
 def design_test_cases(prd_text: str, *, model: Model | str | None = None) -> list[Case]:
     agent = Agent(
-        model or resolve_model(),
+        model or resolve_design_model(),
         name="test_case_designer",
         output_type=list[Case],
         instructions=INSTRUCTIONS,

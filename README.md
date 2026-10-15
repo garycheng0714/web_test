@@ -43,8 +43,9 @@ before passing `--browser firefox`. No Node/TypeScript toolchain is required.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `WEB_TEST_MODEL` | `openai-chat:kimi-k2.7-code` | Override the model resolved by `resolve_model()`. |
-| `OPENCODE_API_KEY` | — | OpenCode Go key for the default model. |
+| `WEB_TEST_MODEL` | `openai-chat:kimi-k2.7-code` | Automation/coding-agent model (override `resolve_model()`). |
+| `WEB_TEST_DESIGN_MODEL` | `openai-chat:deepseek-v4.1-flash` | Designer model (PRD → test cases; `resolve_design_model()`). |
+| `OPENCODE_API_KEY` | — | OpenCode Go key for the OpenCode Go models above. |
 | `WEB_TEST_REPAIR_ATTEMPTS` | `3` | Max fix cycles for a failing suite (the automate workflow sets `10`). |
 | `WEB_TEST_USAGE` | unset | Print the run's token usage and cost to stderr when set. |
 | `WEB_TEST_TRACE` | unset | Print the tool-call sequence and per-request usage when set. |
