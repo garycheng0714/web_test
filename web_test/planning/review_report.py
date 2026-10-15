@@ -4,9 +4,9 @@ from web_test.planning.schema import DesignOutput
 REVIEW_THRESHOLD = 0.8
 
 
-def _label(question_id: str, design: DesignOutput) -> str:
-    index = int(question_id.split("_")[1])
-    return f"Case {index}: {design.cases[index - 1].test_scenario}"
+def _label(index: int, design: DesignOutput) -> str:
+    scenario = " ".join(design.cases[index - 1].test_scenario.split())
+    return f"Case {index}: {scenario}"
 
 
 def _confidence(verdict: Verdict) -> float | None:
@@ -27,22 +27,19 @@ def render_report(
 ) -> str:
     """A compact advisory report: the groundedness summary, the findings, and low-confidence items."""
     cases = len(design.cases)
-    grounded_ok = sum(
-        1
-        for i in range(1, cases + 1)
-        if (verdict := decisions.get(f"grounded_{i}")) is not None and verdict.value is True
-    )
+    grounded_ok, findings, low = 0, [], []
 
-    findings = [
-        f"{_label(qid, design)} (p={verdict.probability})"
-        for qid, verdict in decisions.items()
-        if verdict.value is False
-    ]
-    low = [
-        f"{_label(qid, design)} (confidence={round(confidence, 2)})"
-        for qid, verdict in decisions.items()
-        if (confidence := _confidence(verdict)) is not None and confidence < threshold
-    ]
+    # Walk the known ids (`grounded_1..N`); any other key Jev returns is ignored, so rendering
+    # never raises on an unexpected answer.
+    for index in range(1, cases + 1):
+        if (verdict := decisions.get(f"grounded_{index}")) is None:
+            continue
+        if verdict.value is True:
+            grounded_ok += 1
+        elif verdict.value is False:
+            findings.append(f"{_label(index, design)} (p={verdict.probability})")
+        if (confidence := _confidence(verdict)) is not None and confidence < threshold:
+            low.append(f"{_label(index, design)} (confidence={round(confidence, 2)})")
 
     return "\n".join(
         [

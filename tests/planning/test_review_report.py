@@ -50,3 +50,12 @@ def test_render_report_shows_none_when_clean():
     assert "**Groundedness:** 3/3 grounded" in text
     assert "**Findings**\n\nNone." in text
     assert "**Needs review (confidence < 0.8)**\n\nNone." in text
+
+
+def test_render_report_ignores_unknown_question_ids():
+    decisions = {"grounded_1": Verdict(True, 0.95), "surprise": Verdict(False, 0.01)}
+
+    text = render_report(decisions, _design())
+
+    assert "**Groundedness:** 1/3 grounded" in text
+    assert "surprise" not in text

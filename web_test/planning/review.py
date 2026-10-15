@@ -105,8 +105,8 @@ def run_review(
     system_one: SystemOne = _typesafe_system_one,
 ) -> dict[str, Verdict] | None:
     """Ask Jev for a verdict per question; `None` when the review is unavailable."""
-    request = build_request(prd_text, design)
     try:
+        request = build_request(prd_text, design)
         decisions = system_one(request)
     except Exception:  # advisory: no key, network/SDK error, etc. → skip the review rather than fail plan
         return None

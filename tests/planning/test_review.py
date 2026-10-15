@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock
 
-from typesafe_sdk import Noul
+from typesafe_sdk import Noul, NoulAnswer
 
-from web_test.planning.review import ReviewRequest, Verdict, build_request, run_review
+from web_test.planning.review import ReviewRequest, Verdict, _normalize, build_request, run_review
 from web_test.planning.schema import Case, DesignOutput
 
 DECISIONS = {
@@ -57,3 +57,12 @@ def test_run_review_returns_none_when_the_call_fails():
 
 def test_run_review_returns_none_on_empty_answers():
     assert run_review("# PRD", _design(), system_one=lambda request: {}) is None
+
+
+def test_normalize_maps_a_noul_answer_to_a_verdict():
+    assert _normalize(NoulAnswer(noul=0.9)) == Verdict(True, 0.9)
+    assert _normalize(NoulAnswer(noul=0.2)) == Verdict(False, 0.2)
+
+
+def test_normalize_ignores_other_answers():
+    assert _normalize(object()) == Verdict(None, None)
