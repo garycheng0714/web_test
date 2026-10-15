@@ -66,3 +66,7 @@ tracked separately (see ticket 06's/AI-CI notes).
 **Moved by ticket 13's refactor:** `render_case` (and the id scan) now live in
 `web_test/planning/cases_writer.py` as `render_case` / `assign_ids` / `CaseWriter`;
 `web_test/planning/document.py` is gone and its tests merged into `tests/planning/test_cases.py`.
+
+**Superseded by ticket 15 (ADR-0007):** the artifact is now one file per **PRD**
+(`test-case/<prd-stem>.md`) holding all of that PRD's cases as sections, not one file per case.
+`assign_ids` was removed; `render_case`/`render_document`/`CaseWriter` changed accordingly.

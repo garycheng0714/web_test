@@ -120,3 +120,7 @@ Edge cases:
 
 `uv run pytest`: 75 passed, 1 skipped. Not run live: no execution against real git/gh yet (would push a
 branch and open a PR).
+
+**Artifact superseded by ticket 15 (ADR-0007):** `plan` now writes one `test-case/<prd-stem>.md` per
+PRD (all cases in one file), not one `test-case/test-case-<id>.md` per case. `CaseWriter.write` and
+`PlanPublisher.publish` take a `prd_stem`; `assign_ids` was removed.

@@ -2,11 +2,12 @@
 
 Status: ready-for-agent
 
-> **Revised (ADR-0006).** The gate is now the **merge** of a PR that adds a `test-case/<id>.md`
-> file (one case per file), and the automation side runs in CI, triggered by that merge (no manual
-> `automate` call, no `approval` front-matter). Grounding uses the in-process Pydantic AI Harness
-> `PlaywrightBrowser` capability, not `playwright-cli`. The `plan`→PR rewrite is tracked in
-> `issues/06-plan-cli.md` and is not yet implemented; the user stories below keep their intent.
+> **Revised (ADR-0006, ADR-0007).** The gate is now the **merge** of a PR that adds a
+> `test-case/test-case-<prd-stem>.md` file (one PRD per file), and the automation side runs in CI,
+> triggered by that merge (no manual `automate` call, no `approval` front-matter). Grounding uses the
+> in-process Pydantic AI Harness `PlaywrightBrowser` capability, not `playwright-cli`. The `plan`→PR
+> rewrite is tracked in `issues/06-plan-cli.md` and is not yet implemented; the user stories below
+> keep their intent.
 
 ## Problem Statement
 
@@ -27,7 +28,7 @@ Build a QA automation agent as the vehicle, and learn how to build it by doing:
 
 1. **Plan** — the agent reads a PRD and, acting as a QA engineer, derives structured test
    cases (happy, negative/validation, boundary/equivalence), traceable to requirements, and
-   opens a PR that adds one `test-case/<id>.md` per case (front-matter ids and base URL).
+   opens a PR that adds one `test-case/test-case-<prd-stem>.md` per PRD (front-matter id and base URL).
 2. **Human review gate** — the builder reviews and merges that PR; the merge is the approval.
 3. **Automate** — the merge triggers a CI run: the coding agent turns the case into a runnable
    Playwright **Python** test on the Page Object Model, explores the live application to ground
@@ -86,8 +87,8 @@ template. See `learn/MISSION.md`.
 ## Implementation Decisions
 
 **Pipeline shape.** An artifact hand-off, not one CLI with a gate flag. `plan` (PRD → one
-`test-case/<id>.md` per case) opens a PR; **merging it is the Gate**; the merge triggers the
-automation workflow, which runs the entrypoint on the merged file and opens a test PR when green.
+`test-case/test-case-<prd-stem>.md` file) opens a PR; **merging it is the Gate**; the merge triggers
+the automation workflow, which runs the entrypoint on the merged file and opens a test PR when green.
 There is no `approval` state and no `automate` argument that refuses unreviewed cases.
 
 **Where it runs.** The automation side runs in CI (GitHub Actions), because the Gate is a GitHub
@@ -101,18 +102,19 @@ has no base-URL field; the **base URL lives in each test-case file's front-matte
 skill instructions on demand; delegation is allowed. The first stage is a single agent (ADR-0005).
 
 **Module — Test Case designer.** A single Pydantic AI agent that reads the PRD text and produces
-the test-case document. It loads the `qa-test-case-generation` skill through Pydantic AI Harness
-`Skills` (a deferred capability the model loads with `load_capability`) and returns a structured
-`QaReport` (ticket 06 renders each case to its own `test-case/<id>.md`). Coverage policy: for each
-requirement, one case per
+the test cases as a `list[Case]`. It loads the `qa-test-case-generation` skill through Pydantic AI
+Harness `Skills` (a deferred capability the model loads with `load_capability`). Coverage policy: for
+each requirement, one case per
 *applicable* technique (happy, negative/validation, boundary/equivalence); no padding. It records
 `requirement_ids` for traceability, and merges duplicate scenarios while keeping every source
 requirement id. There is no separate PRD parsing module.
 
-**Test-case artifact.** One file per case at `test-case/test-case-<id>.md`, with YAML front-matter:
-required `id` and `base_url`; optional `requirement_ids`, `priority`, `test_type`. The body is the
-human-reviewable case (scenario, steps, expected result). Merging the PR that adds the file is the
-Gate; the workflow acts on exactly the newly added file.
+**Test-case artifact (ADR-0007).** One file per PRD at `test-case/test-case-<prd-stem>.md`, with YAML
+front-matter `id` (＝the PRD stem) and `base_url`. The body has a PRD-level title and one section per
+case; each section carries a small machine-readable block (`requirement_ids`, `priority`,
+`test_type`) plus the human-reviewable case (preconditions, steps, expected result). Re-planning the
+same PRD overwrites the file. Merging the PR that adds the file is the Gate; the workflow acts on the
+newly added file.
 
 **Module — Test automator.** A Pydantic AI coding agent (`web_test/automation/coding_agent.py`) that
 takes one merged case and produces Playwright **Python** tests. Its capabilities are the Harness

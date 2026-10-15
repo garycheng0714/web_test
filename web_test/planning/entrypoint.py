@@ -51,7 +51,7 @@ def plan(
     pr: GitHub,
     now: datetime | None = None,
 ) -> PlanOutcome:
-    """Turn one PRD into a PR that adds a `test-case/<id>.md` per case."""
+    """Turn one PRD into a PR that adds one `test-case/<prd-stem>.md` file."""
     prd = Path(prd_path)
     workspace = Path(workspace)
     try:
@@ -66,7 +66,7 @@ def plan(
         files = publisher.publish(
             branch=plan_branch(prd.stem, now or datetime.now(timezone.utc)),
             message=commit_message(prd.name),
-            prd_name=prd.name,
+            prd_stem=prd.stem,
             cases=cases,
         )
     except (RuntimeError, ValidationError, OSError) as error:

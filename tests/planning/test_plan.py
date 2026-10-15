@@ -44,8 +44,8 @@ def test_plan_writes_files_and_opens_one_pr(tmp_path):
     )
 
     assert outcome.status is PlanStatus.PLANNED
-    assert outcome.files == ["test-case/test-case-0001.md", "test-case/test-case-0002.md"]
-    assert (tmp_path / "test-case/test-case-0001.md").exists()
+    assert outcome.files == ["test-case/test-case-prd-register.md"]
+    assert (tmp_path / "test-case/test-case-prd-register.md").exists()
     assert pr.open_pull_request.call_count == 1
 
 

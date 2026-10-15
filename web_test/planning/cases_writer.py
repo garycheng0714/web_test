@@ -1,66 +1,97 @@
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
 from web_test.planning.schema import Case
-
-_ID = re.compile(r"test-case-(\d+)\.md$")
 
 
 def escape_cell(value: str) -> str:
     return value.replace("|", "\\|").replace("\n", " ")
 
 
-def render_case(case: Case, *, id: str, base_url: str) -> str:
-    """Render one test-case file in the `test-case/test-case-<id>.md` format."""
-    requirement_ids = ", ".join(case.requirement_ids)
-    lines = [
-        "---",
-        f"id: {id}",
-        f"base_url: {base_url}",
-        f"requirement_ids: [{requirement_ids}]",
-        f"priority: {case.priority}",
-        f"test_type: {case.test_type}",
-        "---",
-        "",
-        f"# {case.module_feature}: {case.test_scenario}",
-        "",
-        f"**Severity:** {case.severity}",
-        "",
-    ]
-    if case.preconditions:
-        lines += ["## Preconditions", "", *(f"- {item}" for item in case.preconditions), ""]
-    lines += ["## Test Steps", "", "| Step | Action | Expected Result |", "| --- | --- | --- |"]
-    lines += [
+def title_from_stem(stem: str) -> str:
+    """A human title from a PRD file stem, e.g. `register-login` → `Register Login`."""
+    return " ".join(part.capitalize() for part in re.split(r"[-_]", stem) if part)
+
+
+def _join(blocks: Iterable[str | None]) -> str:
+    """Join the non-empty blocks with exactly one blank line between them."""
+    return "\n\n".join(block for block in blocks if block)
+
+
+def _heading(case: Case, index: int) -> str:
+    return f"## Case {index}: {case.module_feature}: {case.test_scenario}"
+
+
+def _metadata(case: Case) -> str:
+    return "\n".join(
+        [
+            "```yaml",
+            f"requirement_ids: [{', '.join(case.requirement_ids)}]",
+            f"priority: {case.priority}",
+            f"test_type: {case.test_type}",
+            "```",
+        ]
+    )
+
+
+def _preconditions(case: Case) -> str | None:
+    if not case.preconditions:
+        return None
+    return "\n".join(["### Preconditions", "", *(f"- {item}" for item in case.preconditions)])
+
+
+def _steps_table(case: Case) -> str:
+    rows = [
         f"| {index} | {escape_cell(step.action)} | {escape_cell(step.expected_result)} |"
         for index, step in enumerate(case.steps, start=1)
     ]
-    lines.append("")
-    if case.notes:
-        lines += ["## Notes", "", case.notes, ""]
-    return "\n".join(lines).rstrip() + "\n"
+    return "\n".join(
+        ["### Test Steps", "", "| Step | Action | Expected Result |", "| --- | --- | --- |", *rows]
+    )
 
 
-def assign_ids(existing_names: list[str], count: int) -> list[str]:
-    """The next `count` free `test-case-%04d` ids, after scanning `existing_names`."""
-    numbers = [int(match.group(1)) for name in existing_names if (match := _ID.search(name))]
-    start = max(numbers, default=0) + 1
-    return [f"test-case-{start + index:04d}" for index in range(count)]
+def _notes(case: Case) -> str | None:
+    if not case.notes:
+        return None
+    return f"### Notes\n\n{case.notes}"
+
+
+def render_case_section(case: Case, *, index: int) -> str:
+    """Render one case as a `## Case N` section with a machine-readable metadata block."""
+    return _join(
+        [
+            _heading(case, index),
+            _metadata(case),
+            f"**Severity:** {case.severity}",
+            _preconditions(case),
+            _steps_table(case),
+            _notes(case),
+        ]
+    )
+
+
+def render_document(cases: list[Case], *, id: str, base_url: str, title: str) -> str:
+    """Render one test-case file: front-matter, a title, and one section per case."""
+    front_matter = f"---\nid: {id}\nbase_url: {base_url}\n---"
+    sections = (render_case_section(case, index=index) for index, case in enumerate(cases, start=1))
+    return _join([front_matter, f"# {title}", *sections]) + "\n"
 
 
 @dataclass(frozen=True)
 class CaseWriter:
-    """Writes cases into a directory of `test-case-<id>.md` files."""
+    """Writes a PRD's cases into one `test-case/test-case-<prd-stem>.md` file (overwriting any existing one)."""
 
     directory: Path
     base_url: str
 
-    def write(self, cases: list[Case]) -> list[str]:
-        """Render each case into `directory`, assigning the next free ids; return the file names."""
+    def write(self, prd_stem: str, cases: list[Case]) -> str:
+        """Render and write the PRD's file; return the file name."""
         self.directory.mkdir(parents=True, exist_ok=True)
-        existing = [path.name for path in self.directory.glob("test-case-*.md")]
-        names = [f"{id}.md" for id in assign_ids(existing, len(cases))]
-        for name, case in zip(names, cases, strict=True):
-            content = render_case(case, id=name.removesuffix(".md"), base_url=self.base_url)
-            (self.directory / name).write_text(content, encoding="utf-8")
-        return names
+        name = f"test-case-{prd_stem}.md"
+        content = render_document(
+            cases, id=prd_stem, base_url=self.base_url, title=title_from_stem(prd_stem)
+        )
+        (self.directory / name).write_text(content, encoding="utf-8")
+        return name

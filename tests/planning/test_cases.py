@@ -1,5 +1,10 @@
 from web_test.automation.case_file import CaseFile
-from web_test.planning.cases_writer import CaseWriter, assign_ids, render_case
+from web_test.planning.cases_writer import (
+    CaseWriter,
+    render_case_section,
+    render_document,
+    title_from_stem,
+)
 from web_test.planning.schema import Case
 
 
@@ -8,7 +13,11 @@ def _case(**overrides):
         "requirement_ids": ["FR-ACC-01"],
         "module_feature": "Account",
         "test_scenario": "Register",
-        "steps": [{"action": "Go", "expected_result": "Page shown"}],
+        "preconditions": ["The signup page is open"],
+        "steps": [
+            {"action": "Go", "expected_result": "Page shown"},
+            {"action": "a | b", "expected_result": "line\nbreak"},
+        ],
         "priority": "High",
         "severity": "Critical",
         "test_type": "Functional",
@@ -18,77 +27,90 @@ def _case(**overrides):
     return Case.model_validate(data)
 
 
-def test_render_case_matches_the_reference_format():
-    text = render_case(_case(), id="test-case-0004", base_url="https://automationexercise.com")
+def test_title_from_stem():
+    assert title_from_stem("register-login") == "Register Login"
+    assert title_from_stem("contact_us") == "Contact Us"
+
+
+def test_section_heading_and_metadata_block():
+    text = render_case_section(_case(), index=2)
+
+    assert text.startswith("## Case 2: Account: Register\n\n")
+    assert "```yaml\nrequirement_ids: [FR-ACC-01]\npriority: High\ntest_type: Functional\n```" in text
+    assert "**Severity:** Critical" in text
+
+
+def test_section_preconditions_block():
+    with_preconditions = render_case_section(_case(), index=1)
+    without_preconditions = render_case_section(_case(preconditions=[]), index=1)
+
+    assert "### Preconditions\n\n- The signup page is open" in with_preconditions
+    assert "### Preconditions" not in without_preconditions
+
+
+def test_section_steps_table_escapes_cells():
+    text = render_case_section(_case(), index=1)
+
+    assert "### Test Steps\n\n| Step | Action | Expected Result |\n| --- | --- | --- |" in text
+    assert "| 1 | Go | Page shown |" in text
+    assert "| 2 | a \\| b | line break |" in text
+
+
+def test_section_notes_block():
+    with_notes = render_case_section(_case(), index=1)
+    without_notes = render_case_section(_case(notes=""), index=1)
+
+    assert "### Notes\n\nAssumed the form accepts any email." in with_notes
+    assert "### Notes" not in without_notes
+
+
+def test_section_blocks_are_separated_by_one_blank_line():
+    text = render_case_section(_case(), index=1)
+
+    assert "\n\n\n" not in text
+    assert not text.endswith("\n")
+
+
+def test_render_document_has_front_matter_title_and_case_sections():
+    text = render_document(
+        [_case(), _case(test_scenario="Login")],
+        id="register-login",
+        base_url="https://automationexercise.com",
+        title="Register Login",
+    )
 
     assert text.startswith(
-        "---\n"
-        "id: test-case-0004\n"
-        "base_url: https://automationexercise.com\n"
-        "requirement_ids: [FR-ACC-01]\n"
-        "priority: High\n"
-        "test_type: Functional\n"
-        "---\n"
+        "---\nid: register-login\nbase_url: https://automationexercise.com\n---\n\n"
+        "# Register Login\n\n## Case 1: Account: Register"
     )
-    assert "# Account: Register" in text
-    assert "**Severity:** Critical" in text
-    assert "| Step | Action | Expected Result |" in text
-    assert "| 1 | Go | Page shown |" in text
-    assert "## Notes" in text
-    assert "Assumed the form accepts any email." in text
-
-
-def test_render_case_omits_empty_sections_and_escapes_pipes():
-    case = _case(
-        preconditions=[],
-        notes="",
-        steps=[{"action": "a | b", "expected_result": "line\nbreak"}],
-    )
-
-    text = render_case(case, id="test-case-0005", base_url="https://example.com")
-
-    assert "## Preconditions" not in text
-    assert "## Notes" not in text
-    assert "| 1 | a \\| b | line break |" in text
+    assert "## Case 2: Account: Login" in text
+    assert text.endswith("\n")
 
 
 def test_rendered_front_matter_parses_with_case_file():
-    text = render_case(_case(), id="test-case-0006", base_url="https://automationexercise.com")
+    text = render_document(
+        [_case()], id="register-login", base_url="https://automationexercise.com", title="Register Login"
+    )
 
     case = CaseFile.from_text(text)
 
-    assert case.id == "test-case-0006"
+    assert case.id == "register-login"
     assert str(case.base_url) == "https://automationexercise.com/"
-    assert case.requirement_ids == ["FR-ACC-01"]
-    assert case.test_type == "Functional"
 
 
-def test_assign_ids_starts_after_the_highest_existing():
-    assert assign_ids(["test-case-0002.md", "test-case-0007.md", "readme.md"], 2) == [
-        "test-case-0008",
-        "test-case-0009",
-    ]
+def test_case_writer_writes_one_file_and_overwrites(tmp_path):
+    writer = CaseWriter(tmp_path, base_url="https://example.com")
 
+    name = writer.write("register-login", [_case(), _case(test_scenario="Login")])
 
-def test_assign_ids_starts_at_one_when_empty():
-    assert assign_ids([], 1) == ["test-case-0001"]
+    assert name == "test-case-register-login.md"
+    assert [path.name for path in tmp_path.glob("*.md")] == ["test-case-register-login.md"]
+    first = (tmp_path / name).read_text(encoding="utf-8")
+    assert "# Register Login" in first
+    assert "## Case 2: Account: Login" in first
 
+    writer.write("register-login", [_case(test_scenario="Only")])
 
-def test_case_writer_writes_sequential_files(tmp_path):
-    names = CaseWriter(tmp_path, base_url="https://example.com").write(
-        [_case(), _case(test_scenario="Login")]
-    )
-
-    assert names == ["test-case-0001.md", "test-case-0002.md"]
-    first = CaseFile.from_text((tmp_path / names[0]).read_text(encoding="utf-8"))
-    assert first.id == "test-case-0001"
-    assert str(first.base_url) == "https://example.com/"
-    assert "# Account: Login" in (tmp_path / names[1]).read_text(encoding="utf-8")
-
-
-def test_case_writer_continues_after_existing(tmp_path):
-    (tmp_path / "test-case-0003.md").write_text("x", encoding="utf-8")
-
-    names = CaseWriter(tmp_path, base_url="https://example.com").write([_case()])
-
-    assert names == ["test-case-0004.md"]
+    second = (tmp_path / name).read_text(encoding="utf-8")
+    assert "## Case 2:" not in second
+    assert "## Case 1: Account: Only" in second

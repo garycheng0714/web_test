@@ -16,6 +16,15 @@ def _front_matter(text: str) -> dict[str, object]:
     return {}
 
 
+def _is_test_case_artifact(path: Path) -> bool:
+    """Whether `path` is a `test-case/test-case-<id>.md` artifact."""
+    return (
+        path.parent.name == "test-case"
+        and path.name.startswith("test-case-")
+        and path.suffix == ".md"
+    )
+
+
 class CaseFile(BaseModel):
     """The machine-readable front-matter of a merged test-case artifact."""
 
@@ -33,11 +42,7 @@ class CaseFile(BaseModel):
     def from_path(cls, path: str | Path) -> tuple["CaseFile", str]:
         """Validate the artifact path, read it, and return the model with its raw text."""
         artifact = Path(path)
-        if (
-            artifact.parent.name != "test-case"
-            or not artifact.name.startswith("test-case-")
-            or artifact.suffix != ".md"
-        ):
-            raise ValueError(f"{artifact} is not a test-case artifact (expected test-case/<id>.md).")
+        if not _is_test_case_artifact(artifact):
+            raise ValueError(f"{artifact} is not a test-case artifact (expected test-case/test-case-<id>.md).")
         text = artifact.read_text(encoding="utf-8")
         return cls.from_text(text), text
