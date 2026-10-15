@@ -97,21 +97,26 @@ Edge cases:
   ids, renders, writes, and returns the file names).
 - `web_test/planning/entrypoint.py` — `plan(prd_path, *, base_url, workspace, agent=design_test_cases,
   git, pr, now=None) -> PlanOutcome` (`planned`/`no_cases`/`failed`), plus `plan_branch`,
-  `commit_message`, `_pr_body`, and `main()` (`--prd`, `--base-url`, `--workspace`). Reuses the
-  `Git`/`GitHub` facades and the `publish.py` bot-identity/base-branch constants; does **not** use
-  `Publisher`. Ordering: read PRD + run the agent, then `set_identity`/`fetch`/`create_branch(base=origin/main)`
-  **before** scanning ids and writing, so ids reflect `origin/main` and the new untracked files cannot
-  collide with its checkout. The PRD read and the agent run are inside the `try`, so a missing PRD or a
-  model/validation error → `failed`, exit 1 (not a traceback). Zero cases → no PR and exit 1. The PR-body
-  table escapes `|`/newlines via the shared `escape_cell`.
+  `commit_message`, and `main()` (`--prd`, `--base-url`, `--workspace`). `plan` reads the PRD + runs the
+  agent, then hands off to `PlanPublisher`; the PRD read and the agent run are inside the `try`, so a
+  missing PRD or a model/validation error → `failed`, exit 1 (not a traceback). Zero cases → no PR and
+  exit 1. `plan_branch`/`commit_message` stay pure module functions.
+- `web_test/planning/publisher.py` — `PlanPublisher(git, pr, writer).publish(*, branch, message,
+  prd_name, cases) -> list[str]` owns the sequence: `set_identity` → `fetch` → `create_branch(base=origin/main)`
+  **before** writing (so ids reflect `origin/main` and the new untracked files cannot collide with its
+  checkout) → writer writes → `add`/`commit`/`push` → open the Gate PR. Also a module-level pure
+  `plan_pr_body` (escapes `|`/newlines via `escape_cell`) and the shared `TEST_CASE_DIR`. Keeping it in
+  `planning/` avoids a `publishing → planning` dependency; `web_test/publishing/publish.py` (the
+  automation `Publisher`) is unchanged.
 - Review fixes (post-implementation review): reordered branch-before-write (above); brought the
   PRD read + agent run into the `try`; escaped the PR-body cells; corrected doc references.
 - `web_test/publishing/git.py` — added `fetch()` and `create_branch(branch, *, base=None)`, so plan
   branches from a freshly fetched `origin/main` rather than whatever is checked out.
 - Tests: `tests/planning/test_cases.py` (render format + id assignment + `CaseWriter.write` round-trip
-  through `CaseFile`), `tests/planning/test_plan.py` (files + one PR, no-op on zero cases, git failure,
-  missing PRD, PR-body escaping, branch format, required args), and `tests/publishing/test_git.py`
-  (fetch + base argv).
+  through `CaseFile`), `tests/planning/test_plan.py` (writes files + opens one PR, no-op on zero cases,
+  git failure, missing PRD, branch format, required args), `tests/planning/test_publisher.py`
+  (git/gh call order incl. `fetch` + `base`, PR fields/body, pipe escaping), and
+  `tests/publishing/test_git.py` (fetch + base argv).
 
-`uv run pytest`: 74 passed, 1 skipped. Not run live: no execution against real git/gh yet (would push a
+`uv run pytest`: 75 passed, 1 skipped. Not run live: no execution against real git/gh yet (would push a
 branch and open a PR).

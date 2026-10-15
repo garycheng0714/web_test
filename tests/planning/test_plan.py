@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -46,23 +46,7 @@ def test_plan_writes_files_and_opens_one_pr(tmp_path):
     assert outcome.status is PlanStatus.PLANNED
     assert outcome.files == ["test-case/test-case-0001.md", "test-case/test-case-0002.md"]
     assert (tmp_path / "test-case/test-case-0001.md").exists()
-    assert git.method_calls == [
-        call.set_identity(
-            "github-actions[bot]", "41898282+github-actions[bot]@users.noreply.github.com"
-        ),
-        call.fetch(),
-        call.create_branch("plan/prd-register-20261014T120000Z", base="origin/main"),
-        call.add(["test-case/test-case-0001.md", "test-case/test-case-0002.md"]),
-        call.commit("Add test cases from prd-register.md"),
-        call.push("plan/prd-register-20261014T120000Z"),
-    ]
     assert pr.open_pull_request.call_count == 1
-    opened = pr.open_pull_request.call_args.args[0]
-    assert opened.base == "main"
-    assert opened.head == "plan/prd-register-20261014T120000Z"
-    assert opened.title == "Add test cases from prd-register.md"
-    assert "test-case-0001" in opened.body
-    assert "FR-ACC-01" in opened.body
 
 
 def test_plan_opens_no_pr_when_there_are_no_cases(tmp_path):
@@ -114,15 +98,3 @@ def test_plan_reports_a_missing_prd(tmp_path):
 
     assert outcome.status is PlanStatus.FAILED
     assert "missing.md" in (outcome.error or "")
-
-
-def test_plan_escapes_pipes_in_the_pr_body(tmp_path):
-    agent = MagicMock(return_value=[_case(module_feature="A | B")])
-    git, pr = MagicMock(), MagicMock()
-
-    plan(
-        _prd(tmp_path), base_url="https://e.com", workspace=tmp_path, agent=agent, git=git, pr=pr, now=NOW
-    )
-
-    body = pr.open_pull_request.call_args.args[0].body
-    assert "A \\| B" in body
