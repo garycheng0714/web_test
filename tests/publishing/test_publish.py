@@ -9,7 +9,8 @@ from web_test.publishing.publish import (
 
 CASE_ID = "test-case-0001"
 BODY = "## Summary\n\nbody"
-BRANCH = "automation/test-case-0001"
+TOKEN = "123-1"
+BRANCH = "automation/test-case-0001-123-1"
 
 
 def test_publisher_commits_and_opens_a_pr() -> None:
@@ -18,7 +19,7 @@ def test_publisher_commits_and_opens_a_pr() -> None:
 
     assert (
         Publisher(git=git, pr=pr).publish(
-            case_id=CASE_ID, body=BODY, files=["tests/a.py", "pages/p.py"]
+            case_id=CASE_ID, body=BODY, files=["tests/a.py", "pages/p.py"], token=TOKEN
         )
         is None
     )
@@ -44,5 +45,5 @@ def test_publisher_commits_and_opens_a_pr() -> None:
 
 
 def test_branch_and_commit_use_case_id() -> None:
-    assert branch_name(CASE_ID) == "automation/test-case-0001"
+    assert branch_name(CASE_ID, TOKEN) == "automation/test-case-0001-123-1"
     assert commit_message(CASE_ID) == "Add automated tests for test-case-0001"

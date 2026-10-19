@@ -137,7 +137,7 @@ def test_plan_reports_a_git_failure(tmp_path):
 
 
 def test_plan_branch_and_commit_message():
-    assert plan_branch("prd-register", NOW) == "plan/prd-register-20261014T120000Z"
+    assert plan_branch("prd-register", "123-1") == "plan/prd-register-123-1"
     assert commit_message("prd-register.md") == "Add test cases from prd-register.md"
 
 

@@ -8,6 +8,7 @@ from pathlib import Path
 from web_test.automation.case_file import CaseFile
 from web_test.automation.coding_agent import AutomationResult, create_automation
 from web_test.command import subprocess_runner
+from web_test.naming import run_token
 from web_test.observability import configure_observability
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub
@@ -40,6 +41,7 @@ def automate(
     git: Git,
     pr: GitHub,
     suite: Suite,
+    token: str | None = None,
 ) -> AutomationOutcome:
     """Implement the tests for one merged test-case artifact, and publish when green."""
     try:
@@ -56,7 +58,9 @@ def automate(
         if not files:
             return AutomationOutcome(AutomationStatus.NO_CHANGES)
 
-        Publisher(git=git, pr=pr).publish(case_id=case.id, body=result.pr_body, files=files)
+        Publisher(git=git, pr=pr).publish(
+            case_id=case.id, body=result.pr_body, files=files, token=token or run_token()
+        )
     except (RuntimeError, ValueError, OSError) as error:
         return AutomationOutcome(AutomationStatus.FAILED, error=str(error))
 

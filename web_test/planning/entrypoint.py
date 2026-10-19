@@ -2,13 +2,14 @@ import argparse
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 
 from pydantic import ValidationError
 
 from web_test.command import subprocess_runner
+from web_test.naming import branch_for, run_token
 from web_test.observability import configure_observability
 from web_test.planning.cases_writer import CaseWriter
 from web_test.planning.designer import design_test_cases
@@ -35,8 +36,8 @@ class PlanOutcome:
     error: str | None = None
 
 
-def plan_branch(prd_stem: str, now: datetime) -> str:
-    return f"plan/{prd_stem}-{now.astimezone(timezone.utc):%Y%m%dT%H%M%SZ}"
+def plan_branch(prd_stem: str, token: str) -> str:
+    return branch_for("plan", prd_stem, token)
 
 
 def commit_message(prd_name: str) -> str:
@@ -70,7 +71,7 @@ def plan(
         )
 
         files = publisher.publish(
-            branch=plan_branch(prd.stem, now or datetime.now(timezone.utc)),
+            branch=plan_branch(prd.stem, run_token(now)),
             message=commit_message(prd.name),
             prd_stem=prd.stem,
             cases=design.cases,
