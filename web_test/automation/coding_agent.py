@@ -79,7 +79,7 @@ INSTRUCTIONS = (
     "`set_input_files(str(tmp_path / \"name\"))`. Never use `pytest.tmp_path` or a `page.context.set_*` "
     "method. Write generated tests directly under `tests/`. The write tool accepts only Python files "
     "under `tests/`, `pages/`, and `components/`, so never write data files into the workspace.\n\n"
-    "Verify: after writing, run `uv run pytest <path> -q`. If it fails, fix it and rerun, up to "
+    "Verify: after writing, run `uv run pytest <path> -q --tb=short`. If it fails, fix it and rerun, up to "
     f"{REPAIR_ATTEMPTS} attempts. Only claim success when the run is green. When it is green, call "
     f"load_capability('{PR_SKILL_NAME}') and write the pull-request body for these changes in that "
     f"skill's template, returning it as `pr_body`. When the suite is still red after {REPAIR_ATTEMPTS} "

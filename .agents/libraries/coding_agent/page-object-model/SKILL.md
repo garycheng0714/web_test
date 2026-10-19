@@ -73,6 +73,9 @@ existing suite and a UI change stays a one-place edit.
     `page.wait_for_load_state("networkidle")`. A URL/title/heading check can pass before the page's
     scripts load, and a form whose submit handler is attached by script then ignores the click: no
     dialog fires and nothing is submitted.
+19. **Follow the case's steps in order.** Do not replace a `navigate` or `click` step with a direct
+    URL or a page object's `open()`, and do not drop a setup step; a test that skips the case's
+    navigation path is not covering that case.
 
 ## House example (read these before writing)
 
@@ -94,6 +97,15 @@ chain (rule 17), not a bare `get_by_text(...)` that can match a hidden duplicate
 Accessible-name matching is substring and case-insensitive by default. When a name must match
 exactly, pass `exact=True`. If a snapshot or terminal looks clean but a match fails, inspect
 `repr()` for hidden characters (the Products nav link carries a private-use glyph).
+
+## Known SUT traps (automationexercise.com)
+
+- The Contact Us success message renders twice: visible `div.status.alert.alert-success` and hidden
+  `div.alert-success.alert` with the same text. Use `.status.alert.alert-success` directly; do not
+  spend turns probing the DOM to rediscover it.
+- The Products nav link's accessible name is `"\ue8f8 Products"`; match by substring (the `Header`
+  component already does).
+- Ad interstitials are blocked by the browser policy; do not add ad waits.
 
 ## Before you finish
 
