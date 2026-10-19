@@ -49,8 +49,9 @@ _Avoid_: page mode
 _Avoid_: script, test code
 
 **Gate**:
-Test Case 設計與自動化之間的**人工審核**點；審核通過才能進入自動化。以「新增 `test-case/<id>.md`
-的 PR 被 merge」表示。
+Test Case 設計與自動化之間的**人工審核**點；審核通過才能進入自動化。以「新增
+`test-case/test-case-<prd-stem>.md` 的 PR 被 merge」表示。
+**PRD 的 merge 不是 Gate**——它只觸發 plan 產生 test-case PR；Gate 是下一個 merge。
 _Avoid_: approval, checkpoint
 
 **Snapshot**:

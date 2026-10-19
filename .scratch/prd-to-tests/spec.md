@@ -2,12 +2,13 @@
 
 Status: ready-for-agent
 
-> **Revised (ADR-0006, ADR-0007).** The gate is now the **merge** of a PR that adds a
-> `test-case/test-case-<prd-stem>.md` file (one PRD per file), and the automation side runs in CI,
-> triggered by that merge (no manual `automate` call, no `approval` front-matter). Grounding uses the
-> in-process Pydantic AI Harness `PlaywrightBrowser` capability, not `playwright-cli`. The `plan`→PR
-> rewrite is tracked in `issues/06-plan-cli.md` and is not yet implemented; the user stories below
-> keep their intent.
+> **Revised (ADR-0006, ADR-0007, ADR-0008).** The gate is now the **merge** of a PR that adds a
+> `test-case/test-case-<prd-stem>.md` file (one PRD per file). **Both stages run in CI**, each
+> triggered by a merge: a merged `prd/**` PR runs `plan` (no manual `plan` call), and the merge of
+> its test-case PR runs `automate` (no manual `automate` call, no `approval` front-matter). Both run
+> under one GitHub App identity with run-scoped branches. Grounding uses the in-process Pydantic AI
+> Harness `PlaywrightBrowser` capability, not `playwright-cli`. The user stories below keep their
+> intent.
 
 ## Problem Statement
 
@@ -91,12 +92,17 @@ template. See `learn/MISSION.md`.
 the automation workflow, which runs the entrypoint on the merged file and opens a test PR when green.
 There is no `approval` state and no `automate` argument that refuses unreviewed cases.
 
-**Where it runs.** The automation side runs in CI (GitHub Actions), because the Gate is a GitHub
-merge. `plan` may run locally. The earlier "local CLI only" framing is superseded.
+**Where it runs.** Both stages run in CI (GitHub Actions), because both hand-offs are GitHub merges
+(ADR-0008). Merging a PR that adds a `prd/**` file triggers `plan`, which opens the test-case PR;
+merging that PR triggers `automate`. Each stage runs as the same GitHub App identity, with read-only
+workflow permissions, and names its branch `<kind>/<id>-<run_id>-<run_attempt>` (a UTC timestamp
+when there is no run info). The earlier "local CLI only" and "`plan` may run locally" framings are
+superseded.
 
 **PRD input.** A required `--prd <path>` argument, read as markdown or plain text. Images,
 docx, PDF, and URLs are out of scope. A small sample PRD is checked in for acceptance. The PRD
-has no base-URL field; the **base URL lives in each test-case file's front-matter** (`base_url`).
+has no base-URL field; the **base URL lives in each test-case file's front-matter** (`base_url`),
+and in CI its value comes from the `WEB_TEST_BASE_URL` repository variable.
 
 **Agent harness.** Use Pydantic AI Harness capabilities as the backbone (ADR-0004): `Skills` loads
 skill instructions on demand; delegation is allowed. The first stage is a single agent (ADR-0005).
@@ -197,8 +203,8 @@ workspace is required.
 
 ## Out of Scope
 
-- Other delivery forms — an MCP server or a long-running service; the automation side runs as a
-  merge-triggered CI job.
+- Other delivery forms — an MCP server or a long-running service; both stages run as
+  merge-triggered CI jobs.
 - Delegating code edits to an existing coding agent (see ADR-0001).
 - PRD formats other than markdown/plain text: images, docx, PDF, URL.
 - A PR review gate after automation; only the test-case review gate exists in v1.

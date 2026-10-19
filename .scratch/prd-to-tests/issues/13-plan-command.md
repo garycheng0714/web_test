@@ -25,11 +25,17 @@ PRs are left to git (an add/add conflict).
 Open (discuss before implementing):
 
 - **Branch name** — relates to agent-in-ci ticket 10 (collision). Where the PR branch comes from.
+  **Superseded:** pipeline-symmetry ticket 02 settled it as the shared run-scoped
+  `<kind>/<id>-<run_id>-<run_attempt>`; the `plan/<prd-stem>-<UTCstamp>` shape in the brief below
+  is historical.
 - **Commit and PR messages**, and the PR body's shape.
 - **Re-run/duplication** — a second `plan` run assigns new ids and adds duplicate cases; decide the policy.
 - **Reuse** `web_test/publishing/` `Git`/`GitHub`, or a small dedicated publisher (the current
   `Publisher.publish` is single-case and hardcodes `automation/<id>`).
 - **Local vs CI** — the spec (`prd-to-tests/spec.md:94`) says `plan` may run locally; it needs push + `gh`.
+  **Superseded:** pipeline-symmetry ticket 04 put `plan` in CI, triggered by a merged `prd/**` PR
+  (ADR-0008). The command still runs locally for debugging, but CI is the supported path and the base
+  URL comes from the `WEB_TEST_BASE_URL` repository variable.
 
 *(Resolved during triage — see the Agent Brief below.)*
 
@@ -86,7 +92,8 @@ Edge cases:
 **Out of scope:**
 - Where `base_url` ultimately comes from (separate ticket)
 - Detecting or skipping duplicate cases on a re-run
-- A CI workflow for plan (local first)
+- A CI workflow for plan (local first) — **superseded** by pipeline-symmetry ticket 04 / ADR-0008;
+  `plan` now runs in CI on a merged `prd/**` PR.
 - The automation side (a merged case PR → tests)
 
 ## Implementation
