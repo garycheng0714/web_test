@@ -2,8 +2,8 @@ from web_test.naming import branch_for
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub, PullRequest
 
-BOT_NAME = "github-actions[bot]"
-BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com"
+BOT_NAME = "web-test-qa-flow[bot]"
+BOT_EMAIL = "344404446+web-test-qa-flow[bot]@users.noreply.github.com"
 BASE_BRANCH = "main"
 
 

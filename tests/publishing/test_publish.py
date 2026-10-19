@@ -25,7 +25,7 @@ def test_publisher_commits_and_opens_a_pr() -> None:
     )
     assert git.method_calls == [
         call.set_identity(
-            "github-actions[bot]", "41898282+github-actions[bot]@users.noreply.github.com"
+            "web-test-qa-flow[bot]", "344404446+web-test-qa-flow[bot]@users.noreply.github.com"
         ),
         call.create_branch(BRANCH),
         call.add(["tests/a.py", "pages/p.py"]),

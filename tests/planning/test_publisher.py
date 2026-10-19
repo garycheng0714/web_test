@@ -35,7 +35,7 @@ def test_plan_publisher_branches_writes_commits_and_opens_a_pr():
     writer.write.assert_called_once_with("prd-register", cases, ["Q?"])
     assert git.method_calls == [
         call.set_identity(
-            "github-actions[bot]", "41898282+github-actions[bot]@users.noreply.github.com"
+            "web-test-qa-flow[bot]", "344404446+web-test-qa-flow[bot]@users.noreply.github.com"
         ),
         call.fetch(),
         call.create_branch(BRANCH, base="origin/main"),
