@@ -11,16 +11,19 @@ commit is by the app, and the `test` check registers and executes on the PR.
 - [x] The automation workflow mints an app installation token and uses it for both checkout and `gh`
 - [x] Workflow permissions are reduced to read-only (the app token does the writes)
 - [x] The run id and attempt are passed to the entrypoint for the branch suffix
-- [ ] A real merged test-case triggers a tests PR whose `ci` run **executes jobs** and shows the
+- [x] A real merged test-case triggers a tests PR whose `ci` run **executes jobs** and shows the
       `test` check on the PR (not `action_required`)
 - [x] Commit author and PR author are the same app identity
 
 ## Comments
 
-Code and workflow done; the live verification (real merged case) is still outstanding. Decided on the
-app identity for commits (option B): `BOT_NAME`/`BOT_EMAIL` now `web-test-qa-flow[bot]` /
-`344404446+web-test-qa-flow[bot]@users.noreply.github.com` (shared by both stages). `uv run pytest`:
-103 passed, 1 skipped.
+Verified live. Merging the one-case smoke PR (#6, `test-case/test-case-register-login-smoke.md`)
+triggered `automate`, which opened **PR #7** authored by `app/web-test-qa-flow`, commit authored by
+`web-test-qa-flow[bot]`, branch `automation/register-login-smoke-39221763763-1` (run id + attempt),
+and its `ci` run **executed** and passed the `test` check in 48s — the previous `action_required`
+stall is gone. Decided the app identity for commits (option B): `BOT_NAME`/`BOT_EMAIL` are
+`web-test-qa-flow[bot]` / `344404446+web-test-qa-flow[bot]@users.noreply.github.com` (shared by both
+stages). `uv run pytest`: 103 passed, 1 skipped.
 
 ## Notes
 
