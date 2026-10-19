@@ -3,8 +3,8 @@
 > **版本**：v0.1（Reverse-engineered）
 > **來源**：5 個 Test Case 的逐步操作——Register User、Login correct、Login incorrect、Logout、Register existing email
 > **URL**：http://automationexercise.com
-> **觀察**：2026-10-14 以 `playwright-cli` 對 live 站逐流程走查（含實際建立再刪除一個臨時帳號），截圖見 `screenshots/`
-> **說明**：本檔只涵蓋會員（ACC）的註冊／登入／登出／刪除，與 `prd.md` §4.1 同一模組，可互相對照。文案以實際觀察到的**文字內容**為準，並註記 CSS 大寫顯示的差異。
+> **觀察**：2026-10-14 以 `playwright-cli` 對 live 站逐流程走查（含實際建立再刪除一個臨時帳號），截圖見 `../screenshots/`
+> **說明**：本檔只涵蓋會員（ACC）的註冊／登入／登出／刪除，與 `.scratch/automationexercise/prd.md` §4.1 同一模組，可互相對照。文案以實際觀察到的**文字內容**為準，並註記 CSS 大寫顯示的差異。
 
 ## 1. 範圍
 
@@ -135,15 +135,15 @@ stateDiagram-v2
 
 | 檔 | 內容 |
 |---|---|
-| `screenshots/01-login-signup.png` | `/login`：`Login to your account` + `OR` + `New User Signup!` |
-| `screenshots/02-account-info.png` | 帳號資訊頁（未填） |
-| `screenshots/02-account-info-filled.png` | 帳號資訊頁（已填） |
-| `screenshots/03-account-created.png` | `Account Created!` |
-| `screenshots/04-logged-in-header.png` | 已登入 Header（`Logged in as OC QA`） |
-| `screenshots/05-login-success.png` | 登入成功 |
-| `screenshots/06-login-error.png` | `Your email or password is incorrect!` |
-| `screenshots/07-email-exists-error.png` | `Email Address already exist!` |
-| `screenshots/08-account-deleted.png` | `Account Deleted!` |
+| `../screenshots/01-login-signup.png` | `/login`：`Login to your account` + `OR` + `New User Signup!` |
+| `../screenshots/02-account-info.png` | 帳號資訊頁（未填） |
+| `../screenshots/02-account-info-filled.png` | 帳號資訊頁（已填） |
+| `../screenshots/03-account-created.png` | `Account Created!` |
+| `../screenshots/04-logged-in-header.png` | 已登入 Header（`Logged in as OC QA`） |
+| `../screenshots/05-login-success.png` | 登入成功 |
+| `../screenshots/06-login-error.png` | `Your email or password is incorrect!` |
+| `../screenshots/07-email-exists-error.png` | `Email Address already exist!` |
+| `../screenshots/08-account-deleted.png` | `Account Deleted!` |
 
 ## 附錄 B：Jev 驗證記錄（advisory）
 

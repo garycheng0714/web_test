@@ -6,18 +6,33 @@ application's base URL comes from the repository variable instead of a local `--
 
 **Blocked by:** 01 (app identity, secret, and variable), 02 (run-scoped branch names).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] A new `plan` CI workflow is triggered by a **merged** PR touching `prd/**`, acting on exactly
+- [x] A new `plan` CI workflow is triggered by a **merged** PR touching `prd/**`, acting on exactly
       one **added** PRD; a change that is not exactly one added PRD fails clearly
-- [ ] It uses the app token (checkout + `gh`) and read-only workflow permissions, and passes the run
+- [x] It uses the app token (checkout + `gh`) and read-only workflow permissions, and passes the run
       id/attempt for the branch suffix
-- [ ] The base URL is read from `WEB_TEST_BASE_URL`; a missing variable fails clearly
-- [ ] The Jev review appears in the test-case PR body when `TYPESAFE_API_KEY` is present, and is
+- [x] The base URL is read from `WEB_TEST_BASE_URL`; a missing variable fails clearly
+- [x] The Jev review appears in the test-case PR body when `TYPESAFE_API_KEY` is present, and is
       omitted (degraded) when it is absent
-- [ ] The sample PRD is moved under `prd/`, the screenshots move to the repository root, and the
+- [x] The sample PRD is moved under `prd/`, the screenshots move to the repository root, and the
       obsolete manual test-cases artifact is deleted
-- [ ] A PRD that yields zero cases opens no PR and reports no cases
+- [x] A PRD that yields zero cases opens no PR and reports no cases
+
+## Comments
+
+Implemented. `.github/workflows/plan.yml` mirrors `automate.yml`: app token + `contents: read` +
+`checkout`/`gh`, finds the single added `prd/*.md` (`git diff --diff-filter=A HEAD^ HEAD`), and runs
+`python -m web_test.planning.entrypoint --prd <path> --base-url "${WEB_TEST_BASE_URL:?…}" --workspace .`
+with `WEB_TEST_RUN_ID/ATTEMPT` and `TYPESAFE_API_KEY` in the env — so branches are run-scoped and the
+Jev review prints when the key is set, degrades silently (omitted from the PR body) when it is not.
+No Python changed: `plan()` already returns `NO_CASES` (no PR) and `run_review` already degrades.
+Moved `register-login.md` → `prd/register-login.md` (screenshot links repointed to `../screenshots/`),
+moved the screenshots to the repo root, deleted the obsolete `test-cases.md`. `uv run pytest`: 103
+passed, 1 skipped. `actionlint`: clean apart from a stale-metadata false positive on
+`actions/create-github-app-token@v3` (`client-id`), which also fires on the existing `automate.yml`
+(the action's real `action.yml` accepts `client-id` and deprecates `app-id`). Live merge verification
+is ticket 06.
 
 ## Notes
 
