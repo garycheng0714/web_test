@@ -7,17 +7,25 @@ from typesafe_sdk import AsyncTypeSafeClient, Noul, NoulAnswer, SystemOneRespons
 from web_test._run import run_sync
 from web_test.planning.schema import DesignOutput
 
-JEV_MODEL = "jev-latest"
+JEV_MODEL = "jev-1.13.0"
+
+
+class ReviewStep(BaseModel):
+    """One step as the Jev state sees it: the original action and expected result."""
+
+    index: int
+    action: str
+    expected_result: str
 
 
 class ReviewCase(BaseModel):
-    """One case as the Jev state sees it: each step flattened to an `action -> expected` line."""
+    """One case as the Jev state sees it, with its steps kept separate."""
 
     index: int
     requirement_ids: list[str]
     module_feature: str
     test_scenario: str
-    steps: list[str]
+    steps: list[ReviewStep]
 
 
 class ReviewState(BaseModel):
@@ -50,32 +58,104 @@ Reviewer = Callable[[str, DesignOutput], dict[str, Verdict] | None]
 
 
 def _questions(design: DesignOutput) -> dict[str, Noul]:
-    # One question per case; the key carries the 1-based index so Jev's name-keyed answers map back
-    # to a case (it matches ReviewCase.index, and `_label` recovers the case from the key).
-    return {
-        f"grounded_{index}": Noul(
+    """The three checks: AC alignment, step quality, and expected-result observability."""
+    questions: dict[str, Noul] = {}
+
+    for case_index, case in enumerate(design.cases, start=1):
+        questions[f"ac_{case_index}"] = Noul(
             instructions=(
-                f"Is case {index} ({case.test_scenario!r}) directly supported by the PRD text, "
-                "rather than inferred from behaviour the PRD does not state?"
-            )
+                f"Is case {case_index} ({case.test_scenario!r}) directly supported by the PRD "
+                "requirement text and acceptance criteria? Judge the scenario, preconditions, "
+                "all steps, and all expected results together. A setup step needed to reach an "
+                "AC is permitted."
+            ),
+            criteria={
+                "true": (
+                    "Every step and expected result is required or permitted by the PRD "
+                    "requirement text and AC, and no behaviour is invented or contradicted."
+                ),
+                "false": (
+                    "At least one step or expected result is unsupported by the PRD requirement "
+                    "text or AC, contradicts it, or invents behaviour."
+                ),
+            },
         )
-        for index, case in enumerate(design.cases, start=1)
-    }
+
+        for step_index, _ in enumerate(case.steps, start=1):
+            questions[f"step_{case_index}_{step_index}_reasonable"] = Noul(
+                instructions=(
+                    f"Does step {step_index} of case {case_index} name a concrete action and "
+                    "target that exists in the supplied PRD text and is consistent with the PRD "
+                    "flow?"
+                ),
+                criteria={
+                    "true": (
+                        "The action and target are concrete and appear in, or follow directly "
+                        "from, the supplied PRD text and PRD flow."
+                    ),
+                    "false": (
+                        "The action or target is absent from the PRD text, contradicts it, or "
+                        "skips a necessary part of the flow."
+                    ),
+                },
+            )
+            questions[f"step_{case_index}_{step_index}_complete"] = Noul(
+                instructions=(
+                    f"Does step {step_index} of case {case_index} include every action required "
+                    "to produce its expected result, including required data entry?"
+                ),
+                criteria={
+                    "true": (
+                        "The step includes all required actions and inputs; nothing needed for "
+                        "the expected result is missing."
+                    ),
+                    "false": (
+                        "A required action or input is missing, so the step as written cannot "
+                        "produce the expected result."
+                    ),
+                },
+            )
+            questions[f"step_{case_index}_{step_index}_observable"] = Noul(
+                instructions=(
+                    f"Is the expected result of step {step_index} of case {case_index} a "
+                    "specific, observable outcome that a manual tester could verify from the "
+                    "PRD text or its verbatim messages?"
+                ),
+                criteria={
+                    "true": (
+                        "The expected result names a specific visible page, field, text, or state "
+                        "that the supplied PRD text describes."
+                    ),
+                    "false": (
+                        "The expected result is vague, unstated, or not something the supplied "
+                        "PRD text lets a tester observe."
+                    ),
+                },
+            )
+
+    return questions
 
 
 def build_request(prd_text: str, design: DesignOutput) -> ReviewRequest:
-    """The Jev request: the PRD, the designer's cases, and the groundedness questions."""
+    """The Jev request: the PRD, the designer's cases, and the three quality checks."""
     state = ReviewState(
         prd=prd_text,
         cases=[
             ReviewCase(
-                index=index,
+                index=case_index,
                 requirement_ids=case.requirement_ids,
                 module_feature=case.module_feature,
                 test_scenario=case.test_scenario,
-                steps=[f"{step.action} -> {step.expected_result}" for step in case.steps],
+                steps=[
+                    ReviewStep(
+                        index=step_index,
+                        action=step.action,
+                        expected_result=step.expected_result,
+                    )
+                    for step_index, step in enumerate(case.steps, start=1)
+                ],
             )
-            for index, case in enumerate(design.cases, start=1)
+            for case_index, case in enumerate(design.cases, start=1)
         ],
     )
     return ReviewRequest(state=state, questions=_questions(design))

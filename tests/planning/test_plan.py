@@ -68,14 +68,14 @@ def test_plan_puts_the_review_in_the_pr_body(tmp_path):
         base_url="https://e.com",
         workspace=tmp_path,
         agent=agent,
-        reviewer=lambda text, design: {"grounded_1": Verdict(True, 0.9)},
+        reviewer=lambda text, design: {"ac_1": Verdict(True, 0.9)},
         git=git,
         pr=pr,
         now=NOW,
     )
 
     assert outcome.status is PlanStatus.PLANNED
-    assert "**Groundedness:** 1/1 grounded" in pr.open_pull_request.call_args.args[0].body
+    assert "**AC alignment:** 1/1 cases aligned" in pr.open_pull_request.call_args.args[0].body
 
 
 def test_plan_omits_the_review_section_without_one(tmp_path):

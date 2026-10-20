@@ -2,13 +2,20 @@ from unittest.mock import MagicMock
 
 from typesafe_sdk import Noul, NoulAnswer
 
-from web_test.planning.review import ReviewRequest, Verdict, _normalize, build_request, run_review
+from web_test.planning.review import (
+    ReviewRequest,
+    ReviewStep,
+    Verdict,
+    _normalize,
+    build_request,
+    run_review,
+)
 from web_test.planning.schema import Case, DesignOutput
 
 DECISIONS = {
-    "grounded_1": Verdict(True, 0.95),
-    "grounded_2": Verdict(False, 0.05),
-    "grounded_3": Verdict(True, 0.55),
+    "ac_1": Verdict(True, 0.95),
+    "ac_2": Verdict(False, 0.05),
+    "ac_3": Verdict(True, 0.55),
 }
 
 
@@ -32,15 +39,30 @@ def _design():
     )
 
 
-def test_build_request_asks_groundedness_only():
+def test_build_request_asks_the_three_checks():
     request = build_request("# PRD", _design())
 
     assert isinstance(request, ReviewRequest)
-    assert set(request.questions) == {"grounded_1", "grounded_2", "grounded_3"}
+    assert set(request.questions) == {
+        "ac_1",
+        "ac_2",
+        "ac_3",
+        "step_1_1_reasonable",
+        "step_1_1_complete",
+        "step_1_1_observable",
+        "step_2_1_reasonable",
+        "step_2_1_complete",
+        "step_2_1_observable",
+        "step_3_1_reasonable",
+        "step_3_1_complete",
+        "step_3_1_observable",
+    }
     assert request.state.prd == "# PRD"
     assert request.state.cases[0].index == 1
-    assert request.state.cases[0].steps == ["Go -> Page shown"]
-    assert isinstance(request.questions["grounded_1"], Noul)
+    assert request.state.cases[0].steps == [
+        ReviewStep(index=1, action="Go", expected_result="Page shown")
+    ]
+    assert isinstance(request.questions["ac_1"], Noul)
 
 
 def test_run_review_returns_the_verdicts():
