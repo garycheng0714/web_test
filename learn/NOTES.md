@@ -23,6 +23,9 @@
   教學以 harness **0.54.0**（`uv.lock` 鎖定）為準；harness 是 0.x，minor 版之間 API 可能
   改名／改預設，升級後要重讀對應 capability 的 README。新增可重用元件：
   `assets/style.css` 的 `details.reveal`（步驟揭曉）。
+- 2026-10-19：研究 pstack `0.15.28`，筆記在 `reference/pstack.md`。目前學習焦點是
+  **產出可信度**；優先序、本地證據與待答問題見
+  `learning-records/0009-pstack-learning-priorities.md`。
 
 ## 已知缺失 (gaps)
 - `ask-matt` SKILL.md 內引用的 smart zone 連結
