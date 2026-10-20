@@ -65,3 +65,7 @@ print('green:', r.pr_body is not None)
 
 `WEB_TEST_USAGE` prints the run's usage to stderr; `WEB_TEST_TRACE` prints the tool-call sequence and
 per-request usage. `WEB_TEST_MODEL` is optional (defaults to `resolve_model()`).
+
+## Related
+
+- [optimization-runs.md](optimization-runs.md) — F/B/C/G/D experiments, decisions, and the G2 next step.
