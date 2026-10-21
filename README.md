@@ -23,6 +23,7 @@ uv run playwright install chromium
 
 - Run the agent: `uv run main.py`
 - Run tests: `uv run pytest`
+- Typecheck: `uv run basedpyright`
 - Add a dependency: `uv add <pkg>`
 - Plan one PRD (writes `test-case/test-case-<prd-stem>.md` and opens a PR): `uv run python -m web_test.planning.entrypoint --prd prd/<name>.md --base-url https://example.com --workspace .`
 - Implement one merged test case: `uv run python -m web_test.automation.entrypoint --case test-case/test-case-<prd-stem>.md --workspace .`

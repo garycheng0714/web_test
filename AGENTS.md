@@ -22,9 +22,10 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Run the navigation demo: `uv run main.py`
 - Implement one merged test case: `uv run python -m web_test.automation.entrypoint --case test-case/<id>.md --workspace .`
 - Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
+- Typecheck: `uv run basedpyright` (scope: `web_test`, `standard` mode)
 - Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[coder,playwright,skills]` are dependencies)
 - `uv sync` to generate `uv.lock`
-- No lint, formatter, or typecheck are configured. CI: `.github/workflows/ci.yml` (suite on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
+- No lint or formatter are configured. CI: `.github/workflows/ci.yml` (suite and typecheck on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
 
 ## Language
 Reply in Traditional Chinese. Keep code, commit messages, and existing English docs in their
