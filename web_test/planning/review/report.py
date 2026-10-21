@@ -94,7 +94,7 @@ def render_report(record: VerificationRecord) -> str:
         "**Evidence**",
         "",
         f"- PRD: `sha256:{binding.prd_digest}`",
-        f"- Artifact: `sha256:{binding.artifact_digest}`",
+        f"- Test Case: `sha256:{binding.test_case_digest}`",
         f"- Model: `{binding.model}`",
         f"- Question set: `{binding.question_set_version}`",
         f"- Bands: pass >= {binding.bands.pass_min}, "

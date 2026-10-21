@@ -91,7 +91,7 @@ class VerificationBinding:
     """The exact inputs and configuration the result was produced from."""
 
     prd_digest: str                     # 被判斷的 PRD 文字 SHA-256
-    artifact_digest: str                # 被判斷的 test-case 檔案 SHA-256
+    test_case_digest: str               # 被判斷的 test-case 檔案 SHA-256
     model: str                          # 釘住的 Jev model id
     question_set_version: str           # 問題集 hash；不含 PRD 內容
     bands: Bands                        # probability 的分類門檻

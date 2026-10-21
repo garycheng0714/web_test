@@ -36,7 +36,7 @@ def _subject_from_design(prd_text: str, design: DesignOutput) -> ReviewSubject:
 
 def run_review_on(
     subject: ReviewSubject,
-    artifact_text: str = "",
+    test_case_text: str = "",
     *,
     system_one: SystemOne = _typesafe_system_one,
     bands: Bands = DEFAULT_BANDS,
@@ -49,18 +49,18 @@ def run_review_on(
     except Exception as error:  # noqa: BLE001 - a malformed subject must not fail the plan
         return build_blocked_record(
             subject,
-            artifact_text=artifact_text,
+            test_case_text=test_case_text,
             question_set_version="",
             bands=bands,
             reason=f"request build failed: {error}",
         )
 
-    return _review_request(request, artifact_text, version, system_one=system_one, bands=bands)
+    return _review_request(request, test_case_text, version, system_one=system_one, bands=bands)
 
 
 def _review_request(
     request: ReviewRequest,
-    artifact_text: str,
+    test_case_text: str,
     version: str,
     *,
     system_one: SystemOne,
@@ -71,7 +71,7 @@ def _review_request(
     except Exception as error:  # noqa: BLE001 - the record must carry the blocked reason
         return build_blocked_record(
             request.subject,
-            artifact_text=artifact_text,
+            test_case_text=test_case_text,
             question_set_version=version,
             bands=bands,
             reason=f"Jev call failed: {error}",
@@ -80,7 +80,7 @@ def _review_request(
     if not answers:
         return build_blocked_record(
             request.subject,
-            artifact_text=artifact_text,
+            test_case_text=test_case_text,
             question_set_version=version,
             bands=bands,
             reason="Jev returned no answers",
@@ -89,7 +89,7 @@ def _review_request(
     return build_record(
         request.subject,
         answers,
-        artifact_text=artifact_text,
+        test_case_text=test_case_text,
         question_set_version=version,
         bands=bands,
     )
@@ -98,7 +98,7 @@ def _review_request(
 def run_review(
     prd_text: str,
     design: DesignOutput,
-    artifact_text: str = "",
+    test_case_text: str = "",
     *,
     system_one: SystemOne = _typesafe_system_one,
     bands: Bands = DEFAULT_BANDS,
@@ -107,7 +107,7 @@ def run_review(
     cannot answer."""
     return run_review_on(
         _subject_from_design(prd_text, design),
-        artifact_text,
+        test_case_text,
         system_one=system_one,
         bands=bands,
     )

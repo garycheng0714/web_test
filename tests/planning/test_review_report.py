@@ -53,7 +53,7 @@ def test_render_report_shows_status_counts_findings_and_evidence():
     assert "Case 2: B (AC alignment, p=0.05)" in text
     assert "Case 3, step 1: Go (complete, p=0.6)" in text
     assert f"PRD: `sha256:{digest_text('# PRD')}`" in text
-    assert f"Artifact: `sha256:{digest_text('artifact')}`" in text
+    assert f"Test Case: `sha256:{digest_text('artifact')}`" in text
     assert "Model: `jev-1.13.0`" in text
     assert "Question set: `" in text
 
@@ -70,7 +70,7 @@ def test_render_report_shows_blocked_reason():
 
     assert "**Status:** `BLOCKED`" in text
     assert "Jev call failed: no key" in text
-    assert f"Artifact: `sha256:{digest_text('artifact')}`" in text
+    assert f"Test Case: `sha256:{digest_text('artifact')}`" in text
 
 
 def test_render_report_shows_a_reason_when_every_check_is_blocked():

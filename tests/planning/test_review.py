@@ -174,7 +174,7 @@ def test_record_binds_digests_model_and_question_set():
     )
 
     assert record.binding.prd_digest == digest_text("# PRD")
-    assert record.binding.artifact_digest == digest_text("artifact")
+    assert record.binding.test_case_digest == digest_text("artifact")
     assert record.binding.model == JEV_MODEL
     assert record.binding.question_set_version
     assert record.binding.bands.pass_min == 0.8

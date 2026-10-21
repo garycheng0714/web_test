@@ -15,7 +15,7 @@ def review_case_file(
     bands: Bands = DEFAULT_BANDS,
 ) -> VerificationRecord:
     """Review the current contents of an existing Test Case file."""
-    artifact_text = Path(case_path).read_text(encoding="utf-8")
+    test_case_text = Path(case_path).read_text(encoding="utf-8")
     prd_text = Path(prd_path).read_text(encoding="utf-8")
-    subject = parse_test_case(artifact_text, prd_text)
-    return run_review_on(subject, artifact_text, system_one=system_one, bands=bands)
+    subject = parse_test_case(test_case_text, prd_text)
+    return run_review_on(subject, test_case_text, system_one=system_one, bands=bands)

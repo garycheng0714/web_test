@@ -55,7 +55,7 @@ def build_record(
     subject: ReviewSubject,
     answers: Mapping[str, JevAnswer],
     *,
-    artifact_text: str,
+    test_case_text: str,
     question_set_version: str,
     model: str = JEV_MODEL,
     bands: Bands = DEFAULT_BANDS,
@@ -81,7 +81,7 @@ def build_record(
         ),
         binding=VerificationBinding(
             prd_digest=digest_text(subject.prd),
-            artifact_digest=digest_text(artifact_text),
+            test_case_digest=digest_text(test_case_text),
             model=model,
             question_set_version=question_set_version,
             bands=bands,
@@ -92,7 +92,7 @@ def build_record(
 def build_blocked_record(
     subject: ReviewSubject,
     *,
-    artifact_text: str,
+    test_case_text: str,
     question_set_version: str,
     reason: str,
     bands: Bands = DEFAULT_BANDS,
@@ -101,7 +101,7 @@ def build_blocked_record(
     return build_record(
         subject,
         {},
-        artifact_text=artifact_text,
+        test_case_text=test_case_text,
         question_set_version=question_set_version,
         bands=bands,
         blocked_reason=reason,

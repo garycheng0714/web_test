@@ -64,14 +64,14 @@ def plan(
         if not design.cases:
             return PlanOutcome(PlanStatus.NO_CASES)
 
-        artifact_text = render_document(
+        test_case_text = render_document(
             design.cases,
             id=prd.stem,
             base_url=base_url,
             title=title_from_stem(prd.stem),
             open_questions=design.open_questions,
         )
-        record = reviewer(prd_text, design, artifact_text)
+        record = reviewer(prd_text, design, test_case_text)
         review = render_report(record)
         publisher = PlanPublisher(
             git=git, pr=pr, writer=CaseWriter(workspace / TEST_CASE_DIR, base_url=base_url)
@@ -84,7 +84,7 @@ def plan(
             cases=design.cases,
             open_questions=design.open_questions,
             review=review,
-            content=artifact_text,
+            content=test_case_text,
         )
     except (RuntimeError, ValidationError, OSError) as error:
         return PlanOutcome(PlanStatus.FAILED, error=str(error))

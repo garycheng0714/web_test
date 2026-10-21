@@ -103,14 +103,14 @@ def test_build_record_binds_metadata_and_carries_override():
     record = build_record(
         subject,
         _answers(subject),
-        artifact_text="# artifact\n",
+        test_case_text="# artifact\n",
         question_set_version="qsv",
         override=override,
     )
 
     assert record.result.status is VerificationStatus.PASS
     assert record.binding.prd_digest == digest_text(subject.prd)
-    assert record.binding.artifact_digest == digest_text("# artifact\n")
+    assert record.binding.test_case_digest == digest_text("# artifact\n")
     assert record.binding.model == JEV_MODEL
     assert record.binding.question_set_version == "qsv"
     assert record.binding.bands == DEFAULT_BANDS
@@ -123,7 +123,7 @@ def test_fail_wins_over_blocked_reason():
     record = build_record(
         subject,
         _answers(subject, ac_1=JevAnswer(0.1)),
-        artifact_text="",
+        test_case_text="",
         question_set_version="qsv",
         blocked_reason="Jev call failed",
     )

@@ -25,7 +25,7 @@ contents; no digest or stale comparison is performed.
 - Added `web_test/planning/review/cli.py`:
   `uv run python -m web_test.planning.review.cli --case <path> --prd <path>`.
 - Stale/digest comparison was removed: the command always produces a fresh verdict for the current
-  file. `VerificationRecord.binding.artifact_digest` remains available for manual comparison.
+  file. `VerificationRecord.binding.test_case_digest` remains available for manual comparison.
 - Tests: `tests/planning/test_review_parser.py` (round trip, edit) and
   `tests/planning/test_review_local.py` (review run, edited step reaches Jev, CLI error).
 - `uv run pytest`: 132 passed, 1 skipped.
