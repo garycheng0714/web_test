@@ -1,13 +1,10 @@
-import json
-from collections.abc import Callable, Mapping
-
-from typesafe_sdk import Noul
+from collections.abc import Callable
 
 from web_test.planning.review.jev import ReviewRequest, SystemOne, _typesafe_system_one
-from web_test.planning.review.questions import questions_for_subject
+from web_test.planning.review.questions import question_set_version, questions_for_subject
 from web_test.planning.review.record import DEFAULT_BANDS, build_record
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
-from web_test.planning.review.verification import Bands, VerificationRecord, digest_text
+from web_test.planning.review.verification import Bands, VerificationRecord
 from web_test.planning.schema import DesignOutput
 
 # A seam over the whole review: takes the PRD, design, and rendered artifact.
@@ -37,12 +34,6 @@ def _subject_from_design(prd_text: str, design: DesignOutput) -> ReviewSubject:
     )
 
 
-def _question_set_version(questions: Mapping[str, Noul]) -> str:
-    payload = {name: question.model_dump() for name, question in sorted(questions.items())}
-    encoded = json.dumps(payload, sort_keys=True, ensure_ascii=False)
-    return digest_text(encoded)[:16]
-
-
 def run_review_on(
     subject: ReviewSubject,
     artifact_text: str = "",
@@ -54,7 +45,7 @@ def run_review_on(
     try:
         questions = questions_for_subject(subject)
         request = ReviewRequest(subject=subject, questions=questions)
-        version = _question_set_version(questions)
+        version = question_set_version(questions)
     except Exception as error:  # noqa: BLE001 - a malformed subject must not fail the plan
         return build_record(
             subject,

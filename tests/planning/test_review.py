@@ -135,7 +135,7 @@ def test_question_set_version_failure_is_blocked(monkeypatch):
     def _boom(questions):
         raise ValueError("bad question set")
 
-    monkeypatch.setattr(review_module, "_question_set_version", _boom)
+    monkeypatch.setattr(review_module, "question_set_version", _boom)
 
     record = run_review(
         "# PRD", _design(), "artifact", system_one=lambda request: _passing_answers()

@@ -1,9 +1,11 @@
+import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from typesafe_sdk import Noul, NoulCriteria
 
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
-from web_test.planning.review.verification import CheckDimension
+from web_test.planning.review.verification import CheckDimension, digest_text
 
 STEP_QUALITY_DIMENSIONS: tuple[CheckDimension, ...] = (
     CheckDimension.STEP_REASONABLE,
@@ -128,6 +130,12 @@ def questions_for_subject(subject: ReviewSubject) -> dict[str, Noul]:
         for step in case.steps:
             questions.update(step_questions(case.index, step.index))
     return questions
+
+
+def question_set_version(questions: Mapping[str, Noul]) -> str:
+    payload = {name: question.model_dump() for name, question in sorted(questions.items())}
+    encoded = json.dumps(payload, sort_keys=True, ensure_ascii=False)
+    return digest_text(encoded)[:16]
 
 
 def expected_checks(subject: ReviewSubject) -> list[ExpectedCheck]:
