@@ -95,17 +95,23 @@ class CaseWriter:
     base_url: str
 
     def write(
-        self, prd_stem: str, cases: list[Case], open_questions: Iterable[str] = ()
+        self,
+        prd_stem: str,
+        cases: list[Case],
+        open_questions: Iterable[str] = (),
+        *,
+        content: str | None = None,
     ) -> str:
-        """Render and write the PRD's file; return the file name."""
+        """Write the PRD's file (rendering it when no content is supplied); return the file name."""
         self.directory.mkdir(parents=True, exist_ok=True)
         name = f"test-case-{prd_stem}.md"
-        content = render_document(
-            cases,
-            id=prd_stem,
-            base_url=self.base_url,
-            title=title_from_stem(prd_stem),
-            open_questions=open_questions,
-        )
+        if content is None:
+            content = render_document(
+                cases,
+                id=prd_stem,
+                base_url=self.base_url,
+                title=title_from_stem(prd_stem),
+                open_questions=open_questions,
+            )
         (self.directory / name).write_text(content, encoding="utf-8")
         return name

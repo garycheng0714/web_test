@@ -52,6 +52,7 @@ class PlanPublisher:
         cases: list[Case],
         open_questions: Iterable[str] = (),
         review: str | None = None,
+        content: str | None = None,
     ) -> list[str]:
         # Branch from a freshly fetched main before writing, so the new (untracked) file never
         # collides with origin/main's checkout.
@@ -59,7 +60,7 @@ class PlanPublisher:
         self.git.fetch()
         self.git.create_branch(branch, base=f"origin/{BASE_BRANCH}")
 
-        name = self.writer.write(prd_stem, cases, open_questions)
+        name = self.writer.write(prd_stem, cases, open_questions, content=content)
         files = [f"{TEST_CASE_DIR}/{name}"]
 
         self.git.add(files)

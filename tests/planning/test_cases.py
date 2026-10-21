@@ -136,3 +136,11 @@ def test_case_writer_writes_one_file_and_overwrites(tmp_path):
     second = (tmp_path / name).read_text(encoding="utf-8")
     assert "## Case 2:" not in second
     assert "## Case 1: Account: Only" in second
+
+
+def test_case_writer_writes_supplied_content_verbatim(tmp_path):
+    writer = CaseWriter(tmp_path, base_url="https://example.com")
+
+    name = writer.write("register-login", [_case()], content="# supplied\n")
+
+    assert (tmp_path / name).read_text(encoding="utf-8") == "# supplied\n"

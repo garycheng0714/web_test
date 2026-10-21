@@ -32,7 +32,7 @@ def test_plan_publisher_branches_writes_commits_and_opens_a_pr():
     )
 
     assert files == ["test-case/prd-register.md"]
-    writer.write.assert_called_once_with("prd-register", cases, ["Q?"])
+    writer.write.assert_called_once_with("prd-register", cases, ["Q?"], content=None)
     assert git.method_calls == [
         call.set_identity(
             "web-test-qa-flow[bot]", "344404446+web-test-qa-flow[bot]@users.noreply.github.com"
@@ -73,3 +73,20 @@ def test_plan_publisher_puts_the_review_in_the_pr_body():
 
     opened = pr.open_pull_request.call_args.args[0]
     assert "## Jev review" in opened.body
+
+
+def test_plan_publisher_writes_supplied_content_verbatim():
+    git, pr = MagicMock(), MagicMock()
+    writer = MagicMock()
+    writer.write.return_value = "prd-register.md"
+
+    PlanPublisher(git=git, pr=pr, writer=writer).publish(
+        branch=BRANCH,
+        message=MESSAGE,
+        prd_stem="prd-register",
+        cases=[_case()],
+        content="# rendered\n",
+    )
+
+    assert writer.write.call_args.args[0] == "prd-register"
+    assert writer.write.call_args.kwargs["content"] == "# rendered\n"
