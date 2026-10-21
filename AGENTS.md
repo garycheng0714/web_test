@@ -29,6 +29,15 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 ## Conventions
 - Boundary data — model output, config, external input — is a Pydantic `BaseModel`; it validates and serializes. Data passed between our own modules is a `@dataclass`: it is light, stores callables naturally, and needs no validation.
 
+## Refactoring
+- Split by responsibility, not by line count. A helper needs a named phase; do not create one function per numbered step.
+- Keep dependency arrows pointing from composition roots and use cases toward shared schemas. Shared schemas must not import review or automation modules.
+- Put cross-type conversion in the composition root or an adapter, not as a method on either data model.
+- Name by role and domain language; check `CONTEXT.md` first and avoid overloading existing terms.
+- Internal closed sets use `StrEnum`; otherwise follow the boundary/internal data convention above.
+- Do not add a module until there is a second caller or a second variation.
+- A pure refactor keeps behavior: run the full suite and verify any version or digest that must not change. Test through real entry points; do not add test-only production helpers.
+
 ## Gotchas
 - `playwright-cli` writes snapshots, storage state, and traces to `.playwright-cli/`.
   It is gitignored and may contain credentials — never commit it or paste its contents into commits/PRs.
