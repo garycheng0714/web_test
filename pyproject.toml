@@ -15,8 +15,10 @@ dependencies = [
 [dependency-groups]
 dev = [
     "basedpyright>=1.40.2",
+    "import-linter>=2.15",
     "playwright>=1.63.0",
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "pytest-playwright>=0.9.0",
 ]
 
@@ -28,3 +30,18 @@ pythonpath = ["."]
 include = ["web_test"]
 exclude = [".venv", "**/__pycache__"]
 typeCheckingMode = "standard"
+
+[tool.importlinter]
+root_package = "web_test"
+
+[[tool.importlinter.contracts]]
+name = "Shared schemas do not import review or automation"
+type = "forbidden"
+source_modules = ["web_test.planning.schema"]
+forbidden_modules = ["web_test.planning.review", "web_test.automation"]
+
+[[tool.importlinter.contracts]]
+name = "Review does not import automation"
+type = "forbidden"
+source_modules = ["web_test.planning.review"]
+forbidden_modules = ["web_test.automation"]

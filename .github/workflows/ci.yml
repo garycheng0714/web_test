@@ -15,7 +15,7 @@ jobs:
           enable-cache: true
       - run: uv sync --locked
       - run: uv run playwright install --with-deps chromium
-      - run: uv run pytest -q
+      - run: uv run pytest -q --cov=web_test --cov-report=term-missing
 
   typecheck:
     runs-on: ubuntu-latest
@@ -28,3 +28,26 @@ jobs:
           enable-cache: true
       - run: uv sync --locked
       - run: uv run basedpyright
+
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run lint-imports
+
+  workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      # Ignore actions/create-github-app-token: actionlint 1.7.12's bundled metadata is stale
+      # (it expects app-id and rejects client-id, which v3 actually supports).
+      - run: >
+          docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12
+          -ignore 'actions/create-github-app-token'
