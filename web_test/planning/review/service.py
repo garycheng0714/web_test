@@ -2,7 +2,7 @@ from collections.abc import Callable
 
 from web_test.planning.review.jev import ReviewRequest, SystemOne, _typesafe_system_one
 from web_test.planning.review.questions import question_set_version, questions_for_subject
-from web_test.planning.review.record import DEFAULT_BANDS, build_record
+from web_test.planning.review.record import DEFAULT_BANDS, build_blocked_record, build_record
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
 from web_test.planning.review.verification import Bands, VerificationRecord
 from web_test.planning.schema import DesignOutput
@@ -47,13 +47,12 @@ def run_review_on(
         request = ReviewRequest(subject=subject, questions=questions)
         version = question_set_version(questions)
     except Exception as error:  # noqa: BLE001 - a malformed subject must not fail the plan
-        return build_record(
+        return build_blocked_record(
             subject,
-            {},
             artifact_text=artifact_text,
             question_set_version="",
             bands=bands,
-            blocked_reason=f"request build failed: {error}",
+            reason=f"request build failed: {error}",
         )
 
     return _review_request(request, artifact_text, version, system_one=system_one, bands=bands)
@@ -70,23 +69,21 @@ def _review_request(
     try:
         answers = system_one(request)
     except Exception as error:  # noqa: BLE001 - the record must carry the blocked reason
-        return build_record(
+        return build_blocked_record(
             request.subject,
-            {},
             artifact_text=artifact_text,
             question_set_version=version,
             bands=bands,
-            blocked_reason=f"Jev call failed: {error}",
+            reason=f"Jev call failed: {error}",
         )
 
     if not answers:
-        return build_record(
+        return build_blocked_record(
             request.subject,
-            {},
             artifact_text=artifact_text,
             question_set_version=version,
             bands=bands,
-            blocked_reason="Jev returned no answers",
+            reason="Jev returned no answers",
         )
 
     return build_record(

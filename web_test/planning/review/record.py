@@ -81,3 +81,22 @@ def build_record(
         blocked_reason=blocked_reason,
         override=override,
     )
+
+
+def build_blocked_record(
+    subject: ReviewSubject,
+    *,
+    artifact_text: str,
+    question_set_version: str,
+    reason: str,
+    bands: Bands = DEFAULT_BANDS,
+) -> VerificationRecord:
+    """Build a record for a review that could not produce answers."""
+    return build_record(
+        subject,
+        {},
+        artifact_text=artifact_text,
+        question_set_version=question_set_version,
+        bands=bands,
+        blocked_reason=reason,
+    )
