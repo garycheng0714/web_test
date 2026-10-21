@@ -24,13 +24,18 @@ uv run playwright install chromium
 - Run the agent: `uv run main.py`
 - Run tests: `uv run pytest`
 - Typecheck: `uv run basedpyright`
+- Architecture contracts: `uv run lint-imports`
+- Coverage (report only): `uv run pytest --cov=web_test --cov-report=term-missing`
+- Lint workflows: `actionlint` (needs `brew install actionlint` or Docker; CI uses `rhysd/actionlint:1.7.12`)
 - Add a dependency: `uv add <pkg>`
 - Plan one PRD (writes `test-case/test-case-<prd-stem>.md` and opens a PR): `uv run python -m web_test.planning.entrypoint --prd prd/<name>.md --base-url https://example.com --workspace .`
 - Implement one merged test case: `uv run python -m web_test.automation.entrypoint --case test-case/test-case-<prd-stem>.md --workspace .`
 
 ## Pipeline CI
 
-`.github/workflows/ci.yml` runs the suite on every pull request. The pipeline itself is two
+`.github/workflows/ci.yml` runs on every pull request: the suite with a coverage report, a
+basedpyright typecheck, the import-linter architecture contracts, and actionlint on the workflows.
+All four are shadow checks for now (visible, not required). The pipeline itself is two
 merge-triggered workflows that mirror each other (ADR-0008):
 
 - `plan.yml` runs when a pull request adding a `prd/**` file is **merged**: it runs the designer and
