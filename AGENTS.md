@@ -38,6 +38,17 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Do not add a module until there is a second caller or a second variation.
 - A pure refactor keeps behavior: run the full suite and verify any version or digest that must not change. Test through real entry points; do not add test-only production helpers.
 
+### Module planning
+
+Before adding or splitting a module, answer these five lines in the plan (skip for a trivial
+single-file change):
+
+1. Input
+2. Output
+3. External boundaries (API, file, CI)
+4. Domain types vs adapters
+5. Single-variation parts to leave alone
+
 ## Gotchas
 - `playwright-cli` writes snapshots, storage state, and traces to `.playwright-cli/`.
   It is gitignored and may contain credentials — never commit it or paste its contents into commits/PRs.
