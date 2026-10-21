@@ -34,7 +34,7 @@ def _normalize(answer: object) -> JevAnswer:
     return JevAnswer(probability=None)
 
 
-def _typesafe_system_one(request: ReviewRequest) -> dict[str, JevAnswer]:
+def typesafe_system_one(request: ReviewRequest) -> dict[str, JevAnswer]:
     """Call TypeSafe's System One with the built request (reads `TYPESAFE_API_KEY`/`TYPESAFE_BASE_URL`)."""
 
     async def _call() -> SystemOneResponse:

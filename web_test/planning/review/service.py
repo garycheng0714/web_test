@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-from web_test.planning.review.jev import ReviewRequest, SystemOne, _typesafe_system_one
+from web_test.planning.review.jev import ReviewRequest, SystemOne, typesafe_system_one
 from web_test.planning.review.questions import question_set_version, questions_for_subject
 from web_test.planning.review.record import DEFAULT_BANDS, build_blocked_record, build_record
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
@@ -39,7 +39,7 @@ def run_review_on(
     subject: ReviewSubject,
     test_case_text: str = "",
     *,
-    system_one: SystemOne = _typesafe_system_one,
+    system_one: SystemOne = typesafe_system_one,
     bands: Bands = DEFAULT_BANDS,
 ) -> VerificationRecord:
     """Judge an existing review subject and always return a record, blocked or not."""
@@ -101,7 +101,7 @@ def run_review(
     design: DesignOutput,
     test_case_text: str = "",
     *,
-    system_one: SystemOne = _typesafe_system_one,
+    system_one: SystemOne = typesafe_system_one,
     bands: Bands = DEFAULT_BANDS,
 ) -> VerificationRecord:
     """Ask Jev about a design and return the verification record, or a blocked record when it

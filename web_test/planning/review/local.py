@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from web_test.planning.review.jev import SystemOne, _typesafe_system_one
+from web_test.planning.review.jev import SystemOne, typesafe_system_one
 from web_test.planning.review.parser import parse_test_case
 from web_test.planning.review.record import DEFAULT_BANDS
 from web_test.planning.review.service import run_review_on
@@ -11,7 +11,7 @@ def review_case_file(
     case_path: str | Path,
     prd_path: str | Path,
     *,
-    system_one: SystemOne = _typesafe_system_one,
+    system_one: SystemOne = typesafe_system_one,
     bands: Bands = DEFAULT_BANDS,
 ) -> VerificationRecord:
     """Review the current contents of an existing Test Case file."""

@@ -1,15 +1,12 @@
 import argparse
 import sys
-import time
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel
-from typesafe_sdk import AsyncTypeSafeClient
 
-from web_test._run import run_sync
-from web_test.planning.review.jev import JEV_MODEL, SystemOne, _normalize
+from web_test.planning.review.jev import SystemOne, typesafe_system_one
 from web_test.planning.review.questions import (
     STEP_QUALITY_DIMENSIONS,
     ac_id,
@@ -62,13 +59,6 @@ class EvalSet(BaseModel):
 
 
 @dataclass(frozen=True)
-class CallUsage:
-    input_tokens: int | None
-    output_tokens: int | None
-    elapsed_seconds: float
-
-
-@dataclass(frozen=True)
 class ExpectedCheckResult:
     question_id: str
     dimension: CheckDimension
@@ -113,9 +103,6 @@ class EvalReport:
     override_rate: float | None
     criteria: tuple[tuple[str, bool], ...]
     kill_criteria_passed: bool
-    input_tokens: int | None
-    output_tokens: int | None
-    elapsed_seconds: float | None
     runs: int = 1
     reproduced: bool | None = None
 
@@ -172,42 +159,10 @@ def _check_result(
     )
 
 
-def _usage_value(usage: object, name: str) -> int | None:
-    if usage is None:
-        return None
-    if isinstance(usage, dict):
-        return usage.get(name)  # type: ignore[return-value]
-    return getattr(usage, name, None)
-
-
-def _live_system_one(usage_sink: list[CallUsage]) -> SystemOne:
-    def system_one(request):
-        start = time.perf_counter()
-
-        async def _call():
-            async with AsyncTypeSafeClient() as client:
-                return await client.system_one(
-                    request.subject.model_dump(), request.questions, model=JEV_MODEL
-                )
-
-        response = run_sync(_call())
-        usage_sink.append(
-            CallUsage(
-                input_tokens=_usage_value(getattr(response, "usage", None), "input_tokens"),
-                output_tokens=_usage_value(getattr(response, "usage", None), "output_tokens"),
-                elapsed_seconds=time.perf_counter() - start,
-            )
-        )
-        return {name: _normalize(answer) for name, answer in response.answers.items()}
-
-    return system_one
-
-
 def evaluate(
     eval_set: EvalSet,
     *,
     system_one: SystemOne,
-    usage_sink: list[CallUsage] | None = None,
 ) -> EvalReport:
     subject = _subject(eval_set)
     record = run_review_on(
@@ -308,7 +263,6 @@ def evaluate(
             or all(dimension.expected > 0 for dimension in dimensions),
         ),
     )
-    usage = usage_sink[0] if usage_sink else None
 
     return EvalReport(
         model=record.binding.model,
@@ -326,9 +280,6 @@ def evaluate(
         override_rate=None,
         criteria=criteria,
         kill_criteria_passed=all(passed for _, passed in criteria),
-        input_tokens=usage.input_tokens if usage else None,
-        output_tokens=usage.output_tokens if usage else None,
-        elapsed_seconds=usage.elapsed_seconds if usage else None,
     )
 
 
@@ -345,11 +296,6 @@ def _signature(report: EvalReport) -> tuple[object, ...]:
             if case.label == "bad"
         ),
     )
-
-
-def _sum_optional(values: list[int | None]) -> int | None:
-    present = [value for value in values if value is not None]
-    return sum(present) if present else None
 
 
 def _text(value: str) -> str:
@@ -380,9 +326,6 @@ def render_eval_report(report: EvalReport) -> str:
         f"**Needs review rate:** {report.needs_review_cases}/{len(report.cases)} cases "
         f"({report.needs_review_rate:.0%})",
         "**Override rate:** n/a (until ticket 24b)",
-        f"**Cost:** input={report.input_tokens or 'n/a'}, "
-        f"output={report.output_tokens or 'n/a'}, "
-        f"elapsed={report.elapsed_seconds or 'n/a'}s",
         f"**Kill criteria:** {'PASS' if report.kill_criteria_passed else 'FAIL'}",
         "",
         criteria,
@@ -462,16 +405,10 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         eval_set = load_eval_set(args.fixtures)
-        reports = []
-        for _ in range(args.runs):
-            usage_sink: list[CallUsage] = []
-            reports.append(
-                evaluate(
-                    eval_set,
-                    system_one=_live_system_one(usage_sink),
-                    usage_sink=usage_sink,
-                )
-            )
+        reports = [
+            evaluate(eval_set, system_one=typesafe_system_one)
+            for _ in range(args.runs)
+        ]
     except (OSError, ValueError) as error:
         print(f"failed: {error}", file=sys.stderr)
         return 1
@@ -483,12 +420,6 @@ def main(argv: list[str] | None = None) -> int:
             report,
             runs=len(reports),
             reproduced=all(_signature(item) == first for item in reports[1:]),
-            input_tokens=_sum_optional([item.input_tokens for item in reports]),
-            output_tokens=_sum_optional([item.output_tokens for item in reports]),
-            elapsed_seconds=sum(
-                item.elapsed_seconds for item in reports if item.elapsed_seconds is not None
-            )
-            or None,
         )
 
     print(render_eval_report(report))
