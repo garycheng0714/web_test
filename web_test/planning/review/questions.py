@@ -51,16 +51,18 @@ def ac_question(case: ReviewCase) -> Noul:
             f"Is case {case.index} ({case.test_scenario!r}) directly supported by the PRD "
             "requirement text and acceptance criteria? Judge the scenario, preconditions, "
             "all steps, and all expected results together. A setup step needed to reach an "
-            "AC is permitted."
+            "AC is permitted, and so is exercising a control the PRD describes, as long as "
+            "it does not contradict an AC."
         ),
         criteria=NoulCriteria(
             true=(
-                "Every step and expected result is required or permitted by the PRD "
-                "requirement text and AC, and no behaviour is invented or contradicted."
+                "Every step and expected result is required by the PRD requirement text or "
+                "AC, needed to reach one, or exercises a control the PRD describes without "
+                "contradicting it."
             ),
             false=(
-                "At least one step or expected result is unsupported by the PRD requirement "
-                "text or AC, contradicts it, or invents behaviour."
+                "At least one step or expected result contradicts the PRD requirement text "
+                "or AC, or describes behaviour the PRD does not describe at all."
             ),
         ),
     )
