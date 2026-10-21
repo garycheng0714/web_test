@@ -75,20 +75,34 @@ class Override:
 
 
 @dataclass(frozen=True)
-class VerificationRecord:
-    """The whole verification result, bound to the exact PRD and artifact it judged."""
+class VerificationResult:
+    """The review's verdict and the per-unit evidence behind it."""
 
     status: VerificationStatus          # 檔案層級：所有 case 聚合後的結果
     checks: tuple[CheckOutcome, ...]    # 每個預期 Jev 問題的結果；缺答案為 BLOCKED
     steps: tuple[UnitOutcome, ...]      # 每個 step 的聚合結果
     cases: tuple[UnitOutcome, ...]      # 每個 case 的聚合結果
+    blocked_reason: str | None = None   # 整份無法判斷的原因；部分缺答案時為 None
+    override: Override | None = None    # 人工裁決；ticket 24 才會填入
+
+
+@dataclass(frozen=True)
+class VerificationBinding:
+    """The exact inputs and configuration the result was produced from."""
+
     prd_digest: str                     # 被判斷的 PRD 文字 SHA-256
     artifact_digest: str                # 被判斷的 test-case 檔案 SHA-256
     model: str                          # 釘住的 Jev model id
     question_set_version: str           # 問題集 hash；不含 PRD 內容
     bands: Bands                        # probability 的分類門檻
-    blocked_reason: str | None = None   # 整份無法判斷的原因；部分缺答案時為 None
-    override: Override | None = None    # 人工裁決；ticket 24 才會填入
+
+
+@dataclass(frozen=True)
+class VerificationRecord:
+    """The verdict plus the exact inputs and configuration it was bound to."""
+
+    result: VerificationResult
+    binding: VerificationBinding
 
 
 def worst(statuses: Iterable[VerificationStatus]) -> VerificationStatus:

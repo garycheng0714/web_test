@@ -109,11 +109,14 @@ def test_render_report_records_an_override():
     record = _record(step_3_1_complete=JevAnswer(0.6))
     adjudicated = replace(
         record,
-        status=VerificationStatus.PASS,
-        override=Override(
-            original=VerificationStatus.NEEDS_REVIEW,
-            reason="Expected result is observable in the PRD.",
-            head_sha="abc123",
+        result=replace(
+            record.result,
+            status=VerificationStatus.PASS,
+            override=Override(
+                original=VerificationStatus.NEEDS_REVIEW,
+                reason="Expected result is observable in the PRD.",
+                head_sha="abc123",
+            ),
         ),
     )
 

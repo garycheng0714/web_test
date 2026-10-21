@@ -72,12 +72,12 @@ def test_run_review_aggregates_step_case_and_file_verdicts():
 
     record = run_review("# PRD", _design(), "artifact", system_one=lambda request: answers)
 
-    assert record.status is VerificationStatus.FAIL
-    assert record.cases[1].status is VerificationStatus.FAIL
-    assert record.cases[2].status is VerificationStatus.NEEDS_REVIEW
-    assert record.steps[2].status is VerificationStatus.NEEDS_REVIEW
-    assert record.steps[1].status is VerificationStatus.PASS
-    assert next(check for check in record.checks if check.question_id == "ac_2").status is (
+    assert record.result.status is VerificationStatus.FAIL
+    assert record.result.cases[1].status is VerificationStatus.FAIL
+    assert record.result.cases[2].status is VerificationStatus.NEEDS_REVIEW
+    assert record.result.steps[2].status is VerificationStatus.NEEDS_REVIEW
+    assert record.result.steps[1].status is VerificationStatus.PASS
+    assert next(check for check in record.result.checks if check.question_id == "ac_2").status is (
         VerificationStatus.FAIL
     )
 
@@ -90,9 +90,9 @@ def test_run_review_marks_missing_answers_blocked():
         system_one=lambda request: {"ac_1": JevAnswer(0.95)},
     )
 
-    assert record.status is VerificationStatus.BLOCKED
-    assert record.cases[0].status is VerificationStatus.BLOCKED
-    assert any(check.status is VerificationStatus.BLOCKED for check in record.checks)
+    assert record.result.status is VerificationStatus.BLOCKED
+    assert record.result.cases[0].status is VerificationStatus.BLOCKED
+    assert any(check.status is VerificationStatus.BLOCKED for check in record.result.checks)
 
 
 def test_blocked_dominates_needs_review():
@@ -102,9 +102,9 @@ def test_blocked_dominates_needs_review():
 
     record = run_review("# PRD", _design(), "artifact", system_one=lambda request: answers)
 
-    assert record.steps[0].status is VerificationStatus.BLOCKED
-    assert record.cases[0].status is VerificationStatus.BLOCKED
-    assert record.status is VerificationStatus.BLOCKED
+    assert record.result.steps[0].status is VerificationStatus.BLOCKED
+    assert record.result.cases[0].status is VerificationStatus.BLOCKED
+    assert record.result.status is VerificationStatus.BLOCKED
 
 
 def test_fail_dominates_blocked():
@@ -115,8 +115,8 @@ def test_fail_dominates_blocked():
         system_one=lambda request: {"ac_1": JevAnswer(0.05)},
     )
 
-    assert record.cases[0].status is VerificationStatus.FAIL
-    assert record.status is VerificationStatus.FAIL
+    assert record.result.cases[0].status is VerificationStatus.FAIL
+    assert record.result.status is VerificationStatus.FAIL
 
 
 def test_unknown_answers_only_are_blocked_with_a_reason():
@@ -127,8 +127,8 @@ def test_unknown_answers_only_are_blocked_with_a_reason():
         system_one=lambda request: {"surprise": JevAnswer(0.95)},
     )
 
-    assert record.status is VerificationStatus.BLOCKED
-    assert record.blocked_reason == "No answer was returned for any check."
+    assert record.result.status is VerificationStatus.BLOCKED
+    assert record.result.blocked_reason == "No answer was returned for any check."
 
 
 def test_question_set_version_failure_is_blocked(monkeypatch):
@@ -141,8 +141,8 @@ def test_question_set_version_failure_is_blocked(monkeypatch):
         "# PRD", _design(), "artifact", system_one=lambda request: _passing_answers()
     )
 
-    assert record.status is VerificationStatus.BLOCKED
-    assert "request build failed" in (record.blocked_reason or "")
+    assert record.result.status is VerificationStatus.BLOCKED
+    assert "request build failed" in (record.result.blocked_reason or "")
 
 
 def test_run_review_returns_blocked_when_the_call_fails():
@@ -153,16 +153,16 @@ def test_run_review_returns_blocked_when_the_call_fails():
         system_one=MagicMock(side_effect=RuntimeError("no key")),
     )
 
-    assert record.status is VerificationStatus.BLOCKED
-    assert "Jev call failed" in (record.blocked_reason or "")
-    assert all(check.status is VerificationStatus.BLOCKED for check in record.checks)
+    assert record.result.status is VerificationStatus.BLOCKED
+    assert "Jev call failed" in (record.result.blocked_reason or "")
+    assert all(check.status is VerificationStatus.BLOCKED for check in record.result.checks)
 
 
 def test_run_review_returns_blocked_on_empty_answers():
     record = run_review("# PRD", _design(), "artifact", system_one=lambda request: {})
 
-    assert record.status is VerificationStatus.BLOCKED
-    assert record.blocked_reason == "Jev returned no answers"
+    assert record.result.status is VerificationStatus.BLOCKED
+    assert record.result.blocked_reason == "Jev returned no answers"
 
 
 def test_record_binds_digests_model_and_question_set():
@@ -173,12 +173,12 @@ def test_record_binds_digests_model_and_question_set():
         system_one=lambda request: _passing_answers(),
     )
 
-    assert record.prd_digest == digest_text("# PRD")
-    assert record.artifact_digest == digest_text("artifact")
-    assert record.model == JEV_MODEL
-    assert record.question_set_version
-    assert record.bands.pass_min == 0.8
-    assert record.bands.needs_review_min == 0.5
+    assert record.binding.prd_digest == digest_text("# PRD")
+    assert record.binding.artifact_digest == digest_text("artifact")
+    assert record.binding.model == JEV_MODEL
+    assert record.binding.question_set_version
+    assert record.binding.bands.pass_min == 0.8
+    assert record.binding.bands.needs_review_min == 0.5
 
 
 def test_question_set_version_is_stable_for_the_same_design():
@@ -189,7 +189,7 @@ def test_question_set_version_is_stable_for_the_same_design():
         "# PRD", _design(), "artifact", system_one=lambda request: _passing_answers()
     )
 
-    assert first.question_set_version == second.question_set_version
+    assert first.binding.question_set_version == second.binding.question_set_version
 
 
 def test_normalize_maps_a_noul_answer_to_a_verdict():

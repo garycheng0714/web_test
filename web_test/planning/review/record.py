@@ -8,7 +8,9 @@ from web_test.planning.review.verification import (
     Bands,
     CheckOutcome,
     Override,
+    VerificationBinding,
     VerificationRecord,
+    VerificationResult,
     VerificationStatus,
     digest_text,
 )
@@ -69,17 +71,21 @@ def build_record(
         status = VerificationStatus.BLOCKED
 
     return VerificationRecord(
-        status=status,
-        checks=tuple(checks),
-        steps=tuple(steps),
-        cases=tuple(cases),
-        prd_digest=digest_text(subject.prd),
-        artifact_digest=digest_text(artifact_text),
-        model=model,
-        question_set_version=question_set_version,
-        bands=bands,
-        blocked_reason=blocked_reason,
-        override=override,
+        result=VerificationResult(
+            status=status,
+            checks=tuple(checks),
+            steps=tuple(steps),
+            cases=tuple(cases),
+            blocked_reason=blocked_reason,
+            override=override,
+        ),
+        binding=VerificationBinding(
+            prd_digest=digest_text(subject.prd),
+            artifact_digest=digest_text(artifact_text),
+            model=model,
+            question_set_version=question_set_version,
+            bands=bands,
+        ),
     )
 
 
