@@ -27,6 +27,8 @@ the original verdict, the reason, and the head it applied to.
 
 - Added `web_test/planning/verification.py`: `VerdictStatus`, `Bands`, `CheckOutcome`,
   `UnitOutcome`, `Override`, `VerificationRecord`, `worst`, and `digest_text`.
+- Split review models into `review_subject.py` and prompt text, IDs, and expected checks into
+  `review_questions.py`; `review.py` now only builds requests, aggregates answers, and runs Jev.
 - `review.py` now builds step, case, and file verdicts with `FAIL > BLOCKED > NEEDS_REVIEW > PASS`,
   binds PRD/artifact digests, model, question-set version, and bands, and returns a `BLOCKED`
   record on failure instead of `None`.
@@ -34,4 +36,6 @@ the original verdict, the reason, and the head it applied to.
   evidence, and override.
 - `entrypoint.py` renders the artifact before review and writes the same content, so the artifact
   digest matches the file.
-- `uv run pytest`: 112 passed, 1 skipped.
+- Follow-up: all-blocked records carry a reason, question-set-version failures return `BLOCKED`,
+  and the publisher passes `content` explicitly.
+- `uv run pytest`: 117 passed, 1 skipped.
