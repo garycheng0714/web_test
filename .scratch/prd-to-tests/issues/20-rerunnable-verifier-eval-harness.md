@@ -2,7 +2,7 @@
 
 **What to build:** One command that replays the known-good and known-bad Test Case variants through
 the current review and reports, per check: caught or not caught, false flags on good cases, model
-and question-set version, tokens, and elapsed time. Results are grouped under the v1 bands
+and question-set version. Results are grouped under the v1 bands
 (`PASS`, `NEEDS_REVIEW`, `FAIL`, `BLOCKED`) so the same run can inform the shadow-to-required
 decision. The variants are the ones already used in the Jev experiments. The report states the
 one-run and small-sample limits instead of presenting a directional result as stable.
@@ -14,7 +14,7 @@ one-run and small-sample limits instead of presenting a directional result as st
 - [x] Known-bad and known-good variants are checked in as fixtures
 - [x] One command runs the full set without hand-built request files
 - [x] The report shows per-check catch and false-flag counts under the v1 bands, model version,
-      question-set version, tokens, and elapsed time
+      and question-set version
 - [x] Pre-registered kill criteria are part of the run output
 - [x] The report includes the `NEEDS_REVIEW` rate and override rate needed for the required-check
       decision
@@ -72,7 +72,6 @@ VerificationRecord
   ├─ per-check status（v1 bands）
   ├─ model
   ├─ question-set version
-  ├─ tokens / elapsed
   └─ needs-review rate
         │
         ▼
@@ -93,3 +92,8 @@ VerificationRecord
 - `caught = FAIL + NEEDS_REVIEW`；`hard_fail` 另外統計。
 - `override_rate` 目前是 `n/a`，等 24b 的人工裁決實作。
 - 沒有 bad variant 的 dimension 標成 `inconclusive`，不能算 pass。
+
+**2026-10-21 — cost reporting removed.** The report no longer shows tokens or elapsed time. Measured
+cost is low (about 12.5k input / 1.3k output tokens and 0.5 s per run) and was not an input to any
+decision, while reading it forced the eval to keep a second Jev adapter that parsed the SDK's usage
+payload. The report keeps model, question-set version, and the needs-review rate.
