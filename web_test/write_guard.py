@@ -54,6 +54,6 @@ async def _guard(
     args: ValidatedToolArgs,
 ) -> ValidatedToolArgs:
     permission = check_write_permission(args["path"])
-    if not permission.allow:
+    if permission.error_msg is not None:
         raise ModelRetry(permission.error_msg)
     return args

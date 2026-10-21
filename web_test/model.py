@@ -5,6 +5,7 @@ from openai import AsyncOpenAI
 from pydantic_ai import ModelProfile
 from pydantic_ai.models import Model
 from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.profiles.openai import OpenAIModelProfile
 from pydantic_ai.providers.openai import OpenAIProvider
 
 OPENCODE_GO_BASE_URL = "https://opencode.ai/inference/go/v1"
@@ -22,7 +23,7 @@ def _profile(model_name: str) -> ModelProfile | None:
         # Keep `supports_forced_tool_choice` on and mark only the thinking restriction, so pydantic-ai
         # falls back to `auto` while thinking. With tools, DeepSeek requires each turn's
         # `reasoning_content` to be passed back, or the next request 400s.
-        return ModelProfile(
+        return OpenAIModelProfile(
             supports_thinking=True,
             thinking_enabled_by_default=True,
             supports_forced_tool_choice_with_thinking=False,
