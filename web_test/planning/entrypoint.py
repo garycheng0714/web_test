@@ -11,7 +11,7 @@ from pydantic import ValidationError
 from web_test.command import subprocess_runner
 from web_test.naming import branch_for, run_token
 from web_test.observability import configure_observability
-from web_test.planning.cases_writer import CaseWriter
+from web_test.planning.cases_writer import CaseWriter, render_document, title_from_stem
 from web_test.planning.designer import design_test_cases
 from web_test.planning.publisher import TEST_CASE_DIR, PlanPublisher
 from web_test.planning.review import Reviewer, run_review
@@ -64,8 +64,15 @@ def plan(
         if not design.cases:
             return PlanOutcome(PlanStatus.NO_CASES)
 
-        verdicts = reviewer(prd_text, design)
-        review = render_report(verdicts, design) if verdicts else None
+        artifact_text = render_document(
+            design.cases,
+            id=prd.stem,
+            base_url=base_url,
+            title=title_from_stem(prd.stem),
+            open_questions=design.open_questions,
+        )
+        record = reviewer(prd_text, design, artifact_text)
+        review = render_report(record)
         publisher = PlanPublisher(
             git=git, pr=pr, writer=CaseWriter(workspace / TEST_CASE_DIR, base_url=base_url)
         )
@@ -77,6 +84,7 @@ def plan(
             cases=design.cases,
             open_questions=design.open_questions,
             review=review,
+            content=artifact_text,
         )
     except (RuntimeError, ValidationError, OSError) as error:
         return PlanOutcome(PlanStatus.FAILED, error=str(error))

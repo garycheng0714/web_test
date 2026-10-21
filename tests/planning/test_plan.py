@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from web_test.planning.entrypoint import PlanStatus, commit_message, main, plan, plan_branch
-from web_test.planning.review import Verdict
+from web_test.planning.review import JevAnswer, run_review
 from web_test.planning.schema import Case, DesignOutput
 
 NOW = datetime(2026, 10, 14, 12, 0, 0, tzinfo=timezone.utc)
@@ -30,8 +30,21 @@ def _prd(tmp_path):
     return prd
 
 
-def _no_review(*args, **kwargs):
-    return None
+def _blocked_review(text, design, artifact):
+    return run_review(
+        text, design, artifact, system_one=MagicMock(side_effect=RuntimeError("no key"))
+    )
+
+
+def _passing_review(text, design, artifact):
+    return run_review(
+        text,
+        design,
+        artifact,
+        system_one=lambda request: {
+            question_id: JevAnswer(0.95) for question_id in request.questions
+        },
+    )
 
 
 def test_plan_writes_files_and_opens_one_pr(tmp_path):
@@ -47,7 +60,7 @@ def test_plan_writes_files_and_opens_one_pr(tmp_path):
         base_url="https://example.com",
         workspace=tmp_path,
         agent=agent,
-        reviewer=_no_review,
+        reviewer=_blocked_review,
         git=git,
         pr=pr,
         now=NOW,
@@ -68,7 +81,7 @@ def test_plan_puts_the_review_in_the_pr_body(tmp_path):
         base_url="https://e.com",
         workspace=tmp_path,
         agent=agent,
-        reviewer=lambda text, design: {"ac_1": Verdict(True, 0.9)},
+        reviewer=_passing_review,
         git=git,
         pr=pr,
         now=NOW,
@@ -78,7 +91,7 @@ def test_plan_puts_the_review_in_the_pr_body(tmp_path):
     assert "**AC alignment:** 1/1 cases aligned" in pr.open_pull_request.call_args.args[0].body
 
 
-def test_plan_omits_the_review_section_without_one(tmp_path):
+def test_plan_shows_a_blocked_review_when_jev_is_unavailable(tmp_path):
     agent = MagicMock(return_value=DesignOutput(cases=[_case()]))
     git, pr = MagicMock(), MagicMock()
 
@@ -87,13 +100,16 @@ def test_plan_omits_the_review_section_without_one(tmp_path):
         base_url="https://e.com",
         workspace=tmp_path,
         agent=agent,
-        reviewer=_no_review,
+        reviewer=_blocked_review,
         git=git,
         pr=pr,
         now=NOW,
     )
 
-    assert "Jev review" not in pr.open_pull_request.call_args.args[0].body
+    body = pr.open_pull_request.call_args.args[0].body
+    assert "Jev review" in body
+    assert "**Status:** `BLOCKED`" in body
+    assert "Jev call failed" in body
 
 
 def test_plan_opens_no_pr_when_there_are_no_cases(tmp_path):
@@ -105,7 +121,7 @@ def test_plan_opens_no_pr_when_there_are_no_cases(tmp_path):
         base_url="https://e.com",
         workspace=tmp_path,
         agent=agent,
-        reviewer=_no_review,
+        reviewer=_blocked_review,
         git=git,
         pr=pr,
         now=NOW,
@@ -126,7 +142,7 @@ def test_plan_reports_a_git_failure(tmp_path):
         base_url="https://e.com",
         workspace=tmp_path,
         agent=agent,
-        reviewer=_no_review,
+        reviewer=_blocked_review,
         git=git,
         pr=pr,
         now=NOW,
@@ -152,7 +168,7 @@ def test_plan_reports_a_missing_prd(tmp_path):
         base_url="https://e.com",
         workspace=tmp_path,
         agent=MagicMock(),
-        reviewer=_no_review,
+        reviewer=_blocked_review,
         git=MagicMock(),
         pr=MagicMock(),
         now=NOW,

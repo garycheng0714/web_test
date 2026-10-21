@@ -33,7 +33,7 @@ uv run playwright install chromium
 merge-triggered workflows that mirror each other (ADR-0008):
 
 - `plan.yml` runs when a pull request adding a `prd/**` file is **merged**: it runs the designer and
-  the advisory Jev review, and opens a test-case PR.
+  the Jev verification record, and opens a test-case PR.
 - `automate.yml` runs when a pull request adding a `test-case/**` file is **merged**: it has the coding
   agent implement its tests, and opens a PR when the suite is green.
 
@@ -41,7 +41,7 @@ Both act on exactly one added file, mint a short-lived token for the `web-test-q
 (so the PRs they open get real CI runs), and name their branch
 `<kind>/<id>-<run_id>-<run_attempt>`. They need the `APP_CLIENT_ID` / `APP_PRIVATE_KEY` secrets, an
 OpenCode Go model key (`OPENCODE_API_KEY`), and — for `plan` — the `WEB_TEST_BASE_URL` repository
-variable. `TYPESAFE_API_KEY` is optional: without it the Jev review is omitted from the PR body.
+variable. `TYPESAFE_API_KEY` is optional: without it the Jev review renders as `BLOCKED` in the PR body.
 
 Tests live in `tests/` and run under pytest with Playwright's Python bindings. The
 `pytest-playwright` plugin provides the `page` fixture and defaults to chromium; pass `--headed`

@@ -1,21 +1,10 @@
-from web_test.planning.review import Verdict
+from dataclasses import replace
+
+from web_test.planning.review import JevAnswer, run_review
 from web_test.planning.review_report import render_report
 from web_test.planning.schema import Case, DesignOutput
+from web_test.planning.verification import Override, VerificationStatus, digest_text
 
-DECISIONS = {
-    "ac_1": Verdict(True, 0.95),
-    "ac_2": Verdict(False, 0.05),
-    "ac_3": Verdict(True, 0.55),
-    "step_1_1_reasonable": Verdict(True, 0.95),
-    "step_1_1_complete": Verdict(True, 0.95),
-    "step_1_1_observable": Verdict(True, 0.95),
-    "step_2_1_reasonable": Verdict(True, 0.9),
-    "step_2_1_complete": Verdict(False, 0.1),
-    "step_2_1_observable": Verdict(True, 0.9),
-    "step_3_1_reasonable": Verdict(True, 0.95),
-    "step_3_1_complete": Verdict(True, 0.95),
-    "step_3_1_observable": Verdict(True, 0.55),
-}
 
 
 def _case(**overrides):
@@ -38,47 +27,98 @@ def _design():
     )
 
 
-def test_render_report_summarises_checks_findings_and_low_confidence():
-    text = render_report(DECISIONS, _design())
+def _answers(request, **overrides):
+    values = {question_id: JevAnswer(0.95) for question_id in request.questions}
+    values.update(overrides)
+    return values
 
+
+def _record(**overrides):
+    return run_review(
+        "# PRD",
+        _design(),
+        "artifact",
+        system_one=lambda request: _answers(request, **overrides),
+    )
+
+
+def test_render_report_shows_status_counts_findings_and_evidence():
+    record = _record(ac_2=JevAnswer(0.05), step_3_1_complete=JevAnswer(0.6))
+
+    text = render_report(record)
+
+    assert "**Status:** `FAIL`" in text
     assert "**AC alignment:** 2/3 cases aligned" in text
     assert "**Step quality:** 3/3 reasonable, 2/3 complete, 3/3 observable" in text
     assert "Case 2: B (AC alignment, p=0.05)" in text
-    assert "Case 2, step 1: Go (complete, p=0.1)" in text
-    assert "Case 3: C (AC alignment, confidence=0.55)" in text
-    assert "Case 3, step 1: Go (observable, confidence=0.55)" in text
-    assert "Advisory" in text
+    assert "Case 3, step 1: Go (complete, p=0.6)" in text
+    assert f"PRD: `sha256:{digest_text('# PRD')}`" in text
+    assert f"Artifact: `sha256:{digest_text('artifact')}`" in text
+    assert "Model: `jev-1.13.0`" in text
+    assert "Question set: `" in text
+
+
+def test_render_report_shows_blocked_reason():
+    record = run_review(
+        "# PRD",
+        _design(),
+        "artifact",
+        system_one=lambda request: (_ for _ in ()).throw(RuntimeError("no key")),
+    )
+
+    text = render_report(record)
+
+    assert "**Status:** `BLOCKED`" in text
+    assert "Jev call failed: no key" in text
+    assert f"Artifact: `sha256:{digest_text('artifact')}`" in text
+
+
+def test_render_report_shows_a_reason_when_every_check_is_blocked():
+    record = run_review(
+        "# PRD",
+        _design(),
+        "artifact",
+        system_one=lambda request: {"surprise": JevAnswer(0.95)},
+    )
+
+    text = render_report(record)
+
+    assert "**Status:** `BLOCKED`" in text
+    assert "No answer was returned for any check." in text
 
 
 def test_render_report_shows_none_when_clean():
-    clean = {
-        "ac_1": Verdict(True, 0.95),
-        "ac_2": Verdict(True, 0.95),
-        "ac_3": Verdict(True, 0.95),
-        "step_1_1_reasonable": Verdict(True, 0.95),
-        "step_1_1_complete": Verdict(True, 0.95),
-        "step_1_1_observable": Verdict(True, 0.95),
-        "step_2_1_reasonable": Verdict(True, 0.95),
-        "step_2_1_complete": Verdict(True, 0.95),
-        "step_2_1_observable": Verdict(True, 0.95),
-        "step_3_1_reasonable": Verdict(True, 0.95),
-        "step_3_1_complete": Verdict(True, 0.95),
-        "step_3_1_observable": Verdict(True, 0.95),
-    }
+    text = render_report(_record())
 
-    text = render_report(clean, _design())
-
-    assert "**AC alignment:** 3/3 cases aligned" in text
-    assert "**Step quality:** 3/3 reasonable, 3/3 complete, 3/3 observable" in text
+    assert "**Status:** `PASS`" in text
     assert "**Findings**\n\nNone." in text
-    assert "**Needs review (confidence < 0.8)**\n\nNone." in text
+    assert "**Needs review**\n\nNone." in text
+    assert "**Blocked**\n\nNone." in text
 
 
 def test_render_report_ignores_unknown_question_ids():
-    decisions = {"ac_1": Verdict(True, 0.95), "surprise": Verdict(False, 0.01)}
+    record = _record(surprise=JevAnswer(0.01))
 
-    text = render_report(decisions, _design())
+    text = render_report(record)
 
-    assert "**AC alignment:** 1/3 cases aligned" in text
-    assert "**Step quality:** 0/3 reasonable, 0/3 complete, 0/3 observable" in text
     assert "surprise" not in text
+    assert "**AC alignment:** 3/3 cases aligned" in text
+
+
+def test_render_report_records_an_override():
+    record = _record(step_3_1_complete=JevAnswer(0.6))
+    adjudicated = replace(
+        record,
+        status=VerificationStatus.PASS,
+        override=Override(
+            original=VerificationStatus.NEEDS_REVIEW,
+            reason="Expected result is observable in the PRD.",
+            head_sha="abc123",
+        ),
+    )
+
+    text = render_report(adjudicated)
+
+    assert "**Status:** `PASS`" in text
+    assert "NEEDS_REVIEW -> PASS at abc123" in text
+    assert "Expected result is observable in the PRD." in text
