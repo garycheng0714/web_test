@@ -5,28 +5,17 @@ from dataclasses import dataclass
 from typesafe_sdk import AsyncTypeSafeClient, Noul, NoulAnswer, SystemOneResponse
 
 from web_test._run import run_sync
-from web_test.planning.review_questions import (
-    STEP_QUALITY_DIMENSIONS,
-    ac_id,
-    case_key,
-    case_label,
-    expected_checks,
-    questions_for_subject,
-    step_id,
-    step_key,
-    step_label,
-)
+from web_test.planning.review_aggregation import aggregate_checks
+from web_test.planning.review_questions import expected_checks, questions_for_subject
 from web_test.planning.review_subject import ReviewCase, ReviewStep, ReviewSubject
 from web_test.planning.schema import DesignOutput
 from web_test.planning.verification import (
     Bands,
     CheckOutcome,
     Override,
-    UnitOutcome,
     VerificationRecord,
     VerificationStatus,
     digest_text,
-    worst,
 )
 
 JEV_MODEL = "jev-1.13.0"
@@ -116,60 +105,6 @@ def _default_blocked_reason(
     return blocked_reason
 
 
-def _step_outcomes(
-    subject: ReviewSubject,
-    by_id: Mapping[str, CheckOutcome],
-) -> list[UnitOutcome]:
-    steps = []
-    for case in subject.cases:
-        for step in case.steps:
-            statuses = [
-                by_id[step_id(case.index, step.index, dimension)].status
-                for dimension in STEP_QUALITY_DIMENSIONS
-            ]
-            steps.append(
-                UnitOutcome(
-                    key=step_key(case.index, step.index),
-                    label=step_label(case, step),
-                    status=worst(statuses),
-                )
-            )
-    return steps
-
-
-def _case_outcomes(
-    subject: ReviewSubject,
-    by_id: Mapping[str, CheckOutcome],
-    steps: list[UnitOutcome],
-) -> list[UnitOutcome]:
-    step_status_by_key = {step.key: step.status for step in steps}
-    cases = []
-    for case in subject.cases:
-        ac_status = by_id[ac_id(case.index)].status
-        step_statuses = [
-            step_status_by_key[step_key(case.index, step.index)] for step in case.steps
-        ]
-        cases.append(
-            UnitOutcome(
-                key=case_key(case.index),
-                label=case_label(case),
-                status=worst([ac_status, *step_statuses]),
-            )
-        )
-    return cases
-
-
-def _aggregate(
-    subject: ReviewSubject,
-    checks: list[CheckOutcome],
-) -> tuple[list[UnitOutcome], list[UnitOutcome], VerificationStatus]:
-    """Roll checks up to steps, cases, and the file status."""
-    by_id = {check.question_id: check for check in checks}
-    steps = _step_outcomes(subject, by_id)
-    cases = _case_outcomes(subject, by_id, steps)
-    return steps, cases, worst(case.status for case in cases)
-
-
 def build_record(
     subject: ReviewSubject,
     answers: Mapping[str, JevAnswer],
@@ -184,7 +119,7 @@ def build_record(
     """Build the per-check, per-step, per-case, and file status from Jev's answers."""
     checks = _check_outcomes(subject, answers, bands)
     blocked_reason = _default_blocked_reason(checks, blocked_reason)
-    steps, cases, status = _aggregate(subject, checks)
+    steps, cases, status = aggregate_checks(subject, checks)
 
     if blocked_reason and status is not VerificationStatus.FAIL:
         status = VerificationStatus.BLOCKED
