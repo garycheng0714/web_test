@@ -26,6 +26,10 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - `uv sync` to generate `uv.lock`
 - No lint, formatter, or typecheck are configured. CI: `.github/workflows/ci.yml` (suite on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
 
+## Language
+Reply in Traditional Chinese. Keep code, commit messages, and existing English docs in their
+current language; do not translate them.
+
 ## Conventions
 - Boundary data — model output, config, external input — is a Pydantic `BaseModel`; it validates and serializes. Data passed between our own modules is a `@dataclass`: it is light, stores callables naturally, and needs no validation.
 
