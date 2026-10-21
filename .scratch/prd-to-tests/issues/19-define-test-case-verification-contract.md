@@ -1,7 +1,7 @@
 # 19: Define the test-case verification contract
 
 **What to build:** The decided v1 contract for independently verifying a Test Case before the Gate.
-This ticket is the reference for 21, 23, and 24; it does not add code itself.
+This ticket is the reference for 21, 23, and 24a/24b; it does not add code itself.
 
 ## Claim
 

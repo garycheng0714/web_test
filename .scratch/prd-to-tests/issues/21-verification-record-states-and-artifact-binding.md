@@ -18,7 +18,7 @@ the original verdict, the reason, and the head it applied to.
 - [x] The record stores PRD and artifact digests plus model, question-set, and band versions
 - [x] The record can represent an override with its original verdict, reason, and head SHA
 - [x] Re-rendering the same inputs yields the same digests and verdict
-- [x] Plan still opens the PR; the required check is ticket 24
+- [x] Plan still opens the PR; the required check is ticket 24a/24b
 - [x] Tests cover each verdict, the unavailable path, and the aggregation precedence
 
 ## Comments
