@@ -4,7 +4,7 @@
 review with a reason re-runs `NEEDS_REVIEW`/`BLOCKED` as success and records the original verdict;
 `FAIL` has no routine override. Then enable the required check in branch protection.
 
-**Blocked by:** 24a (shadow verification check).
+**Blocked by:** 24a (shadow verification check); 26 for the required-check flip.
 
 **Status:** needs-triage
 
@@ -12,7 +12,7 @@ review with a reason re-runs `NEEDS_REVIEW`/`BLOCKED` as success and records the
 - [ ] The override records the original verdict, reason, and head SHA
 - [ ] A new head voids the override and requires a fresh verdict
 - [ ] `FAIL` ignores approvals; only admin break-glass can bypass it
-- [ ] Branch protection requires the `verify-test-case` check
+- [ ] Branch protection requires the `verify-test-case` check, after ticket 26 passes
 - [ ] Shadow-to-required rollout and the break-glass policy are documented
 - [ ] Repeated runs update one result and do not add duplicate comments
 - [ ] Verified live on a Test Case PR
