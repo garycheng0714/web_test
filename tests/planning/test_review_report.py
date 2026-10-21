@@ -43,15 +43,15 @@ def _record(**overrides):
 
 
 def test_render_report_shows_status_counts_findings_and_evidence():
-    record = _record(ac_2=JevAnswer(0.05), step_3_1_complete=JevAnswer(0.6))
+    record = _record(ac_2=JevAnswer(0.05), step_3_1_continuity=JevAnswer(0.6))
 
     text = render_report(record)
 
     assert "**Status:** `FAIL`" in text
     assert "**AC alignment:** 2/3 cases aligned" in text
-    assert "**Step quality:** 3/3 reasonable, 2/3 complete, 3/3 observable" in text
+    assert "**Step quality:** 3/3 reasonable, 2/3 continuity, 3/3 observable" in text
     assert "Case 2: B (AC alignment, p=0.05)" in text
-    assert "Case 3, step 1: Go (complete, p=0.6)" in text
+    assert "Case 3, step 1: Go (continuity, p=0.6)" in text
     assert f"PRD: `sha256:{digest_text('# PRD')}`" in text
     assert f"Test Case: `sha256:{digest_text('artifact')}`" in text
     assert "Model: `jev-1.13.0`" in text
@@ -106,7 +106,7 @@ def test_render_report_ignores_unknown_question_ids():
 
 
 def test_render_report_records_an_override():
-    record = _record(step_3_1_complete=JevAnswer(0.6))
+    record = _record(step_3_1_continuity=JevAnswer(0.6))
     adjudicated = replace(
         record,
         result=replace(

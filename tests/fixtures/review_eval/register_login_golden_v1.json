@@ -22,6 +22,11 @@
           "action": "Click 'Signup'.",
           "expected_result": "The 'Enter Account Information' page is displayed; the account information step is entered rather than staying on /login."
         }
+      ],
+      "preconditions": [
+        "User is a guest (header shows 'Signup / Login')",
+        "Browser is on http://automationexercise.com/login",
+        "The email to be used has never been registered on the site"
       ]
     },
     {
@@ -49,6 +54,9 @@
           "action": "Click 'Continue'.",
           "expected_result": "The user is returned to the site in a logged-in state: the header shows 'Logged in as <name>' together with 'Logout' and 'Delete Account'."
         }
+      ],
+      "preconditions": [
+        "User is a guest and has already submitted an unregistered Name/Email on New User Signup! and is on the 'Enter Account Information' page (FR-ACC-01 satisfied)"
       ]
     },
     {
@@ -68,6 +76,11 @@
           "action": "Click 'Signup'.",
           "expected_result": "The 'Enter Account Information' page is displayed."
         }
+      ],
+      "preconditions": [
+        "User is a guest (header shows 'Signup / Login')",
+        "Browser is on http://automationexercise.com/login",
+        "The email to be used has never been registered on the site"
       ]
     },
     {
@@ -91,6 +104,11 @@
           "action": "Click 'Signup'.",
           "expected_result": "Signup works."
         }
+      ],
+      "preconditions": [
+        "User is a guest (header shows 'Signup / Login')",
+        "Browser is on http://automationexercise.com/login",
+        "The email to be used has never been registered on the site"
       ]
     },
     {
@@ -114,6 +132,11 @@
           "action": "Click 'Signup'.",
           "expected_result": "The user stays on /login and the 'New User Signup!' block remains visible."
         }
+      ],
+      "preconditions": [
+        "User is a guest (header shows 'Signup / Login')",
+        "Browser is on http://automationexercise.com/login",
+        "The email to be used has never been registered on the site"
       ]
     },
     {
@@ -133,7 +156,8 @@
           "action": "Click 'Continue'.",
           "expected_result": "The header shows 'Logged in as <name>' with 'Logout' and 'Delete Account'."
         }
-      ]
+      ],
+      "preconditions": []
     }
   ],
   "expected_failures": [
@@ -153,7 +177,7 @@
     },
     {
       "case": "B4",
-      "dimension": "complete",
+      "dimension": "continuity",
       "step": 1
     }
   ],

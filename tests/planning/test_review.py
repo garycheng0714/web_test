@@ -65,10 +65,23 @@ def test_run_review_builds_the_three_checks():
     assert isinstance(request.questions["ac_1"], Noul)
 
 
+def test_run_review_passes_case_preconditions_into_the_subject():
+    captured = {}
+
+    def system_one(request):
+        captured["request"] = request
+        return {question_id: JevAnswer(0.95) for question_id in request.questions}
+
+    case = _case(preconditions=["User is on /login"])
+    run_review("# PRD", DesignOutput(cases=[case]), "artifact", system_one=system_one)
+
+    assert captured["request"].subject.cases[0].preconditions == ["User is on /login"]
+
+
 def test_run_review_aggregates_step_case_and_file_verdicts():
     answers = _passing_answers()
     answers["ac_2"] = JevAnswer(0.05)
-    answers["step_3_1_complete"] = JevAnswer(0.6)
+    answers["step_3_1_continuity"] = JevAnswer(0.6)
 
     record = run_review("# PRD", _design(), "artifact", system_one=lambda request: answers)
 
@@ -98,7 +111,7 @@ def test_run_review_marks_missing_answers_blocked():
 def test_blocked_dominates_needs_review():
     answers = _passing_answers()
     answers.pop("step_1_1_observable")
-    answers["step_1_1_complete"] = JevAnswer(0.6)
+    answers["step_1_1_continuity"] = JevAnswer(0.6)
 
     record = run_review("# PRD", _design(), "artifact", system_one=lambda request: answers)
 

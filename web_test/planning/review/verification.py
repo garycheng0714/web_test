@@ -16,7 +16,7 @@ class CheckDimension(StrEnum):
 
     AC_ALIGNMENT = "AC alignment"
     STEP_REASONABLE = "reasonable"
-    STEP_COMPLETE = "complete"
+    STEP_CONTINUITY = "continuity"
     STEP_OBSERVABLE = "observable"
 
 

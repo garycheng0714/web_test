@@ -20,6 +20,7 @@ def _subject_from_design(prd_text: str, design: DesignOutput) -> ReviewSubject:
                 requirement_ids=case.requirement_ids,
                 module_feature=case.module_feature,
                 test_scenario=case.test_scenario,
+                preconditions=case.preconditions,
                 steps=[
                     ReviewStep(
                         index=step_index,

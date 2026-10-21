@@ -31,7 +31,7 @@ def _eval_set(*, require_each_dimension: bool = False, expected_failures=None) -
                     "label": "bad",
                     "tests": "skipped required step",
                     "requirement_ids": ["FR-1"],
-                    "scenario": "Bad complete",
+                    "scenario": "Bad continuity",
                     "steps": [
                         {"action": "Click Submit", "expected_result": "Done"},
                     ],
@@ -49,7 +49,7 @@ def _eval_set(*, require_each_dimension: bool = False, expected_failures=None) -
             ],
             "expected_failures": expected_failures
             or [
-                {"case": "B1", "dimension": "complete", "step": 1},
+                {"case": "B1", "dimension": "continuity", "step": 1},
                 {"case": "B2", "dimension": "AC alignment"},
             ],
             "kill_criteria": {
@@ -78,7 +78,7 @@ def test_evaluate_counts_catches_false_flags_and_hard_failures():
         _eval_set(),
         system_one=_system_one(
             {
-                "step_2_1_complete": JevAnswer(0.1),
+                "step_2_1_continuity": JevAnswer(0.1),
                 "ac_3": JevAnswer(0.6),
             }
         ),
@@ -116,7 +116,7 @@ def test_render_report_includes_override_as_not_available():
         _eval_set(),
         system_one=_system_one(
             {
-                "step_2_1_complete": JevAnswer(0.1),
+                "step_2_1_continuity": JevAnswer(0.1),
                 "ac_3": JevAnswer(0.6),
             }
         ),

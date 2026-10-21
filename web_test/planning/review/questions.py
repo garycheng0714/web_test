@@ -9,7 +9,7 @@ from web_test.planning.review.verification import CheckDimension, digest_text
 
 STEP_QUALITY_DIMENSIONS: tuple[CheckDimension, ...] = (
     CheckDimension.STEP_REASONABLE,
-    CheckDimension.STEP_COMPLETE,
+    CheckDimension.STEP_CONTINUITY,
     CheckDimension.STEP_OBSERVABLE,
 )
 
@@ -67,7 +67,7 @@ def ac_question(case: ReviewCase) -> Noul:
 
 
 def step_questions(case_index: int, step_index: int) -> dict[str, Noul]:
-    """The reasonable, complete, and observable questions for one step."""
+    """The reasonable, continuity, and observable questions for one step."""
     return {
         step_id(case_index, step_index, CheckDimension.STEP_REASONABLE): Noul(
             instructions=(
@@ -86,19 +86,24 @@ def step_questions(case_index: int, step_index: int) -> dict[str, Noul]:
                 ),
             ),
         ),
-        step_id(case_index, step_index, CheckDimension.STEP_COMPLETE): Noul(
+        step_id(case_index, step_index, CheckDimension.STEP_CONTINUITY): Noul(
             instructions=(
-                f"Does step {step_index} of case {case_index} include every action required "
-                "to produce its expected result, including required data entry?"
+                f"Is the action in step {step_index} of case {case_index} reachable from the "
+                "state left by the case preconditions and its earlier steps - does every "
+                "input and condition this action needs already exist when it runs? Values "
+                "the action itself enters or selects do not need to pre-exist."
             ),
             criteria=NoulCriteria(
                 true=(
-                    "The step includes all required actions and inputs; nothing needed for "
-                    "the expected result is missing."
+                    "Every input and condition this action needs is provided by the case "
+                    "preconditions or an earlier step. Values the action itself enters or "
+                    "selects are its own content, not a missing precondition; no required "
+                    "setup is missing."
                 ),
                 false=(
-                    "A required action or input is missing, so the step as written cannot "
-                    "produce the expected result."
+                    "The action needs an input or state that neither the preconditions nor "
+                    "an earlier step provides and the action itself does not supply, so the "
+                    "step cannot run as written."
                 ),
             ),
         ),

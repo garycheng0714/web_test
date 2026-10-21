@@ -42,7 +42,7 @@ def _outcome(status: VerificationStatus) -> CheckOutcome:
     return CheckOutcome(
         question_id="q",
         label="Q",
-        dimension=CheckDimension.STEP_COMPLETE,
+        dimension=CheckDimension.STEP_CONTINUITY,
         probability=None,
         status=status,
     )
@@ -56,7 +56,7 @@ def test_check_outcomes_classifies_answers_and_marks_missing_ones_blocked():
         _answers(
             subject,
             ac_1=JevAnswer(0.6),
-            step_1_1_complete=JevAnswer(0.1),
+            step_1_1_continuity=JevAnswer(0.1),
         ),
         DEFAULT_BANDS,
     )
@@ -64,7 +64,7 @@ def test_check_outcomes_classifies_answers_and_marks_missing_ones_blocked():
 
     assert by_id["ac_1"].status is VerificationStatus.NEEDS_REVIEW
     assert by_id["ac_1"].probability == 0.6
-    assert by_id["step_1_1_complete"].status is VerificationStatus.FAIL
+    assert by_id["step_1_1_continuity"].status is VerificationStatus.FAIL
     assert by_id["step_1_1_reasonable"].status is VerificationStatus.PASS
 
     missing = _check_outcomes(subject, {}, DEFAULT_BANDS)

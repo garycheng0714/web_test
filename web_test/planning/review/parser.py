@@ -31,6 +31,22 @@ def _cells(line: str) -> list[str]:
     ]
 
 
+def _preconditions(section: str) -> list[str]:
+    lines = section.splitlines()
+    try:
+        start = lines.index("### Preconditions")
+    except ValueError:
+        return []
+
+    items = []
+    for line in lines[start + 1 :]:
+        if line.startswith("## ") or line.startswith("### "):
+            break
+        if line.strip().startswith("- "):
+            items.append(line.strip()[2:].strip())
+    return items
+
+
 def _steps(section: str) -> list[ReviewStep]:
     lines = section.splitlines()
     try:
@@ -77,6 +93,7 @@ def parse_test_case(text: str, prd_text: str) -> ReviewSubject:
                 requirement_ids=_requirement_ids(section),
                 module_feature=module_feature,
                 test_scenario=test_scenario,
+                preconditions=_preconditions(section),
                 steps=_steps(section),
             )
         )

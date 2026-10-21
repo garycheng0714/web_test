@@ -9,6 +9,7 @@ answer whether a change to the question set, bands, or model makes the verifier 
 - Good cases: `G1`, `G2`.
 - Bad cases: `B1`–`B4`, each with the check that should catch it.
 - `expected_failures` lists the expected failing dimension, not exact probabilities.
+- Each case carries `preconditions`; the `continuity` question reads them.
 - `kill_criteria` is pre-registered; do not loosen it after seeing the result.
 
 Run:
@@ -23,7 +24,9 @@ uv run python -m web_test.planning.review.eval \
 - Changing cases, the PRD, expected failures, or kill criteria means a new dataset version.
 - Keep old versions; they are regression baselines.
 - A failing kill criterion is a finding, not a reason to edit the fixture.
-- Current known finding: good-case false flags on `complete`; see ticket 26.
+- v1 was revised in place when step `complete` was replaced by `continuity`: B4's expected dimension
+  was renamed, and each case gained the preconditions the new question reads. Step-level `complete`
+  false-flagged good cases; see ticket 26.
 
 ## Limits
 

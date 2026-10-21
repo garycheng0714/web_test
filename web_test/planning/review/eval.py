@@ -36,6 +36,7 @@ class EvalCase(BaseModel):
     tests: str | None = None
     requirement_ids: list[str]
     scenario: str
+    preconditions: list[str] = []
     steps: list[EvalStep]
 
 
@@ -132,6 +133,7 @@ def _subject(eval_set: EvalSet) -> ReviewSubject:
                 requirement_ids=case.requirement_ids,
                 module_feature="",
                 test_scenario=case.scenario,
+                preconditions=case.preconditions,
                 steps=[
                     ReviewStep(
                         index=step_index,

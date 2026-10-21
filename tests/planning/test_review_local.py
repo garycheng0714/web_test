@@ -76,6 +76,19 @@ def test_review_case_file_sends_an_edited_step_to_jev(tmp_path):
     assert "Click Submit" in actions
 
 
+def test_review_case_file_sends_case_preconditions_to_jev(tmp_path):
+    case_path, prd_path = _files(tmp_path)
+    captured = {}
+
+    def system_one(request):
+        captured["request"] = request
+        return {question_id: JevAnswer(0.95) for question_id in request.questions}
+
+    review_case_file(case_path, prd_path, system_one=system_one)
+
+    assert captured["request"].subject.cases[0].preconditions == ["The signup page is open"]
+
+
 def test_cli_reports_a_missing_file(tmp_path, capsys):
     result = main(
         [

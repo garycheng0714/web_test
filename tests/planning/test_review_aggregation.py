@@ -66,7 +66,7 @@ def test_step_failure_propagates_to_case_and_file():
     subject = _subject()
 
     steps, cases, status = aggregate_checks(
-        subject, _checks(subject, step_1_1_complete=VerificationStatus.FAIL)
+        subject, _checks(subject, step_1_1_continuity=VerificationStatus.FAIL)
     )
 
     assert steps[0].status is VerificationStatus.FAIL
@@ -82,7 +82,7 @@ def test_precedence_is_fail_over_blocked_over_needs_review():
         _checks(
             subject,
             step_1_1_reasonable=VerificationStatus.NEEDS_REVIEW,
-            step_1_1_complete=VerificationStatus.BLOCKED,
+            step_1_1_continuity=VerificationStatus.BLOCKED,
             step_1_2_reasonable=VerificationStatus.FAIL,
         ),
     )
@@ -122,7 +122,7 @@ def test_file_status_is_the_worst_case():
     )
 
     steps, cases, status = aggregate_checks(
-        subject, _checks(subject, step_2_1_complete=VerificationStatus.NEEDS_REVIEW)
+        subject, _checks(subject, step_2_1_continuity=VerificationStatus.NEEDS_REVIEW)
     )
 
     assert [case.status for case in cases] == [

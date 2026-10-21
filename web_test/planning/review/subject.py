@@ -16,6 +16,7 @@ class ReviewCase(BaseModel):
     requirement_ids: list[str]
     module_feature: str
     test_scenario: str
+    preconditions: list[str] = []
     steps: list[ReviewStep]
 
 
