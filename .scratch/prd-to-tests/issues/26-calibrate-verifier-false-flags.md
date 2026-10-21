@@ -91,3 +91,32 @@ Results (3 runs, reproduced):
 
 Adopted: `CheckDimension.STEP_CONTINUITY`, question ids `_continuity`, fixture B4 expected dimension
 `continuity`. Ticket 19's contract wording and ticket 20's comments were updated.
+
+**2026-10-21 — Case 2 AC alignment diagnosis (recorded, not fixed).**
+
+The real artifact's Case 2 sits at AC p=0.75–0.76 (`NEEDS_REVIEW`) while the same workflow in the
+fixture scores 0.78–0.83. Variants of the case, 3 runs each:
+
+| Variant | Case 2 AC p | Status |
+|---|---|---|
+| baseline | 0.76 / 0.75 / 0.76 | `NEEDS_REVIEW` |
+| A: drop both marketing checkbox ticks | 0.82 / 0.80 / 0.81 | `PASS` |
+| B: step 1 expected result → PRD form description | 0.79 / 0.79 / 0.79 | `NEEDS_REVIEW` |
+| C: step 2 expected result → PRD form description | 0.71 / 0.72 / 0.76 | `NEEDS_REVIEW` |
+| D: A+B+C | 0.79 / 0.78 / 0.79 | `NEEDS_REVIEW` |
+
+The trigger is ticking `Sign up for our newsletter!` and `Receive special offers from our partners!`,
+which no AC requires. Rewriting expected results to PRD form descriptions does not help (C makes it
+worse, because the result no longer matches the action).
+
+A relaxed AC rule was also tried: "exercising a control the PRD describes is permitted as long as it
+does not contradict an AC."
+
+- Fixture: kill criteria PASS, B1–B4 caught (B3 AC p=0.11), G1/G2 zero false flags.
+- Real artifact: Case 2 AC 0.80–0.83, file status `PASS` in 3/3 runs.
+
+Decision: **adopted** the relaxed AC rule on 2026-10-21. `ac_question` now permits a step or
+expected result that exercises a control the PRD describes without contradicting an AC; only
+contradictions, or behaviour the PRD does not describe at all, fail AC alignment. The designer is
+left as is. Editing the artifact was rejected because `render_document` overwrites
+`test-case/<prd-stem>.md` on the next plan run.

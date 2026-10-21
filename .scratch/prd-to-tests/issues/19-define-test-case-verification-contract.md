@@ -89,3 +89,8 @@ invalidate it.
 action is reachable from the state left by the case preconditions and earlier steps; values the
 action itself enters do not need to pre-exist. The subject and parser carry `preconditions`.
 Calibration evidence is in ticket 26.
+
+**2026-10-21 — AC alignment widened.** A step or expected result is permitted when it exercises a
+control the PRD describes without contradicting an AC. Only contradictions, or behaviour the PRD
+does not describe at all, fail AC alignment. This lets a happy-path case operate PRD-described
+optional controls (e.g. marketing checkboxes) without being flagged as invented.
