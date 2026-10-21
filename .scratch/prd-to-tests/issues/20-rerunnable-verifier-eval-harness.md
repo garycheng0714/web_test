@@ -28,7 +28,8 @@ one-run and small-sample limits instead of presenting a directional result as st
 
 - Fixtures: `tests/fixtures/review_eval/register_login_golden_v1.json` (G1/G2 good, B1–B4 bad, expected failures,
   kill criteria).
-- Harness: `web_test/planning/review/eval.py`; run with
+- Harness: `web_test/planning/review/eval.py` (measurement and CLI), `eval_set.py` (fixture
+  schema), `eval_report.py` (report and rendering); run with
   `uv run python -m web_test.planning.review.eval --fixtures tests/fixtures/review_eval/register_login_golden_v1.json`.
 - Tests: `tests/planning/test_review_eval.py` (catch/hard-fail/false-flag tally, inconclusive
   dimension, override n/a, fixture loading).

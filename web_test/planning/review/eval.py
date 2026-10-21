@@ -1,11 +1,15 @@
 import argparse
 import sys
-from dataclasses import dataclass, replace
-from pathlib import Path
-from typing import Literal
+from dataclasses import replace
 
-from pydantic import BaseModel
-
+from web_test.planning.review.eval_report import (
+    CaseEvaluation,
+    DimensionTally,
+    EvalReport,
+    ExpectedCheckResult,
+    render_eval_report,
+)
+from web_test.planning.review.eval_set import EvalSet, load_eval_set
 from web_test.planning.review.jev import SystemOne, typesafe_system_one
 from web_test.planning.review.questions import (
     STEP_QUALITY_DIMENSIONS,
@@ -20,95 +24,6 @@ from web_test.planning.review.verification import (
     CheckOutcome,
     VerificationStatus,
 )
-
-
-class EvalStep(BaseModel):
-    action: str
-    expected_result: str
-
-
-class EvalCase(BaseModel):
-    id: str
-    label: Literal["good", "bad"]
-    tests: str | None = None
-    requirement_ids: list[str]
-    scenario: str
-    preconditions: list[str] = []
-    steps: list[EvalStep]
-
-
-class ExpectedFailure(BaseModel):
-    case: str
-    dimension: CheckDimension
-    step: int | None = None
-
-
-class KillCriteria(BaseModel):
-    caught_min: int = 0
-    hard_fail_min: int = 0
-    good_false_flags_max: int = 0
-    bad_blocked_max: int = 0
-    require_each_dimension: bool = True
-
-
-class EvalSet(BaseModel):
-    prd: str
-    cases: list[EvalCase]
-    expected_failures: list[ExpectedFailure]
-    kill_criteria: KillCriteria
-
-
-@dataclass(frozen=True)
-class ExpectedCheckResult:
-    question_id: str
-    dimension: CheckDimension
-    status: VerificationStatus
-    probability: float | None
-
-
-@dataclass(frozen=True)
-class CaseEvaluation:
-    case_id: str
-    label: str
-    tests: str | None
-    scenario: str
-    status: VerificationStatus
-    expected: tuple[ExpectedCheckResult, ...]
-    false_flags: tuple[CheckOutcome, ...]
-
-
-@dataclass(frozen=True)
-class DimensionTally:
-    dimension: CheckDimension
-    expected: int
-    caught: int
-    hard_fail: int
-    false_flags: int
-
-
-@dataclass(frozen=True)
-class EvalReport:
-    model: str
-    question_set_version: str
-    record_status: VerificationStatus
-    cases: tuple[CaseEvaluation, ...]
-    dimensions: tuple[DimensionTally, ...]
-    caught: int
-    expected: int
-    hard_fail: int
-    blocked: int
-    needs_review_cases: int
-    needs_review_rate: float
-    good_false_flags: int
-    override_rate: float | None
-    criteria: tuple[tuple[str, bool], ...]
-    kill_criteria_passed: bool
-    runs: int = 1
-    reproduced: bool | None = None
-
-
-def load_eval_set(path: str | Path) -> EvalSet:
-    return EvalSet.model_validate_json(Path(path).read_text(encoding="utf-8"))
 
 
 def _subject(eval_set: EvalSet) -> ReviewSubject:
@@ -296,98 +211,6 @@ def _signature(report: EvalReport) -> tuple[object, ...]:
             if case.label == "bad"
         ),
     )
-
-
-def _text(value: str) -> str:
-    return " ".join(value.split())
-
-
-def _p(value: float | None) -> str:
-    return "n/a" if value is None else str(round(value, 2))
-
-
-def render_eval_report(report: EvalReport) -> str:
-    run_note = (
-        "directional, one run"
-        if report.runs == 1
-        else ("reproduced" if report.reproduced else "unstable across runs")
-    )
-    criteria = "\n".join(
-        f"- {name}: {'PASS' if passed else 'FAIL'}" for name, passed in report.criteria
-    )
-
-    lines = [
-        "## Review eval",
-        "",
-        f"**Model:** `{report.model}`",
-        f"**Question set:** `{report.question_set_version}`",
-        f"**Runs:** {report.runs} ({run_note})",
-        f"**Record status:** `{report.record_status.value}`",
-        f"**Needs review rate:** {report.needs_review_cases}/{len(report.cases)} cases "
-        f"({report.needs_review_rate:.0%})",
-        "**Override rate:** n/a (until ticket 24b)",
-        f"**Kill criteria:** {'PASS' if report.kill_criteria_passed else 'FAIL'}",
-        "",
-        criteria,
-        "",
-        "### Bad cases",
-        "",
-        "| Case | Tests | Expected | Status | p | Caught | Hard fail |",
-        "| --- | --- | --- | --- | ---: | --- | --- |",
-    ]
-    for case in report.cases:
-        if case.label != "bad":
-            continue
-        for result in case.expected:
-            caught = result.status in {
-                VerificationStatus.FAIL,
-                VerificationStatus.NEEDS_REVIEW,
-            }
-            lines.append(
-                f"| {case.case_id} | {_text(case.tests or case.scenario)} | "
-                f"{result.dimension} ({result.question_id}) | `{result.status.value}` | "
-                f"{_p(result.probability)} | {'yes' if caught else 'no'} | "
-                f"{'yes' if result.status is VerificationStatus.FAIL else 'no'} |"
-            )
-
-    lines += ["", "### Good cases", "", "| Case | False flags |", "| --- | --- |"]
-    for case in report.cases:
-        if case.label != "good":
-            continue
-        flags = (
-            ", ".join(
-                f"{_text(check.label)} ({check.dimension}, p={_p(check.probability)})"
-                for check in case.false_flags
-            )
-            or "None."
-        )
-        lines.append(f"| {case.case_id} | {flags} |")
-
-    lines += [
-        "",
-        "### Per dimension",
-        "",
-        "| Dimension | Bad variants | Caught | Hard fail | False flags |",
-        "| --- | ---: | ---: | ---: | ---: |",
-    ]
-    for dimension in report.dimensions:
-        status = "inconclusive" if dimension.expected == 0 else str(dimension.caught)
-        lines.append(
-            f"| {dimension.dimension} | {dimension.expected} | {status} | "
-            f"{dimension.hard_fail} | {dimension.false_flags} |"
-        )
-
-    lines += [
-        "",
-        "### Limits",
-        "",
-        "- One run is directional, not a stable estimate."
-        if report.runs == 1
-        else "- Multiple runs only show stability for this fixture set; it is not statistical confidence.",
-        "- Override rate is unavailable until ticket 24b implements human adjudication.",
-        "- BLOCKED means no answer, not a caught defect.",
-    ]
-    return "\n".join(lines)
 
 
 def main(argv: list[str] | None = None) -> int:

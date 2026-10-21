@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from web_test.planning.review.eval import EvalSet, evaluate, load_eval_set, render_eval_report
+from web_test.planning.review.eval import evaluate
+from web_test.planning.review.eval_report import render_eval_report
+from web_test.planning.review.eval_set import EvalSet, load_eval_set
 from web_test.planning.review.jev import JevAnswer
 from web_test.planning.review.verification import VerificationStatus
 
