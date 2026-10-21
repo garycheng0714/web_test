@@ -35,16 +35,20 @@ current language; do not translate them.
 
 ## Refactoring
 - Split by responsibility, not by line count. A helper needs a named phase; do not create one function per numbered step.
+- A responsibility is one reason to change plus one contract (its input/output type or the
+  external boundary it faces). Two parts are separate responsibilities when a plausible change edits
+  only one of them, and one can be understood and tested without importing the other. Code that
+  always changes together, shares one type, and has no independent test is one responsibility.
 - Keep dependency arrows pointing from composition roots and use cases toward shared schemas. Shared schemas must not import review or automation modules.
 - Put cross-type conversion in the composition root or an adapter, not as a method on either data model.
 - Name by role and domain language; check `CONTEXT.md` first and avoid overloading existing terms.
 - Internal closed sets use `StrEnum`; otherwise follow the boundary/internal data convention above.
-- Do not add a module until there is a second caller or a second variation.
+- A responsibility with its own contract and change reason may become a module even with one caller. Otherwise, do not add a module until there is a second caller or a second variation.
 - A pure refactor keeps behavior: run the full suite and verify any version or digest that must not change. Test through real entry points; do not add test-only production helpers.
 
 ### Module planning
 
-Before adding or splitting a module, answer these five lines in the plan (skip for a trivial
+Before adding or splitting a module, answer these six lines in the plan (skip for a trivial
 single-file change):
 
 1. Input
@@ -52,6 +56,7 @@ single-file change):
 3. External boundaries (API, file, CI)
 4. Domain types vs adapters
 5. Single-variation parts to leave alone
+6. Responsibilities: which change reasons and contracts will this module serve?
 
 ## Gotchas
 - `playwright-cli` writes snapshots, storage state, and traces to `.playwright-cli/`.
