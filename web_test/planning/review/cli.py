@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from web_test.planning.review.parser import review_case_file
+from web_test.planning.review.local import review_case_file
 from web_test.planning.review.report import render_report
 
 

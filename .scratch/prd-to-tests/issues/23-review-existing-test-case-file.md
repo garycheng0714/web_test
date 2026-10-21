@@ -18,15 +18,14 @@ contents; no digest or stale comparison is performed.
 
 **2026-10-21 — implemented.**
 
-- Added `web_test/planning/review/parser.py`:
-  - `parse_test_case(text, prd_text)` reads `## Case N` sections, the YAML metadata block, and the
-    `### Test Steps` table back into `ReviewSubject`.
-  - `review_case_file(case_path, prd_path, ...)` always reviews the current contents with
-    `run_review_on`.
+- Added `web_test/planning/review/parser.py`: `parse_test_case(text, prd_text)` reads `## Case N`
+  sections, the YAML metadata block, and the `### Test Steps` table back into `ReviewSubject`.
+- Added `web_test/planning/review/local.py`: `review_case_file(case_path, prd_path, ...)` reads the
+  files and always reviews the current contents with `run_review_on`.
 - Added `web_test/planning/review/cli.py`:
   `uv run python -m web_test.planning.review.cli --case <path> --prd <path>`.
 - Stale/digest comparison was removed: the command always produces a fresh verdict for the current
   file. `VerificationRecord.binding.artifact_digest` remains available for manual comparison.
-- Tests: `tests/planning/test_review_parser.py` (round trip, edited step reaches Jev, review run,
-  CLI missing-file error).
+- Tests: `tests/planning/test_review_parser.py` (round trip, edit) and
+  `tests/planning/test_review_local.py` (review run, edited step reaches Jev, CLI error).
 - `uv run pytest`: 132 passed, 1 skipped.

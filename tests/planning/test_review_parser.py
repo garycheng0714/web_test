@@ -1,8 +1,5 @@
 from web_test.planning.cases_writer import render_document
-from web_test.planning.review.cli import main
-from web_test.planning.review.jev import JevAnswer
-from web_test.planning.review.parser import parse_test_case, review_case_file
-from web_test.planning.review.verification import VerificationStatus
+from web_test.planning.review.parser import parse_test_case
 from web_test.planning.schema import Case
 
 
@@ -35,14 +32,6 @@ def _document() -> str:
     )
 
 
-def _files(tmp_path):
-    case_path = tmp_path / "case.md"
-    prd_path = tmp_path / "prd.md"
-    case_path.write_text(_document(), encoding="utf-8")
-    prd_path.write_text("# PRD", encoding="utf-8")
-    return case_path, prd_path
-
-
 def test_parse_test_case_round_trips_cases_and_steps():
     subject = parse_test_case(_document(), "# PRD")
 
@@ -60,55 +49,6 @@ def test_parse_test_case_round_trips_cases_and_steps():
 
 
 def test_editing_a_step_changes_the_parsed_subject():
-    subject = parse_test_case(
-        _document().replace("Submit", "Click Submit"), "# PRD"
-    )
+    subject = parse_test_case(_document().replace("Submit", "Click Submit"), "# PRD")
 
     assert subject.cases[0].steps[1].action == "Click Submit"
-
-
-def test_review_case_file_reviews_the_current_contents(tmp_path):
-    case_path, prd_path = _files(tmp_path)
-
-    def system_one(request):
-        return {question_id: JevAnswer(0.95) for question_id in request.questions}
-
-    record = review_case_file(case_path, prd_path, system_one=system_one)
-
-    assert record.result.status is VerificationStatus.PASS
-
-
-def test_cli_reports_a_missing_file(tmp_path, capsys):
-    result = main(
-        [
-            "--case",
-            str(tmp_path / "missing-case.md"),
-            "--prd",
-            str(tmp_path / "missing-prd.md"),
-        ]
-    )
-
-    assert result == 1
-    assert "failed:" in capsys.readouterr().err
-
-
-def test_review_case_file_sends_an_edited_step_to_jev(tmp_path):
-    case_path, prd_path = _files(tmp_path)
-    case_path.write_text(
-        case_path.read_text(encoding="utf-8").replace("Submit", "Click Submit"),
-        encoding="utf-8",
-    )
-    captured = {}
-
-    def system_one(request):
-        captured["request"] = request
-        return {question_id: JevAnswer(0.95) for question_id in request.questions}
-
-    review_case_file(case_path, prd_path, system_one=system_one)
-
-    actions = [
-        step.action
-        for case in captured["request"].subject.cases
-        for step in case.steps
-    ]
-    assert "Click Submit" in actions
