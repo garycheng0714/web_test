@@ -5,7 +5,7 @@ from typesafe_sdk import Noul, NoulAnswer
 import web_test.planning.review.service as review_module
 from web_test.planning.review import JEV_MODEL, JevAnswer, ReviewRequest, ReviewStep, run_review
 from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS
-from web_test.planning.review.service import _normalize
+from web_test.planning.review.jev import _normalize
 from web_test.planning.review.verification import VerificationStatus, digest_text
 from web_test.planning.schema import Case, DesignOutput
 

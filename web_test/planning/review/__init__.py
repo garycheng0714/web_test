@@ -1,14 +1,7 @@
 """Test-case review: subject, questions, verdicts, aggregation, and reporting."""
 
-from web_test.planning.review.service import (
-    JEV_MODEL,
-    JevAnswer,
-    ReviewRequest,
-    Reviewer,
-    SystemOne,
-    run_review,
-    run_review_on,
-)
+from web_test.planning.review.jev import JEV_MODEL, JevAnswer, ReviewRequest, SystemOne
+from web_test.planning.review.service import Reviewer, run_review, run_review_on
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
 from web_test.planning.review.verification import (
     Bands,
