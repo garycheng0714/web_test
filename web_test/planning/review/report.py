@@ -1,5 +1,5 @@
-from web_test.planning.review_questions import STEP_QUALITY_DIMENSIONS
-from web_test.planning.verification import (
+from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS
+from web_test.planning.review.verification import (
     CheckDimension,
     CheckOutcome,
     VerificationStatus,

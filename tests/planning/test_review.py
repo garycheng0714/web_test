@@ -2,18 +2,12 @@ from unittest.mock import MagicMock
 
 from typesafe_sdk import Noul, NoulAnswer
 
-import web_test.planning.review as review_module
-from web_test.planning.review import (
-    JEV_MODEL,
-    JevAnswer,
-    ReviewRequest,
-    ReviewStep,
-    _normalize,
-    run_review,
-)
-from web_test.planning.review_questions import STEP_QUALITY_DIMENSIONS
+import web_test.planning.review.service as review_module
+from web_test.planning.review import JEV_MODEL, JevAnswer, ReviewRequest, ReviewStep, run_review
+from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS
+from web_test.planning.review.service import _normalize
+from web_test.planning.review.verification import VerificationStatus, digest_text
 from web_test.planning.schema import Case, DesignOutput
-from web_test.planning.verification import VerificationStatus, digest_text
 
 
 

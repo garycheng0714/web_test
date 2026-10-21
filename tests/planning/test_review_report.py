@@ -1,9 +1,9 @@
 from dataclasses import replace
 
 from web_test.planning.review import JevAnswer, run_review
-from web_test.planning.review_report import render_report
+from web_test.planning.review.report import render_report
 from web_test.planning.schema import Case, DesignOutput
-from web_test.planning.verification import Override, VerificationStatus, digest_text
+from web_test.planning.review.verification import Override, VerificationStatus, digest_text
 
 
 

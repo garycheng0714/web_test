@@ -5,11 +5,11 @@ from dataclasses import dataclass
 from typesafe_sdk import AsyncTypeSafeClient, Noul, NoulAnswer, SystemOneResponse
 
 from web_test._run import run_sync
-from web_test.planning.review_aggregation import aggregate_checks
-from web_test.planning.review_questions import expected_checks, questions_for_subject
-from web_test.planning.review_subject import ReviewCase, ReviewStep, ReviewSubject
+from web_test.planning.review.aggregation import aggregate_checks
+from web_test.planning.review.questions import expected_checks, questions_for_subject
+from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
 from web_test.planning.schema import DesignOutput
-from web_test.planning.verification import (
+from web_test.planning.review.verification import (
     Bands,
     CheckOutcome,
     Override,

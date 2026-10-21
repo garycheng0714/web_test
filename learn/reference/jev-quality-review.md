@@ -88,8 +88,8 @@ B4 是「在 `Enter Account Information` 頁直接按 `Create Account`，沒有�
 
 票 18：[`18-add-jev-quality-checks.md`](../../.scratch/prd-to-tests/issues/18-add-jev-quality-checks.md)
 
-- `web_test/planning/review.py`：`ReviewStep`、`ac_{i}`、`step_*_{reasonable,complete,observable}`、`JEV_MODEL = "jev-1.13.0"`。
-- `web_test/planning/review_report.py`：`AC alignment` 與合併的 `Step quality` 區段。
+- `web_test/planning/review/service.py`：`ReviewStep`、`ac_{i}`、`step_*_{reasonable,complete,observable}`、`JEV_MODEL = "jev-1.13.0"`。
+- `web_test/planning/review/report.py`：`AC alignment` 與合併的 `Step quality` 區段。
 - Tests：`tests/planning/test_review.py`、`test_review_report.py`、`test_plan.py`。
 
 驗證：

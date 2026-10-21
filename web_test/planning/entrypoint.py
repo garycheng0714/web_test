@@ -15,7 +15,7 @@ from web_test.planning.cases_writer import CaseWriter, render_document, title_fr
 from web_test.planning.designer import design_test_cases
 from web_test.planning.publisher import TEST_CASE_DIR, PlanPublisher
 from web_test.planning.review import Reviewer, run_review
-from web_test.planning.review_report import render_report
+from web_test.planning.review.report import render_report
 from web_test.planning.schema import DesignOutput
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHub

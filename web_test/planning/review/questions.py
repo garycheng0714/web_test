@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from typesafe_sdk import Noul, NoulCriteria
 
-from web_test.planning.review_subject import ReviewCase, ReviewStep, ReviewSubject
-from web_test.planning.verification import CheckDimension
+from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
+from web_test.planning.review.verification import CheckDimension
 
 STEP_QUALITY_DIMENSIONS: tuple[CheckDimension, ...] = (
     CheckDimension.STEP_REASONABLE,

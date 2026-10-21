@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 
-from web_test.planning.review_questions import (
+from web_test.planning.review.questions import (
     STEP_QUALITY_DIMENSIONS,
     ac_id,
     case_key,
@@ -9,8 +9,8 @@ from web_test.planning.review_questions import (
     step_key,
     step_label,
 )
-from web_test.planning.review_subject import ReviewSubject
-from web_test.planning.verification import (
+from web_test.planning.review.subject import ReviewSubject
+from web_test.planning.review.verification import (
     CheckOutcome,
     UnitOutcome,
     VerificationStatus,

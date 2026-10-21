@@ -1,7 +1,7 @@
 from web_test.planning.review import JevAnswer, run_review
-from web_test.planning.review_questions import STEP_QUALITY_DIMENSIONS, expected_checks, questions_for_subject
+from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS, expected_checks, questions_for_subject
 from web_test.planning.schema import Case, DesignOutput
-from web_test.planning.verification import CheckDimension
+from web_test.planning.review.verification import CheckDimension
 
 
 def _case(**overrides):
