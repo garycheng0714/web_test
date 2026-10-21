@@ -41,6 +41,17 @@ one-run and small-sample limits instead of presenting a directional result as st
   under the v1 bands. Tracked in ticket 26; do not turn 24b required until it is resolved.
 - `uv run pytest`: 136 passed, 1 skipped.
 
+**2026-10-21 — step `complete` replaced by `behavior`.** The fixture now carries `preconditions`;
+B4's expected dimension is `behavior`. Re-run (3 runs, same verdicts): caught 4/4, hard_fail 4/4,
+B4 `behavior` p=0.05, G2 false flags = 4 (AC alignment p=0.78–0.79; behavior steps 1–3
+p=0.75–0.77). Kill criteria still **FAIL**. Details in ticket 26.
+
+**2026-10-21 — step `complete` replaced by `continuity`.** `behavior` left 3 G2 false flags; the
+refined `continuity` check (reachable from preconditions/earlier steps, values the action enters do
+not need to pre-exist) passes the kill criteria. Final 3-run result (reproduced): caught 4/4,
+hard_fail 4/4, B4 `continuity` p=0.13, G1/G2 zero false flags. Real artifact: 16/16 continuity,
+`NEEDS_REVIEW` only from AC alignment (Case 2 p=0.75). See ticket 26.
+
 ### Flow
 
 ```text

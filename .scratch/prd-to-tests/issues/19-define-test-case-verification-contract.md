@@ -5,8 +5,8 @@ This ticket is the reference for 21, 23, and 24a/24b; it does not add code itsel
 
 ## Claim
 
-- A verdict says every in-scope case and step is **grounded** in the PRD and **complete** enough to
-  produce its expected result.
+- A verdict says every in-scope case and step is **grounded** in the PRD, and each step is
+  **reachable** from the state its preconditions and earlier steps provide (**continuity**).
 - It does **not** claim the case is automatable, that its future locators are correct, that it
   matches the live app, that the PRD is complete, or that it deduplicates/coverages every
   requirement.
@@ -16,7 +16,7 @@ This ticket is the reference for 21, 23, and 24a/24b; it does not add code itsel
 
 - v1 uses Jev only. Model is pinned (`jev-1.13.0`); the question set and bands are versioned.
 - Every blocking question is phrased positively so `p` is the probability the case is grounded,
-  complete, or observable.
+  reachable, or observable.
 - Jev is a different producer from the designer. The question set is still owned by this repo, and
   the required check supplies the authority.
 
@@ -33,7 +33,7 @@ This ticket is the reference for 21, 23, and 24a/24b; it does not add code itsel
 
 ## Units and aggregation
 
-- Step: the worst of `reasonable`, `complete`, and `observable`.
+- Step: the worst of `reasonable`, `continuity`, and `observable`.
 - Case: the worst of AC alignment and all its steps.
 - File: the worst of all cases.
 - Precedence: `FAIL` > `BLOCKED` > `NEEDS_REVIEW` > `PASS`.
@@ -82,3 +82,10 @@ invalidate it.
 - [x] Binding and invalidation rules are stated
 - [x] Deferred and out-of-scope work is named
 - [x] Shadow-to-required rollout is stated
+
+## Comments
+
+**2026-10-21 — step `complete` replaced by `continuity`.** The step check now asks whether the
+action is reachable from the state left by the case preconditions and earlier steps; values the
+action itself enters do not need to pre-exist. The subject and parser carry `preconditions`.
+Calibration evidence is in ticket 26.
