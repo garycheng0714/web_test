@@ -14,7 +14,7 @@ them are done and the check is verified live.
 ## Subtickets
 
 - [x] **24a-1** Jev retry seam — closed as `wontfix`; the SDK retries HTTP by default
-- [ ] **24a-2** Check publisher (`find_check_run`, `publish_check`)
+- [x] **24a-2** Check publisher (`find_check_run`, `publish_check`)
 - [ ] **24a-3** Resolver and cache key (pure)
 - [ ] **24a-4** Verdict CLI (`prepare` / `run`)
 - [ ] **24a-5** Workflow and live shadow check
