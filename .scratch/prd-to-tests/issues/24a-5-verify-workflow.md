@@ -18,7 +18,7 @@ publishing or infrastructure failures turn it red.
 - [x] The workflow has `checks: write`; the app token has Checks permission
 - [x] `TYPESAFE_API_KEY` is available to the run
 - [x] `actionlint` passes; the job is shadow (not required)
-- [ ] Verified live on a Test Case PR
+- [x] Verified live on a Test Case PR
 
 ## Decisions / assumptions
 
@@ -38,3 +38,12 @@ after 15 minutes and stays green for verdicts; publish or infrastructure failure
 `actionlint` passes for all workflows. `Checks: write` was granted to `web-test-qa-flow`, the three
 secrets are present, and the first run on the workflow PR will confirm the token. Live verification
 on a Test Case PR is still pending.
+
+**2026-10-23 — verified live.** PR #11 (closed unmerged) added
+`test-case/test-case-register-login.md`. Run 39832277401 published `PASS` on head `cddd7b2`
+(check run 120011385746); the summary had 7/7 AC alignment, 16/16 per dimension, and the binding
+digests. Closing and reopening the PR (run 39832521003) PATCHed the same check run instead of
+creating a duplicate. An empty commit (`1cc892e`, run 39832614584) published a new check
+(120012549069) for the new head; the same content returned `NEEDS_REVIEW` (Case 2 AC alignment
+p=0.79, pass band >= 0.8) with the identical cache key `4c0564...`. This confirms the known Jev
+flakiness near the band; 24a-6's cache and 26's calibration address it.

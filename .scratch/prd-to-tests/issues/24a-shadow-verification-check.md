@@ -18,7 +18,7 @@ of them are done and the check is verified live.
 - [x] **24a-2b** Replace the `gh` transport with githubkit (`GitHubAdapter`)
 - [x] **24a-3** Resolver and cache key (pure)
 - [x] **24a-4** Verdict CLI (`prepare` / `run`)
-- [ ] **24a-5** Workflow and live shadow check
+- [x] **24a-5** Workflow and live shadow check
 - [ ] **24a-6** Cached verdict
 
 ## Acceptance
@@ -95,3 +95,7 @@ changed test-case artifacts?
                           publish verify-test-case
                           PATCH if it exists on the head SHA, else POST
 ```
+
+**2026-10-23 — 24a-5 verified live.** PR #11 exercised the workflow: `PASS` on the first head,
+PATCH on reopen, and a fresh check on synchronize. The synchronize run returned `NEEDS_REVIEW` for
+the same digests (Case 2 p=0.79), confirming the near-band flakiness; 24a-6 and 26 remain.
