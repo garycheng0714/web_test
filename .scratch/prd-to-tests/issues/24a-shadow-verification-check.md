@@ -17,7 +17,7 @@ of them are done and the check is verified live.
 - [x] **24a-2** Check publisher (`find_check_run`, `publish_check`)
 - [x] **24a-2b** Replace the `gh` transport with githubkit (`GitHubAdapter`)
 - [x] **24a-3** Resolver and cache key (pure)
-- [ ] **24a-4** Verdict CLI (`prepare` / `run`)
+- [x] **24a-4** Verdict CLI (`prepare` / `run`)
 - [ ] **24a-5** Workflow and live shadow check
 - [ ] **24a-6** Cached verdict
 
