@@ -35,3 +35,7 @@ instead of creating a duplicate. The payload carries `name`, `head_sha`, `status
   failed publish), using fakes for `Runner`; the existing `open_pull_request` tests are unchanged.
 - `uv run pytest`: 143 passed, 1 skipped. `uv run basedpyright`: 0 errors, 0 warnings.
   `uv run lint-imports`: 2 contracts kept.
+
+**2026-10-21 — transport superseded.** 24a-2b replaces the `gh api` calls with githubkit and renames
+the adapter to `GitHubAdapter`. The payload, conclusion mapping, and idempotent create/update logic
+are unchanged; the `Runner`-based transport is removed.
