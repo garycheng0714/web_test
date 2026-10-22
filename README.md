@@ -49,6 +49,12 @@ Both act on exactly one added file, mint a short-lived token for the `web-test-q
 OpenCode Go model key (`OPENCODE_API_KEY`), and — for `plan` — the `WEB_TEST_BASE_URL` repository
 variable. `TYPESAFE_API_KEY` is optional: without it the Jev review renders as `BLOCKED` in the PR body.
 
+`verify.yml` is a separate shadow workflow on every pull request (opened/synchronize/reopened). It
+resolves the changed `test-case/**` file, runs the Jev review, and publishes the `verify-test-case`
+check on the PR head SHA: `PASS` → success, `NEEDS_REVIEW` → action_required, `FAIL` / `BLOCKED` →
+failure. A PR with no Test Case file reports success explicitly; more than one fails with the file
+list. It mints the app token with `checks: write` and needs `TYPESAFE_API_KEY`.
+
 Tests live in `tests/` and run under pytest with Playwright's Python bindings. The
 `pytest-playwright` plugin provides the `page` fixture and defaults to chromium; pass `--headed`
 to watch a run. To use another browser, install it first with `uv run playwright install firefox`
