@@ -16,7 +16,7 @@ of them are done and the check is verified live.
 - [x] **24a-1** Jev retry seam — closed as `wontfix`; the SDK retries HTTP by default
 - [x] **24a-2** Check publisher (`find_check_run`, `publish_check`)
 - [x] **24a-2b** Replace the `gh` transport with githubkit (`GitHubAdapter`)
-- [ ] **24a-3** Resolver and cache key (pure)
+- [x] **24a-3** Resolver and cache key (pure)
 - [ ] **24a-4** Verdict CLI (`prepare` / `run`)
 - [ ] **24a-5** Workflow and live shadow check
 - [ ] **24a-6** Cached verdict
@@ -26,7 +26,7 @@ of them are done and the check is verified live.
 | Requirement | Covered by |
 |---|---|
 | `pull_request` opened/synchronize/reopened; checkout the head SHA | 24a-5 |
-| A non-Test-Case PR reports success explicitly; one artifact is reviewed; zero or more than one fails with a reason | 24a-3, 24a-4, 24a-5 |
+| A non-Test-Case PR reports success explicitly; one artifact is reviewed; more than one fails with a reason | 24a-3, 24a-4, 24a-5 |
 | The PRD is resolved as `prd/<front-matter id>.md` | 24a-3, 24a-4 |
 | The check is named `verify-test-case`; `PASS` → success, `NEEDS_REVIEW` → action_required, `FAIL`/`BLOCKED` → failure | 24a-2, 24a-4 |
 | The summary lists per-check findings, counts, and binding digests | 24a-4 |
