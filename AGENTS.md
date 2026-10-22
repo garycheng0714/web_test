@@ -36,6 +36,23 @@ current language; do not translate them.
 ## Conventions
 - Boundary data — model output, config, external input — is a Pydantic `BaseModel`; it validates and serializes. Data passed between our own modules is a `@dataclass`: it is light, stores callables naturally, and needs no validation.
 
+## Diagrams
+
+When a flow has three or more steps, calls, or decisions, show it as a vertical ASCII/Unicode
+diagram (`│`, `▼`, `──>`) instead of a prose list. This applies to replies, plans, and tickets; PRDs
+and skills keep their Mermaid diagrams. Use English labels, do not mix CJK text with box-drawing
+characters in the same row, and keep the rows aligned in Ghostty.
+
+```text
+PR event
+  │
+  ▼
+checkout head SHA
+  │
+  ▼
+publish check
+```
+
 ## Refactoring
 - Split by responsibility, not by line count. A helper needs a named phase; do not create one function per numbered step.
 - A responsibility is one reason to change plus one contract (its input/output type or the
