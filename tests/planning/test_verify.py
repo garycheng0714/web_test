@@ -5,9 +5,9 @@ import pytest
 from web_test.planning import verify
 from web_test.planning.cases_writer import render_document
 from web_test.planning.review.jev import JevAnswer
-from web_test.planning.review.verification import digest_text
 from web_test.planning.schema import Case
-from web_test.planning.verify import Plan, ResolutionKind, prepare, resolve, run
+from web_test.planning.verify import VerificationInputFile, prepare, run
+from web_test.planning.verify_resolution import ResolutionKind
 from web_test.publishing.github import GitHubError
 
 
@@ -44,152 +44,6 @@ def _write_prd(root: Path, case_id: str = "demo", text: str = "# PRD") -> Path:
     return path
 
 
-def test_nothing_when_no_artifact_changed(tmp_path: Path) -> None:
-    (tmp_path / "test-case").mkdir()
-    (tmp_path / "test-case" / "notes.md").write_text("notes", encoding="utf-8")
-
-    assert resolve([], workspace=tmp_path).kind is ResolutionKind.NOTHING
-    assert (
-        resolve(["test-case/notes.md", "prd/demo.md"], workspace=tmp_path).kind
-        is ResolutionKind.NOTHING
-    )
-
-
-def test_ready_binds_the_digests_and_the_key(tmp_path: Path) -> None:
-    case_path, case_text = _write_case(tmp_path)
-    prd_path = _write_prd(tmp_path)
-
-    result = resolve([case_path], workspace=tmp_path)
-
-    assert result.kind is ResolutionKind.READY
-    check = result.check_input
-    assert check is not None
-    assert check.case_path == Path(case_path)
-    assert check.prd_path == prd_path
-    assert check.test_case_digest == digest_text(case_text)
-    assert check.prd_digest == digest_text("# PRD")
-    assert check.question_set_version
-    assert len(check.cache_key) == 64
-
-
-def test_multiple_artifacts_are_reported(tmp_path: Path) -> None:
-    first, _ = _write_case(tmp_path, "one")
-    second, _ = _write_case(tmp_path, "two")
-
-    result = resolve([second, first], workspace=tmp_path)
-
-    assert result.kind is ResolutionKind.MULTIPLE
-    assert result.files == (first, second)
-    assert result.check_input is None
-
-
-def test_missing_prd_is_reported(tmp_path: Path) -> None:
-    case_path, _ = _write_case(tmp_path)
-
-    result = resolve([case_path], workspace=tmp_path)
-
-    assert result.kind is ResolutionKind.MISSING_PRD
-    assert str(tmp_path / "prd" / "demo.md") in result.detail
-
-
-def test_unreadable_prd_is_invalid(tmp_path: Path, monkeypatch) -> None:
-    case_path, _ = _write_case(tmp_path)
-    prd_path = _write_prd(tmp_path)
-    original_read_text = Path.read_text
-
-    def read_text(self: Path, *args, **kwargs):
-        if self == prd_path:
-            raise PermissionError("denied")
-        return original_read_text(self, *args, **kwargs)
-
-    monkeypatch.setattr(Path, "read_text", read_text)
-
-    result = resolve([case_path], workspace=tmp_path)
-
-    assert result.kind is ResolutionKind.INVALID
-    assert "reading PRD" in result.detail
-    assert str(prd_path) in result.detail
-
-
-def test_an_artifact_without_cases_is_invalid(tmp_path: Path) -> None:
-    path = tmp_path / "test-case" / "test-case-demo.md"
-    path.parent.mkdir()
-    path.write_text("---\nid: demo\n---\n\n# Demo\n", encoding="utf-8")
-    _write_prd(tmp_path)
-
-    result = resolve(["test-case/test-case-demo.md"], workspace=tmp_path)
-
-    assert result.kind is ResolutionKind.INVALID
-    assert "no '## Case N' sections" in result.detail
-
-
-def test_missing_front_matter_is_invalid(tmp_path: Path) -> None:
-    path = tmp_path / "test-case" / "test-case-demo.md"
-    path.parent.mkdir()
-    path.write_text("# Demo\n", encoding="utf-8")
-    _write_prd(tmp_path)
-
-    result = resolve(["test-case/test-case-demo.md"], workspace=tmp_path)
-
-    assert result.kind is ResolutionKind.INVALID
-    assert "missing front matter" in result.detail
-
-
-def test_a_missing_front_matter_id_is_invalid(tmp_path: Path) -> None:
-    path = tmp_path / "test-case" / "test-case-demo.md"
-    path.parent.mkdir()
-    path.write_text("---\nbase_url: https://example.com\n---\n", encoding="utf-8")
-    _write_prd(tmp_path)
-
-    result = resolve(["test-case/test-case-demo.md"], workspace=tmp_path)
-
-    assert result.kind is ResolutionKind.INVALID
-    assert "string id" in result.detail
-
-
-def test_cache_key_is_stable_and_sensitive(tmp_path: Path) -> None:
-    case_path, case_text = _write_case(tmp_path)
-    _write_prd(tmp_path)
-
-    first = resolve([case_path], workspace=tmp_path).check_input
-    second = resolve([case_path], workspace=tmp_path).check_input
-    assert first is not None and second is not None
-    assert first.cache_key == second.cache_key
-
-    (tmp_path / case_path).write_text(case_text + "\n", encoding="utf-8")
-    changed_case = resolve([case_path], workspace=tmp_path).check_input
-    assert changed_case is not None
-    assert changed_case.cache_key != first.cache_key
-
-    _write_prd(tmp_path, text="# PRD v2")
-    changed_prd = resolve([case_path], workspace=tmp_path).check_input
-    assert changed_prd is not None
-    assert changed_prd.cache_key != changed_case.cache_key
-
-
-def test_cache_key_includes_the_question_set_version(
-    tmp_path: Path, monkeypatch
-) -> None:
-    case_path, _ = _write_case(tmp_path)
-    _write_prd(tmp_path)
-    monkeypatch.setattr(
-        "web_test.planning.verify.question_set_version",
-        lambda questions: "v1",
-    )
-    first = resolve([case_path], workspace=tmp_path).check_input
-
-    monkeypatch.setattr(
-        "web_test.planning.verify.question_set_version",
-        lambda questions: "v2",
-    )
-    second = resolve([case_path], workspace=tmp_path).check_input
-
-    assert first is not None and second is not None
-    assert first.question_set_version == "v1"
-    assert second.question_set_version == "v2"
-    assert first.cache_key != second.cache_key
-
-
 def _passing_system_one(request):
     return {question_id: JevAnswer(0.95) for question_id in request.questions}
 
@@ -220,43 +74,37 @@ def _sink():
     return payloads, publish
 
 
-def _ready_plan(tmp_path: Path) -> Plan:
+def _ready_input(tmp_path: Path) -> VerificationInputFile:
     case_path, _ = _write_case(tmp_path)
     _write_prd(tmp_path)
-    return prepare(
-        [case_path], workspace=tmp_path, plan_path=tmp_path / "plan.json"
-    )
+    return prepare([case_path], workspace=tmp_path)
 
 
-def test_prepare_writes_a_ready_plan(tmp_path: Path) -> None:
-    case_path, _ = _write_case(tmp_path)
-    prd_path = _write_prd(tmp_path)
-    plan_path = tmp_path / "plan.json"
+def test_prepare_builds_a_ready_input(tmp_path: Path) -> None:
+    case_path, case_text = _write_case(tmp_path)
+    _write_prd(tmp_path)
 
-    plan = prepare([case_path], workspace=tmp_path, plan_path=plan_path)
+    verification_input = prepare([case_path], workspace=tmp_path)
 
-    assert plan.kind is ResolutionKind.READY
-    assert plan.check_input is not None
-    assert len(plan.check_input.cache_key) == 64
-    reloaded = Plan.model_validate_json(plan_path.read_text(encoding="utf-8"))
-    assert reloaded == plan
-    assert reloaded.check_input is not None
-    assert reloaded.check_input.case_path == Path(case_path)
-    assert reloaded.check_input.prd_path == prd_path
+    assert verification_input.kind is ResolutionKind.READY
+    assert verification_input.cache_key is not None
+    assert len(verification_input.cache_key) == 64
+    assert verification_input.test_case_text == case_text
+    assert verification_input.prd_text == "# PRD"
 
 
-def test_prepare_writes_an_early_plan(tmp_path: Path) -> None:
-    plan = prepare([], workspace=tmp_path, plan_path=tmp_path / "plan.json")
+def test_prepare_builds_an_early_input(tmp_path: Path) -> None:
+    verification_input = prepare([], workspace=tmp_path)
 
-    assert plan.kind is ResolutionKind.NOTHING
-    assert plan.check_input is None
+    assert verification_input.kind is ResolutionKind.NOTHING
+    assert verification_input.test_case_text is None
 
 
 def test_run_publishes_success_when_nothing_changed() -> None:
     payloads, publish = _sink()
 
     payload = run(
-        Plan(kind=ResolutionKind.NOTHING),
+        VerificationInputFile(kind=ResolutionKind.NOTHING),
         head_sha="sha",
         publish=publish,
         system_one=_never_called,
@@ -269,14 +117,14 @@ def test_run_publishes_success_when_nothing_changed() -> None:
 
 
 def test_run_publishes_failure_for_multiple_files() -> None:
-    plan = Plan(
+    verification_input = VerificationInputFile(
         kind=ResolutionKind.MULTIPLE,
         files=["test-case/test-case-a.md", "test-case/test-case-b.md"],
     )
     payloads, publish = _sink()
 
     payload = run(
-        plan, head_sha="sha", publish=publish, system_one=_never_called
+        verification_input, head_sha="sha", publish=publish, system_one=_never_called
     )
 
     assert payload.conclusion == "failure"
@@ -286,11 +134,11 @@ def test_run_publishes_failure_for_multiple_files() -> None:
 
 
 def test_run_publishes_failure_for_a_missing_prd() -> None:
-    plan = Plan(kind=ResolutionKind.MISSING_PRD, detail="/repo/prd/demo.md")
+    verification_input = VerificationInputFile(kind=ResolutionKind.MISSING_PRD, detail="/repo/prd/demo.md")
     payloads, publish = _sink()
 
     payload = run(
-        plan, head_sha="sha", publish=publish, system_one=_never_called
+        verification_input, head_sha="sha", publish=publish, system_one=_never_called
     )
 
     assert payload.conclusion == "failure"
@@ -299,11 +147,11 @@ def test_run_publishes_failure_for_a_missing_prd() -> None:
 
 
 def test_run_publishes_failure_for_an_invalid_artifact() -> None:
-    plan = Plan(kind=ResolutionKind.INVALID, detail="no '## Case N' sections")
+    verification_input = VerificationInputFile(kind=ResolutionKind.INVALID, detail="no '## Case N' sections")
     payloads, publish = _sink()
 
     payload = run(
-        plan, head_sha="sha", publish=publish, system_one=_never_called
+        verification_input, head_sha="sha", publish=publish, system_one=_never_called
     )
 
     assert payload.conclusion == "failure"
@@ -312,27 +160,27 @@ def test_run_publishes_failure_for_an_invalid_artifact() -> None:
 
 
 def test_run_publishes_pass(tmp_path: Path) -> None:
-    plan = _ready_plan(tmp_path)
+    verification_input = _ready_input(tmp_path)
     payloads, publish = _sink()
 
     payload = run(
-        plan, head_sha="sha", publish=publish, system_one=_passing_system_one
+        verification_input, head_sha="sha", publish=publish, system_one=_passing_system_one
     )
 
     assert payload.conclusion == "success"
     assert payload.title == "Test Case verification: PASS"
     assert "## Jev review" in payload.summary
-    assert plan.check_input is not None
-    assert payload.external_id == plan.check_input.cache_key
+    assert verification_input.cache_key is not None
+    assert payload.external_id == verification_input.cache_key
     assert payloads == [payload]
 
 
 def test_run_publishes_needs_review(tmp_path: Path) -> None:
-    plan = _ready_plan(tmp_path)
+    verification_input = _ready_input(tmp_path)
     payloads, publish = _sink()
 
     payload = run(
-        plan, head_sha="sha", publish=publish, system_one=_one_answer(0.6)
+        verification_input, head_sha="sha", publish=publish, system_one=_one_answer(0.6)
     )
 
     assert payload.conclusion == "action_required"
@@ -340,11 +188,11 @@ def test_run_publishes_needs_review(tmp_path: Path) -> None:
 
 
 def test_run_publishes_fail(tmp_path: Path) -> None:
-    plan = _ready_plan(tmp_path)
+    verification_input = _ready_input(tmp_path)
     payloads, publish = _sink()
 
     payload = run(
-        plan, head_sha="sha", publish=publish, system_one=_one_answer(0.1)
+        verification_input, head_sha="sha", publish=publish, system_one=_one_answer(0.1)
     )
 
     assert payload.conclusion == "failure"
@@ -352,11 +200,11 @@ def test_run_publishes_fail(tmp_path: Path) -> None:
 
 
 def test_run_publishes_blocked_when_jev_returns_nothing(tmp_path: Path) -> None:
-    plan = _ready_plan(tmp_path)
+    verification_input = _ready_input(tmp_path)
     payloads, publish = _sink()
 
     payload = run(
-        plan, head_sha="sha", publish=publish, system_one=_empty_system_one
+        verification_input, head_sha="sha", publish=publish, system_one=_empty_system_one
     )
 
     assert payload.conclusion == "failure"
@@ -365,20 +213,21 @@ def test_run_publishes_blocked_when_jev_returns_nothing(tmp_path: Path) -> None:
 
 
 def test_run_propagates_publish_errors(tmp_path: Path) -> None:
-    plan = _ready_plan(tmp_path)
+    verification_input = _ready_input(tmp_path)
 
     def publish(payload):
         raise GitHubError("boom")
 
     with pytest.raises(GitHubError, match="boom"):
-        run(plan, head_sha="sha", publish=publish, system_one=_passing_system_one)
+        run(verification_input, head_sha="sha", publish=publish, system_one=_passing_system_one)
 
 
 def test_cli_prepare_writes_the_cache_key(tmp_path: Path) -> None:
-    case_path, _ = _write_case(tmp_path)
+    case_path, case_text = _write_case(tmp_path)
     _write_prd(tmp_path)
     changed = tmp_path / "changed.txt"
     changed.write_text(f"{case_path}\n", encoding="utf-8")
+    input_path = tmp_path / "verification-input.json"
     output = tmp_path / "github-output.txt"
 
     result = verify.main(
@@ -388,8 +237,8 @@ def test_cli_prepare_writes_the_cache_key(tmp_path: Path) -> None:
             str(changed),
             "--workspace",
             str(tmp_path),
-            "--plan",
-            str(tmp_path / "plan.json"),
+            "--verification-input",
+            str(input_path),
             "--github-output",
             str(output),
         ]
@@ -398,14 +247,20 @@ def test_cli_prepare_writes_the_cache_key(tmp_path: Path) -> None:
     assert result == 0
     key = output.read_text(encoding="utf-8").strip().removeprefix("key=")
     assert len(key) == 64
+    written = VerificationInputFile.model_validate_json(
+        input_path.read_text(encoding="utf-8")
+    )
+    assert written.cache_key == key
+    assert written.test_case_text == case_text
+    assert written.prd_text == "# PRD"
 
 
-def test_cli_run_publishes_an_early_plan(
+def test_cli_run_publishes_an_early_input(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    plan_path = tmp_path / "plan.json"
-    plan_path.write_text(
-        Plan(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
+    input_path = tmp_path / "verification-input.json"
+    input_path.write_text(
+        VerificationInputFile(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
     )
     published = []
 
@@ -420,7 +275,7 @@ def test_cli_run_publishes_an_early_plan(
     monkeypatch.setattr(verify, "GitHubAdapter", FakeAdapter)
 
     result = verify.main(
-        ["run", "--plan", str(plan_path), "--head-sha", "sha"]
+        ["run", "--verification-input", str(input_path), "--head-sha", "sha"]
     )
 
     assert result == 0
@@ -430,9 +285,9 @@ def test_cli_run_publishes_an_early_plan(
 def test_cli_run_returns_one_when_publishing_fails(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
 ) -> None:
-    plan_path = tmp_path / "plan.json"
-    plan_path.write_text(
-        Plan(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
+    input_path = tmp_path / "verification-input.json"
+    input_path.write_text(
+        VerificationInputFile(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
     )
 
     class FakeAdapter:
@@ -446,8 +301,25 @@ def test_cli_run_returns_one_when_publishing_fails(
     monkeypatch.setattr(verify, "GitHubAdapter", FakeAdapter)
 
     result = verify.main(
-        ["run", "--plan", str(plan_path), "--head-sha", "sha"]
+        ["run", "--verification-input", str(input_path), "--head-sha", "sha"]
     )
 
     assert result == 1
     assert "failed: boom" in capsys.readouterr().err
+
+
+def test_cli_run_fails_fast_without_github_env(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
+    input_path = tmp_path / "verification-input.json"
+    input_path.write_text(
+        VerificationInputFile(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
+    )
+    monkeypatch.delenv("GH_TOKEN", raising=False)
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+
+    result = verify.main(["run", "--verification-input", str(input_path), "--head-sha", "sha"])
+
+    assert result == 1
+    assert "failed:" in capsys.readouterr().err
