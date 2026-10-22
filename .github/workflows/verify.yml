@@ -1,0 +1,56 @@
+name: verify
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  verify:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/create-github-app-token@v3
+        id: app
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-checks: write
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --locked
+
+      - name: List the changed files
+        run: |
+          mkdir -p .verify
+          git diff --name-only --diff-filter=ACMR \
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" \
+            > .verify/changed-files.txt
+
+      - name: Resolve the verification input
+        id: prepare
+        run: |
+          uv run python -m web_test.planning.verify prepare \
+            --changed-files .verify/changed-files.txt \
+            --workspace . \
+            --verification-input .verify/verification-input.json \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Publish the verification check
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          uv run python -m web_test.planning.verify run \
+            --verification-input .verify/verification-input.json \
+            --head-sha "${{ github.event.pull_request.head.sha }}"

@@ -17,3 +17,6 @@ wheels/
 
 # Coverage data
 .coverage
+
+# Verification workflow input
+.verify/
