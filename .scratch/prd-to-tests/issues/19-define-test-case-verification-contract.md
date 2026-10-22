@@ -49,7 +49,8 @@ This ticket is the reference for 21, 23, and 24a/24b; it does not add code itsel
   records the original verdict plus the reason. A new head voids the override.
 - `FAIL` has no routine override; the case or question set must change. Admin break-glass is the
   only escape hatch and is not part of normal operation.
-- `BLOCKED` retries once automatically before adjudication.
+- A failed Jev call or an empty answer retries once automatically before adjudication; a
+  deterministic block (request build failure, partial answers) publishes immediately.
 
 ## Binding and invalidation
 
