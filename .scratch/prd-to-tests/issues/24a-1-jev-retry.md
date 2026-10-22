@@ -1,34 +1,36 @@
 # 24a-1: Add a Jev retry seam
 
-**What to build:** Add `retry_once(system_one: SystemOne) -> SystemOne` to
-`web_test/planning/review/jev.py`. The wrapper retries the Jev call once when it raises or returns an
-empty mapping. `typesafe_system_one` stays a single-shot call; only the verification check (24a-4)
-composes the retry.
+**Superseded:** the TypeSafe SDK already retries HTTP failures through `RetryPolicy`
+(`max_retries=2` by default, with backoff and `Retry-After`). No wrapper is added; an empty answer is
+`BLOCKED` and is not retried.
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
-- [ ] The factory returns a `SystemOne` with the same signature
-- [ ] A raised exception triggers exactly one retry
-- [ ] A second exception propagates unchanged
-- [ ] An empty answer mapping triggers exactly one retry
-- [ ] A second empty mapping is returned unchanged
-- [ ] Non-empty answers are returned without a retry
-- [ ] `typesafe_system_one` still makes a single call
-- [ ] Tests cover each path and assert the call count
-- [ ] Ticket 19's Authority wording matches the policy
-- [ ] `uv run pytest`, `uv run basedpyright`, `uv run lint-imports` stay green
+- [x] Confirmed the SDK retries HTTP 408/429/5xx, connection errors, and timeouts by default
+- [x] Confirmed the default policy is 2 retries with backoff and a 30 s budget
+- [x] Decided not to add a second retry layer, which would double the HTTP attempts
+- [x] Empty answers are not retried; they publish `BLOCKED`
+- [x] Removed the uncommitted `with_retry` probe and its tests
+- [x] Updated ticket 19 and the 24a umbrella wording
 
 ## Decisions / assumptions
 
-- One retry, no backoff.
-- Catch `Exception`, not `BaseException`.
-- Partial answers are not a retry reason; only an exception or an empty mapping is.
-- The wrapper lives in `jev.py` because retry is part of "how to call Jev", not part of the check.
+- HTTP retry is the SDK's responsibility, not the check's.
+- The SDK default (`max_retries=2`, 3 attempts total) is kept; 3 retries would need
+  `RetryPolicy(max_retries=3)`, which is not requested.
+- The SDK handles backoff, jitter, `Retry-After`, 408/429/5xx, connection errors, and timeouts.
+  Non-HTTP errors propagate immediately.
+- An empty answer is a successful call with no answers; it is not a transport failure, so it is not
+  retried.
 
 ## Comments
 
-Ticket 19 originally said `BLOCKED` retries once. That is narrowed to "a failed Jev call or an empty
-answer" because `request build failed` and partial answers are deterministic. The check (24a-4)
-composes this wrapper; `typesafe_system_one` and the other callers keep their single-shot behavior.
+The first draft of this ticket added `with_retry(system_one, *, attempts=2)` to `jev.py`. Reading the
+SDK showed that `AsyncTypeSafeClient()` already builds a tenacity policy with
+`RetryPolicy(max_retries=2)`, so the wrapper would have produced up to 6 HTTP attempts instead of 3.
+The wrapper and its tests were removed before commit.
+
+Ticket 19's Authority line now says HTTP failures are retried by the SDK and an empty answer is
+`BLOCKED`.

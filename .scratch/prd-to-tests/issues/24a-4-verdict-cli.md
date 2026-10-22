@@ -4,8 +4,8 @@
 
 - `prepare`: run 24a-3, write a plan JSON, and emit `key=` / `early=` for the workflow. No Jev call.
 - `run`: read the plan; publish an early outcome, or run the review with
-  `retry_once(typesafe_system_one)`, map the status to a conclusion, render the summary, and publish
-  through 24a-2.
+  `typesafe_system_one` (the SDK retries HTTP failures), map the status to a conclusion, render the
+  summary, and publish through 24a-2.
 
 The run exits 0 after publishing any verdict; infrastructure or publish failures exit non-zero.
 
@@ -17,7 +17,8 @@ The run exits 0 after publishing any verdict; infrastructure or publish failures
 - [ ] `run` handles the early outcomes (0 files, more than one file, missing PRD)
 - [ ] `PASS` / `NEEDS_REVIEW` / `FAIL` / `BLOCKED` map to `success` / `action_required` / `failure`
 - [ ] The summary is `render_report(record)` and includes findings, counts, and binding digests
-- [ ] `BLOCKED` comes from the retrying Jev call; deterministic blocks are not retried
+- [ ] `BLOCKED` comes from `typesafe_system_one` (the SDK retries HTTP); empty answers and
+      deterministic blocks are not retried
 - [ ] Publishing is idempotent through the 24a-2 adapter
 - [ ] A fake `SystemOne` and a fake `Runner` cover the publish paths; no tokens in tests
 - [ ] Same-repo PRs only; a fork PR is reported as unsupported

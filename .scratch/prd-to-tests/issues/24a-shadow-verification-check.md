@@ -13,7 +13,7 @@ them are done and the check is verified live.
 
 ## Subtickets
 
-- [ ] **24a-1** Jev retry seam (`retry_once` in `jev.py`)
+- [x] **24a-1** Jev retry seam — closed as `wontfix`; the SDK retries HTTP by default
 - [ ] **24a-2** Check publisher (`find_check_run`, `publish_check`)
 - [ ] **24a-3** Resolver and cache key (pure)
 - [ ] **24a-4** Verdict CLI (`prepare` / `run`)
@@ -30,7 +30,7 @@ them are done and the check is verified live.
 | The check is named `verify-test-case`; `PASS` → success, `NEEDS_REVIEW` → action_required, `FAIL`/`BLOCKED` → failure | 24a-2, 24a-4 |
 | The summary lists per-check findings, counts, and binding digests | 24a-4 |
 | The same digest and configuration reuse a cached verdict | 24a-6 |
-| A failed Jev call or empty answer retries once; a deterministic block publishes immediately | 24a-1, 24a-4 |
+| HTTP failures are retried by the SDK default; an empty answer or deterministic block publishes immediately | SDK, 24a-4 |
 | Creation/update is idempotent for a head SHA | 24a-2 |
 | The workflow has `checks: write` and the App has Checks permission | 24a-5 |
 | Verified live on a Test Case PR; still shadow | 24a-5 |
@@ -42,7 +42,8 @@ them are done and the check is verified live.
 - Cache key: `test_case_digest + prd_digest + question_set_version + model + bands`. The original
   decision omitted `prd_digest`; the verdict binds to it, so it is included.
 - `BLOCKED` is published but not cached.
-- Retry only for a Jev call exception or an empty answer, once, with no backoff.
+- HTTP failures use the TypeSafe SDK's `RetryPolicy` default (2 retries, backoff, `Retry-After`);
+  an empty answer is `BLOCKED` and is not retried.
 - Zero changed artifacts means "nothing to verify" and publishes success; more than one publishes
   failure with the file list.
 - Check name: `verify-test-case`.
@@ -79,7 +80,7 @@ changed test-case artifacts?
                             ▼
                           cache hit?
                             ├─ yes ──> cached verdict
-                            └─ no ──> run review; retry once on a failed call or empty answer
+                            └─ no ──> run review (the SDK retries HTTP failures)
                                        save verdict unless BLOCKED
                             │
                             ▼
