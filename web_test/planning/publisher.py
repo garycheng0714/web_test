@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from web_test.planning.cases_writer import CaseWriter, escape_cell
 from web_test.planning.schema import Case
 from web_test.publishing.git import Git
-from web_test.publishing.github import GitHub, PullRequest
+from web_test.publishing.github import GitHubAdapter, PullRequest
 from web_test.publishing.publish import BASE_BRANCH, BOT_EMAIL, BOT_NAME
 
 TEST_CASE_DIR = "test-case"
@@ -38,7 +38,7 @@ def plan_pr_body(
 class PlanPublisher:
     """Branches from origin/main, writes the PRD's case file, commits it, and opens the Gate PR."""
 
-    def __init__(self, *, git: Git, pr: GitHub, writer: CaseWriter) -> None:
+    def __init__(self, *, git: Git, pr: GitHubAdapter, writer: CaseWriter) -> None:
         self.git = git
         self.pr = pr
         self.writer = writer

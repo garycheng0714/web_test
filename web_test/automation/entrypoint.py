@@ -11,7 +11,7 @@ from web_test.command import subprocess_runner
 from web_test.naming import run_token
 from web_test.observability import configure_observability
 from web_test.publishing.git import Git
-from web_test.publishing.github import GitHub
+from web_test.publishing.github import GitHubAdapter
 from web_test.publishing.publish import Publisher
 from web_test.publishing.suite import Suite
 from web_test.write_guard import allowed_paths
@@ -39,7 +39,7 @@ def automate(
     workspace: str | Path,
     agent: Callable[..., AutomationResult] = create_automation,
     git: Git,
-    pr: GitHub,
+    pr: GitHubAdapter,
     suite: Suite,
     token: str | None = None,
 ) -> AutomationOutcome:
@@ -79,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
         args.case,
         workspace=workspace,
         git=Git(subprocess_runner, workspace),
-        pr=GitHub(subprocess_runner, workspace),
+        pr=GitHubAdapter.from_env(),
         suite=Suite(subprocess_runner, workspace),
     )
     if outcome.status is AutomationStatus.FAILED:

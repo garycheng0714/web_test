@@ -18,7 +18,7 @@ from web_test.planning.review import Reviewer, run_review
 from web_test.planning.review.report import render_report
 from web_test.planning.schema import DesignOutput
 from web_test.publishing.git import Git
-from web_test.publishing.github import GitHub
+from web_test.publishing.github import GitHubAdapter
 
 
 class PlanStatus(StrEnum):
@@ -52,7 +52,7 @@ def plan(
     agent: Callable[..., DesignOutput] = design_test_cases,
     reviewer: Reviewer = run_review,
     git: Git,
-    pr: GitHub,
+    pr: GitHubAdapter,
     now: datetime | None = None,
 ) -> PlanOutcome:
     """Turn one PRD into a PR that adds one `test-case/<prd-stem>.md` file."""
@@ -106,7 +106,7 @@ def main(argv: list[str] | None = None) -> int:
         base_url=args.base_url,
         workspace=workspace,
         git=Git(subprocess_runner, workspace),
-        pr=GitHub(subprocess_runner, workspace),
+        pr=GitHubAdapter.from_env(),
     )
     if outcome.status is PlanStatus.FAILED:
         print(f"failed: {outcome.error}", file=sys.stderr)

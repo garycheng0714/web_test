@@ -1,108 +1,160 @@
-import json
-from pathlib import Path
+from datetime import UTC, datetime
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+from githubkit import GitHub
+from githubkit.exception import GitHubException
 
-from web_test.command import CommandResult
-from web_test.publishing.github import CheckConclusion, CheckPayload, GitHub, PullRequest
+from web_test.publishing.github import (
+    CheckPayload,
+    GitHubAdapter,
+    GitHubError,
+    PullRequest,
+)
 
 PR = PullRequest(base="main", head="b", title="t", body="B")
 CHECK = CheckPayload(
     head_sha="abc",
-    conclusion=CheckConclusion.SUCCESS,
+    conclusion="success",
     title="Test Case verification: PASS",
     summary="## Jev review",
     external_id="key",
 )
 
 
-def test_open_pull_request_argv() -> None:
-    runner = MagicMock(return_value=CommandResult(0))
+def _adapter(client: MagicMock) -> GitHubAdapter:
+    return GitHubAdapter(client=client, owner="o", repo="r")
 
-    GitHub(runner, Path("/ws")).open_pull_request(PR)
 
-    runner.assert_called_once_with(
-        ["gh", "pr", "create", "--base", "main", "--head", "b", "--title", "t", "--body", "B"],
-        cwd=Path("/ws"),
+def _check_runs(*runs: int) -> SimpleNamespace:
+    return SimpleNamespace(
+        parsed_data=SimpleNamespace(
+            check_runs=[SimpleNamespace(id=run_id) for run_id in runs]
+        )
     )
 
 
-def test_failed_pr_raises() -> None:
-    runner = MagicMock(return_value=CommandResult(1, stderr="boom"))
+def test_open_pull_request_uses_the_sdk() -> None:
+    client = MagicMock()
 
-    with pytest.raises(RuntimeError):
-        GitHub(runner, Path("/ws")).open_pull_request(PR)
+    _adapter(client).open_pull_request(PR)
+
+    client.rest.pulls.create.assert_called_once_with(
+        "o", "r", title="t", head="b", base="main", body="B"
+    )
 
 
 def test_find_check_run_returns_the_id() -> None:
-    runner = MagicMock(return_value=CommandResult(0, stdout='{"check_runs": [{"id": 42}]}'))
+    client = MagicMock()
+    client.rest.checks.list_for_ref.return_value = _check_runs(42)
 
-    found = GitHub(runner, Path("/ws")).find_check_run(
-        "abc", repo="o/r", name="verify-test-case"
-    )
+    found = _adapter(client).find_check_run("abc", name="verify-test-case")
 
     assert found == 42
-    runner.assert_called_once_with(
-        ["gh", "api", "repos/o/r/commits/abc/check-runs?check_name=verify-test-case"],
-        cwd=Path("/ws"),
+    client.rest.checks.list_for_ref.assert_called_once_with(
+        "o", "r", "abc", check_name="verify-test-case"
     )
 
 
 def test_find_check_run_returns_none_when_absent() -> None:
-    runner = MagicMock(return_value=CommandResult(0, stdout='{"check_runs": []}'))
+    client = MagicMock()
+    client.rest.checks.list_for_ref.return_value = _check_runs()
 
-    assert GitHub(runner, Path("/ws")).find_check_run(
-        "abc", repo="o/r", name="verify-test-case"
-    ) is None
-
-
-def test_publish_check_posts_when_absent() -> None:
-    calls: list[list[str]] = []
-    bodies: list[dict[str, object]] = []
-
-    def runner(args: list[str], *, cwd: Path | None = None) -> CommandResult:
-        calls.append(args)
-        if "--input" in args:
-            path = Path(args[args.index("--input") + 1])
-            bodies.append(json.loads(path.read_text(encoding="utf-8")))
-            return CommandResult(0)
-        return CommandResult(0, stdout='{"check_runs": []}')
-
-    GitHub(runner, Path("/ws")).publish_check(CHECK, repo="o/r")
-
-    assert bodies == [
-        {
-            "name": "verify-test-case",
-            "head_sha": "abc",
-            "status": "completed",
-            "conclusion": "success",
-            "output": {"title": "Test Case verification: PASS", "summary": "## Jev review"},
-            "external_id": "key",
-        }
-    ]
-    assert calls[1][calls[1].index("--method") + 1] == "POST"
-    assert "repos/o/r/check-runs" in calls[1]
-    assert not any("check-runs/" in arg for arg in calls[1])
+    assert _adapter(client).find_check_run("abc", name="verify-test-case") is None
 
 
-def test_publish_check_patches_an_existing_run() -> None:
-    calls: list[list[str]] = []
+def test_publish_check_creates_when_absent() -> None:
+    client = MagicMock()
+    client.rest.checks.list_for_ref.return_value = _check_runs()
 
-    def runner(args: list[str], *, cwd: Path | None = None) -> CommandResult:
-        calls.append(args)
-        if "--input" in args:
-            return CommandResult(0)
-        return CommandResult(0, stdout='{"check_runs": [{"id": 7}]}')
+    _adapter(client).publish_check(CHECK)
 
-    GitHub(runner, Path("/ws")).publish_check(CHECK, repo="o/r")
+    client.rest.checks.create.assert_called_once()
+    args, kwargs = client.rest.checks.create.call_args
+    assert args == ("o", "r")
+    assert kwargs["name"] == "verify-test-case"
+    assert kwargs["head_sha"] == "abc"
+    assert kwargs["status"] == "completed"
+    assert kwargs["conclusion"] == "success"
+    assert kwargs["external_id"] == "key"
+    assert kwargs["output"] == {
+        "title": "Test Case verification: PASS",
+        "summary": "## Jev review",
+    }
+    completed_at = kwargs["completed_at"]
+    assert isinstance(completed_at, datetime)
+    assert completed_at.utcoffset().total_seconds() == 0
+    assert completed_at.tzinfo is UTC
 
-    assert calls[1][calls[1].index("--method") + 1] == "PATCH"
-    assert "repos/o/r/check-runs/7" in calls[1]
+
+def test_publish_check_updates_an_existing_run() -> None:
+    client = MagicMock()
+    client.rest.checks.list_for_ref.return_value = _check_runs(7)
+
+    _adapter(client).publish_check(CHECK)
+
+    client.rest.checks.update.assert_called_once()
+    args, kwargs = client.rest.checks.update.call_args
+    assert args == ("o", "r", 7)
+    assert kwargs["conclusion"] == "success"
+    assert kwargs["external_id"] == "key"
 
 
-def test_failed_publish_raises() -> None:
-    runner = MagicMock(return_value=CommandResult(1, stderr="boom"))
+def test_a_github_error_is_wrapped_with_the_operation() -> None:
+    client = MagicMock()
+    cause = GitHubException("boom")
+    client.rest.checks.list_for_ref.side_effect = cause
 
-    with pytest.raises(RuntimeError):
-        GitHub(runner, Path("/ws")).publish_check(CHECK, repo="o/r")
+    with pytest.raises(GitHubError, match="GitHub list check runs failed"):
+        _adapter(client).find_check_run("abc", name="verify-test-case")
+
+    assert client.rest.checks.list_for_ref.call_args is not None
+
+
+def test_a_github_error_keeps_its_cause() -> None:
+    client = MagicMock()
+    cause = GitHubException("boom")
+    client.rest.checks.list_for_ref.side_effect = cause
+
+    with pytest.raises(GitHubError) as raised:
+        _adapter(client).find_check_run("abc", name="verify-test-case")
+
+    assert raised.value.__cause__ is cause
+
+
+def test_from_env_reads_the_token_and_repository(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GH_TOKEN", "token")
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+
+    adapter = GitHubAdapter.from_env()
+
+    assert isinstance(adapter.client, GitHub)
+    assert adapter.owner == "owner"
+    assert adapter.repo == "repo"
+
+
+def test_from_env_falls_back_to_github_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GH_TOKEN", raising=False)
+    monkeypatch.setenv("GITHUB_TOKEN", "token")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+
+    assert GitHubAdapter.from_env().owner == "owner"
+
+
+def test_from_env_requires_a_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GH_TOKEN", raising=False)
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    monkeypatch.setenv("GITHUB_REPOSITORY", "owner/repo")
+
+    with pytest.raises(RuntimeError, match="GH_TOKEN or GITHUB_TOKEN"):
+        GitHubAdapter.from_env()
+
+
+def test_from_env_requires_a_valid_repository(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GH_TOKEN", "token")
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+
+    with pytest.raises(RuntimeError, match="GITHUB_REPOSITORY"):
+        GitHubAdapter.from_env()

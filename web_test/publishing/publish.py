@@ -1,6 +1,6 @@
 from web_test.naming import branch_for
 from web_test.publishing.git import Git
-from web_test.publishing.github import GitHub, PullRequest
+from web_test.publishing.github import GitHubAdapter, PullRequest
 
 BOT_NAME = "web-test-qa-flow[bot]"
 BOT_EMAIL = "344404446+web-test-qa-flow[bot]@users.noreply.github.com"
@@ -18,7 +18,7 @@ def commit_message(case_id: str) -> str:
 class Publisher:
     """Commits a case's files on a branch and opens one PR."""
 
-    def __init__(self, *, git: Git, pr: GitHub) -> None:
+    def __init__(self, *, git: Git, pr: GitHubAdapter) -> None:
         self.git = git
         self.pr = pr
 

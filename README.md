@@ -60,6 +60,8 @@ before passing `--browser firefox`. No Node/TypeScript toolchain is required.
 | --- | --- | --- |
 | `WEB_TEST_MODEL` | `openai-chat:kimi-k2.7-code` | Automation/coding-agent model (override `resolve_model()`). |
 | `WEB_TEST_DESIGN_MODEL` | `openai-chat:deepseek-v4.1-flash` | Designer model (PRD → test cases; `resolve_design_model()`). |
+| `GH_TOKEN` / `GITHUB_TOKEN` | — | GitHub token used by the entrypoints to open PRs and publish checks; required locally, set by CI. |
+| `GITHUB_REPOSITORY` | — | `owner/repo` for the GitHub API calls; required locally, set by CI. |
 | `OPENCODE_API_KEY` | — | OpenCode Go key for the OpenCode Go models above. |
 | `WEB_TEST_BASE_URL` | — | Repository variable read by `plan` as the test-case `base_url`; required in CI. |
 | `WEB_TEST_RUN_ID` / `WEB_TEST_RUN_ATTEMPT` | unset | Supplied by CI to make branch names run-scoped (a UTC timestamp locally). |
