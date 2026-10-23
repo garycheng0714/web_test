@@ -24,6 +24,7 @@ uv run playwright install chromium
 - Run the agent: `uv run main.py`
 - Run tests: `uv run pytest`
 - Typecheck: `uv run basedpyright`
+- Lint Python (unused imports): `uv run ruff check --select F401`
 - Architecture contracts: `uv run lint-imports`
 - Coverage (report only): `uv run pytest --cov=web_test --cov-report=term-missing`
 - Lint workflows: `actionlint` (needs `brew install actionlint` or Docker; CI uses `rhysd/actionlint:1.7.12`)
@@ -34,7 +35,8 @@ uv run playwright install chromium
 ## Pipeline CI
 
 `.github/workflows/ci.yml` runs on every pull request: the suite with a coverage report, a
-basedpyright typecheck, the import-linter architecture contracts, and actionlint on the workflows.
+basedpyright typecheck with a ruff unused-import lint, the import-linter architecture contracts, and
+actionlint on the workflows.
 All four are shadow checks for now (visible, not required). The pipeline itself is two
 merge-triggered workflows that mirror each other (ADR-0008):
 

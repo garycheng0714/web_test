@@ -28,6 +28,7 @@ jobs:
           enable-cache: true
       - run: uv sync --locked
       - run: uv run basedpyright
+      - run: uv run ruff check --select F401
 
   contracts:
     runs-on: ubuntu-latest

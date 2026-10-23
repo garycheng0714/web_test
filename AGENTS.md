@@ -23,11 +23,12 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Implement one merged test case: `uv run python -m web_test.automation.entrypoint --case test-case/<id>.md --workspace .`
 - Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
 - Typecheck: `uv run basedpyright` (scope: `web_test`, `standard` mode)
+- Lint Python (unused imports): `uv run ruff check --select F401`
 - Architecture contracts: `uv run lint-imports`
 - Coverage (report only): `uv run pytest --cov=web_test --cov-report=term-missing`
 - Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[coder,playwright,skills]` are dependencies)
 - `uv sync` to generate `uv.lock`
-- No Python lint or formatter are configured; workflows are checked with `actionlint` in CI. CI: `.github/workflows/ci.yml` (suite with coverage, typecheck, contracts, workflows on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
+- No Python formatter is configured; workflows are checked with `actionlint` in CI. CI: `.github/workflows/ci.yml` (suite with coverage, typecheck with lint, contracts, workflows on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
 
 ## Language
 Reply in Traditional Chinese. Keep code, commit messages, and existing English docs in their
@@ -65,6 +66,7 @@ publish check
 - Internal closed sets use `StrEnum`; otherwise follow the boundary/internal data convention above.
 - A responsibility with its own contract and change reason may become a module even with one caller. Otherwise, do not add a module until there is a second caller or a second variation.
 - A pure refactor keeps behavior: run the full suite and verify any version or digest that must not change. Test through real entry points; do not add test-only production helpers.
+- Before a ticket that adds or moves a boundary type, record its `Shape` in the ticket: types, boundary, invariants. For a new module, include the six-line module plan.
 
 ### Module planning
 
@@ -78,6 +80,11 @@ single-file change):
 5. Single-variation parts to leave alone
 6. Responsibilities: which change reasons and contracts will this module serve?
 
+## Review
+
+- Label each code-review finding `behavior` or `polish`.
+- Fix `behavior` in the current ticket. Open a ticket for `polish`; do not expand the current change.
+
 ## Gotchas
 - `playwright-cli` writes snapshots, storage state, and traces to `.playwright-cli/`.
   It is gitignored and may contain credentials — never commit it or paste its contents into commits/PRs.
@@ -85,9 +92,13 @@ single-file change):
 ## Teaching mode
 
 This repo also serves as the human's learning workspace (`learn/`). In **planning and design**
-discussions the human leads: they write the plan and make the decisions, and the agent only asks
-questions, challenges, and supplies facts — no recommendations, and never write their plan.
-Ticket implementation then proceeds normally. Full agreement in `learn/NOTES.md`.
+discussions the human leads: they write the plan and make the decisions. The agent asks questions,
+challenges, and supplies facts. It may recommend only when a concrete tradeoff or risk is on the
+table, and must label the recommendation with its reason. With no concrete tradeoff or risk, it
+asks instead of recommending. When the user explicitly asks for a recommendation, the agent may
+answer, but labels it as an answer and says whether it rests on a concrete tradeoff or risk. The
+agent never writes the human's plan. Ticket implementation then proceeds normally. Full agreement
+in `learn/NOTES.md`.
 
 ## Agent skills
 
