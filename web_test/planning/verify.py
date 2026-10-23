@@ -10,6 +10,8 @@ from web_test.planning.review.jev import SystemOne, typesafe_system_one
 from web_test.planning.review.parser import parse_test_case
 from web_test.planning.review.report import render_report
 from web_test.planning.review.service import run_review_on
+from web_test.planning.review.verification import VerificationStatus
+from web_test.planning.verify_cache import VerdictCache
 from web_test.planning.verify_payload import early_payload, verdict_payload
 from web_test.planning.verify_resolution import ResolutionKind, resolve
 from web_test.publishing.github import CheckPayload, GitHubAdapter
@@ -49,8 +51,21 @@ def run(
     publish: Callable[[CheckPayload], None],
     name: str = "verify-test-case",
     system_one: SystemOne = typesafe_system_one,
+    cache: VerdictCache | None = None,
 ) -> CheckPayload:
     """Publish the check for the verification input: an early outcome, or the verdict."""
+    if (
+        cache is not None
+        and verification_file.kind is ResolutionKind.READY
+        and verification_file.cache_key is not None
+    ):
+        cached = cache.load(verification_file.cache_key)
+        if cached is not None:
+            payload = cached.model_copy(update={"head_sha": head_sha, "name": name})
+            publish(payload)
+            return payload
+
+    cacheable = False
     if verification_file.kind is not ResolutionKind.READY:
         payload = early_payload(
             verification_file.kind,
@@ -74,6 +89,7 @@ def run(
         record = run_review_on(
             subject, verification_file.test_case_text, system_one=system_one
         )
+        cacheable = record.result.status is not VerificationStatus.BLOCKED
         payload = verdict_payload(
             record.result.status,
             summary=render_report(record),
@@ -82,6 +98,8 @@ def run(
             external_id=verification_file.cache_key,
         )
     publish(payload)
+    if cache is not None and cacheable:
+        cache.save(payload)
     return payload
 
 
@@ -118,6 +136,8 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--verification-input", required=True)
     run_parser.add_argument("--head-sha", required=True)
     run_parser.add_argument("--check-name", default="verify-test-case")
+    run_parser.add_argument("--cache-dir")
+    run_parser.add_argument("--github-output", default=os.environ.get("GITHUB_OUTPUT"))
 
     args = parser.parse_args(argv)
 
@@ -145,12 +165,19 @@ def main(argv: list[str] | None = None) -> int:
         verification_input = VerificationInputFile.model_validate_json(
             Path(args.verification_input).read_text(encoding="utf-8")
         )
+        cache = VerdictCache(Path(args.cache_dir)) if args.cache_dir else None
         payload = run(
             verification_input,
             head_sha=args.head_sha,
             name=args.check_name,
             publish=GitHubAdapter.from_env().publish_check,
+            cache=cache,
         )
+        if cache is not None:
+            _write_output(
+                Path(args.github_output) if args.github_output else None,
+                [f"saved={'true' if cache.saved else 'false'}"],
+            )
     except (OSError, ValueError, RuntimeError) as error:
         print(f"failed: {error}", file=sys.stderr)
         return 1

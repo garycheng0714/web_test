@@ -7,8 +7,9 @@ from web_test.planning.cases_writer import render_document
 from web_test.planning.review.jev import JevAnswer
 from web_test.planning.schema import Case
 from web_test.planning.verify import VerificationInputFile, prepare, run
+from web_test.planning.verify_cache import VerdictCache
 from web_test.planning.verify_resolution import ResolutionKind
-from web_test.publishing.github import GitHubError
+from web_test.publishing.github import CheckPayload, GitHubError
 
 
 def _case() -> Case:
@@ -220,6 +221,239 @@ def test_run_propagates_publish_errors(tmp_path: Path) -> None:
 
     with pytest.raises(GitHubError, match="boom"):
         run(verification_input, head_sha="sha", publish=publish, system_one=_passing_system_one)
+
+
+def test_run_uses_a_cached_verdict(tmp_path: Path) -> None:
+    verification_input = _ready_input(tmp_path)
+    assert verification_input.cache_key is not None
+    cache = VerdictCache(tmp_path / "cache")
+    cache.directory.mkdir()
+    cache.path.write_text(
+        CheckPayload(
+            head_sha="old",
+            conclusion="success",
+            title="Test Case verification: PASS",
+            summary="cached summary",
+            external_id=verification_input.cache_key,
+        ).model_dump_json(),
+        encoding="utf-8",
+    )
+    payloads, publish = _sink()
+
+    payload = run(
+        verification_input,
+        head_sha="new",
+        publish=publish,
+        system_one=_never_called,
+        cache=cache,
+    )
+
+    assert payload.summary == "cached summary"
+    assert payload.head_sha == "new"
+    assert payload.external_id == verification_input.cache_key
+    assert cache.saved is False
+    assert payloads == [payload]
+
+
+def test_run_saves_a_new_verdict(tmp_path: Path) -> None:
+    verification_input = _ready_input(tmp_path)
+    assert verification_input.cache_key is not None
+    cache = VerdictCache(tmp_path / "cache")
+    _, publish = _sink()
+
+    payload = run(
+        verification_input,
+        head_sha="sha",
+        publish=publish,
+        system_one=_passing_system_one,
+        cache=cache,
+    )
+
+    assert cache.saved is True
+    assert cache.load(verification_input.cache_key) == payload
+    assert payload.external_id == verification_input.cache_key
+
+
+def test_run_does_not_cache_blocked(tmp_path: Path) -> None:
+    verification_input = _ready_input(tmp_path)
+    cache = VerdictCache(tmp_path / "cache")
+    _, publish = _sink()
+
+    payload = run(
+        verification_input,
+        head_sha="sha",
+        publish=publish,
+        system_one=_empty_system_one,
+        cache=cache,
+    )
+
+    assert payload.title == "Test Case verification: BLOCKED"
+    assert cache.saved is False
+    assert not cache.path.exists()
+
+
+def test_run_ignores_a_cache_for_another_key(tmp_path: Path) -> None:
+    verification_input = _ready_input(tmp_path)
+    cache = VerdictCache(tmp_path / "cache")
+    cache.directory.mkdir()
+    cache.path.write_text(
+        CheckPayload(
+            head_sha="old",
+            conclusion="failure",
+            title="Test Case verification: FAIL",
+            summary="stale",
+            external_id="another-key",
+        ).model_dump_json(),
+        encoding="utf-8",
+    )
+    _, publish = _sink()
+
+    payload = run(
+        verification_input,
+        head_sha="sha",
+        publish=publish,
+        system_one=_passing_system_one,
+        cache=cache,
+    )
+
+    assert payload.title == "Test Case verification: PASS"
+    assert cache.saved is True
+
+
+def test_run_ignores_a_corrupt_cache(tmp_path: Path) -> None:
+    verification_input = _ready_input(tmp_path)
+    cache = VerdictCache(tmp_path / "cache")
+    cache.directory.mkdir()
+    cache.path.write_text("{not json", encoding="utf-8")
+    _, publish = _sink()
+
+    payload = run(
+        verification_input,
+        head_sha="sha",
+        publish=publish,
+        system_one=_passing_system_one,
+        cache=cache,
+    )
+
+    assert payload.title == "Test Case verification: PASS"
+    assert cache.saved is True
+
+
+def test_cli_run_reports_a_cache_hit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    verification_input = _ready_input(tmp_path)
+    assert verification_input.cache_key is not None
+    input_path = tmp_path / "verification-input.json"
+    input_path.write_text(verification_input.model_dump_json(), encoding="utf-8")
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+    (cache_dir / "verdict.json").write_text(
+        CheckPayload(
+            head_sha="old",
+            conclusion="success",
+            title="Test Case verification: PASS",
+            summary="cached summary",
+            external_id=verification_input.cache_key,
+        ).model_dump_json(),
+        encoding="utf-8",
+    )
+    output = tmp_path / "github-output.txt"
+    published = []
+
+    class FakeAdapter:
+        def publish_check(self, payload):
+            published.append(payload)
+
+        @classmethod
+        def from_env(cls):
+            return cls()
+
+    real_run = verify.run
+
+    def guarded_run(verification_input, *, head_sha, publish, name, cache):
+        return real_run(
+            verification_input,
+            head_sha=head_sha,
+            publish=publish,
+            name=name,
+            cache=cache,
+            system_one=_never_called,
+        )
+
+    monkeypatch.setattr(verify, "run", guarded_run)
+    monkeypatch.setattr(verify, "GitHubAdapter", FakeAdapter)
+
+    result = verify.main(
+        [
+            "run",
+            "--verification-input",
+            str(input_path),
+            "--head-sha",
+            "sha",
+            "--cache-dir",
+            str(cache_dir),
+            "--github-output",
+            str(output),
+        ]
+    )
+
+    assert result == 0
+    assert published[0].summary == "cached summary"
+    assert published[0].head_sha == "sha"
+    assert output.read_text(encoding="utf-8") == "saved=false\n"
+
+
+def test_cli_run_reports_a_saved_verdict(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    verification_input = _ready_input(tmp_path)
+    input_path = tmp_path / "verification-input.json"
+    input_path.write_text(verification_input.model_dump_json(), encoding="utf-8")
+    output = tmp_path / "github-output.txt"
+    published = []
+
+    def fake_run(verification_input, *, head_sha, publish, name, cache):
+        assert verification_input.cache_key is not None
+        payload = CheckPayload(
+            head_sha=head_sha,
+            conclusion="success",
+            title="Test Case verification: PASS",
+            summary="new summary",
+            external_id=verification_input.cache_key,
+        )
+        cache.save(payload)
+        publish(payload)
+        return payload
+
+    class FakeAdapter:
+        def publish_check(self, payload):
+            published.append(payload)
+
+        @classmethod
+        def from_env(cls):
+            return cls()
+
+    monkeypatch.setattr(verify, "run", fake_run)
+    monkeypatch.setattr(verify, "GitHubAdapter", FakeAdapter)
+
+    result = verify.main(
+        [
+            "run",
+            "--verification-input",
+            str(input_path),
+            "--head-sha",
+            "sha",
+            "--cache-dir",
+            str(tmp_path / "cache"),
+            "--github-output",
+            str(output),
+        ]
+    )
+
+    assert result == 0
+    assert published[0].summary == "new summary"
+    assert output.read_text(encoding="utf-8") == "saved=true\n"
 
 
 def test_cli_prepare_writes_the_cache_key(tmp_path: Path) -> None:

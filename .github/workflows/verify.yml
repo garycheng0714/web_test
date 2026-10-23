@@ -46,11 +46,29 @@ jobs:
             --verification-input .verify/verification-input.json \
             --github-output "$GITHUB_OUTPUT"
 
+      - name: Restore the cached verdict
+        id: cache
+        if: steps.prepare.outputs.key != ''
+        uses: actions/cache/restore@v6
+        with:
+          path: .verify/cache
+          key: verify-${{ steps.prepare.outputs.key }}
+
       - name: Publish the verification check
+        id: run
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
         run: |
           uv run python -m web_test.planning.verify run \
             --verification-input .verify/verification-input.json \
-            --head-sha "${{ github.event.pull_request.head.sha }}"
+            --head-sha "${{ github.event.pull_request.head.sha }}" \
+            --cache-dir .verify/cache \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Save the cached verdict
+        if: steps.run.outputs.saved == 'true' && steps.prepare.outputs.key != '' && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: .verify/cache
+          key: verify-${{ steps.prepare.outputs.key }}
