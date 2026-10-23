@@ -22,7 +22,7 @@ def test_run_rejects_a_ready_input_without_verdict_data() -> None:
 
     with pytest.raises(ValueError, match="missing its verdict data"):
         run(
-            PreparedVerification(kind=ResolutionKind.READY),
+            PreparedVerification.model_construct(kind=ResolutionKind.READY),
             head_sha="sha",
             publish=publish,
             system_one=never_called,
