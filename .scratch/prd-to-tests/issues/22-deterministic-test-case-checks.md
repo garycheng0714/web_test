@@ -48,3 +48,6 @@ This is an umbrella ticket. It is split into two subtickets:
 **2026-10-23 — split.** 22a is implemented. 22b keeps the coverage, required-metadata, and PRD
 requirement questions; see `22b-coverage-checks.md`. The earlier "deferred" note is resolved for
 22a: structure checks are now part of the verification record and the required check.
+
+**2026-10-23 — 22b parked.** `22a` is complete. The maintainer parked `22b` as low priority; the
+umbrella stays incomplete and `25` stays blocked until coverage becomes a concrete need.

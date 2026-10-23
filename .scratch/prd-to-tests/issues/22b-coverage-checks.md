@@ -13,6 +13,8 @@ bumps `CHECK_SET_VERSION`.
 
 **Status:** ready-for-human
 
+**Parked:** 2026-10-23 — not planned for v1.1; revisit after the automation line.
+
 - [ ] Required case metadata is checked as a deterministic outcome
 - [ ] Requirement-to-case coverage is computed from the Test Case's declared `requirement_ids`
 - [ ] A happy-path case is required for each covered requirement
@@ -44,3 +46,7 @@ bumps `CHECK_SET_VERSION`.
 **2026-10-23 — split from 22.** The artifact-only checks shipped in 22a. This slice waits on the
 coverage and PRD requirement-ID decisions; without them, a deterministic check would false-fail
 auto-assigned requirement IDs.
+
+**2026-10-23 — parked.** The maintainer judged the coverage/metadata slice low priority for now.
+`22a` remains complete; `22` stays incomplete and `25` stays blocked. Revisit only if the
+requirement-coverage gap becomes concrete.
