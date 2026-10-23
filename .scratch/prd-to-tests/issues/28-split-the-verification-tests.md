@@ -9,7 +9,12 @@ resolution and key tests to remove duplicated case/file builders. Production cod
 
 **Status:** ready-for-agent
 
-- [ ] `test_verify.py` is removed; prepare, run, cache, and CLI tests live in separate files.
-- [ ] Shared helpers are defined once; the resolution and key tests use them.
-- [ ] No test coverage or assertion is dropped; the suite count stays at least 191.
-- [ ] `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`, and `actionlint` pass.
+- [x] `test_verify.py` is removed; prepare, run, cache, and CLI tests live in separate files.
+- [x] Shared helpers are defined once; the resolution and key tests use them.
+- [x] No test coverage or assertion is dropped; the suite count stays at least 191.
+- [x] `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`, and `actionlint` pass.
+
+**2026-10-23 — implemented.** `test_verify.py` is split into prepare, run, cache, and CLI test
+modules. `verify_helpers.py` holds the case builders, fake `SystemOne` callables, publish sink,
+ready input, and run-payload helper; the resolution and key tests use it. The suite still has 191
+passing tests, and basedpyright, lint-imports, and actionlint are green.
