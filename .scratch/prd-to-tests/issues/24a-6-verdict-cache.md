@@ -8,16 +8,31 @@ cached payload without calling Jev. `BLOCKED` is not cached.
 
 **Status:** ready-for-agent
 
-- [ ] The workflow restores the cache with `verify-<key>` before `run`
-- [ ] A cache hit skips Jev (a test uses a `SystemOne` that would fail if called)
-- [ ] A miss saves the payload only for non-`BLOCKED` verdicts
-- [ ] `actions/cache/save` is conditional on the `saved` output
-- [ ] A different test case, PRD, or question set misses the cache
-- [ ] `BLOCKED` is never written
-- [ ] Tests cover hit, miss, and blocked
-- [ ] `actionlint` passes
+- [x] The workflow restores the cache with `verify-<key>` before `run`
+- [x] A cache hit skips Jev (a test uses a `SystemOne` that would fail if called)
+- [x] A miss saves the payload only for non-`BLOCKED` verdicts
+- [x] `actions/cache/save` is conditional on the `saved` output
+- [x] A different test case, PRD, or question set misses the cache
+- [x] `BLOCKED` is never written
+- [x] Tests cover hit, miss, and blocked
+- [x] `actionlint` passes
 
 ## Decisions / assumptions
 
 - Actions cache is branch-scoped; no TTL.
 - The cache key is the same value used as `external_id`.
+
+## Comments
+
+**2026-10-23 — implemented.** `verify_cache.VerdictCache` reads and writes
+`.verify/cache/verdict.json`; `load(key)` owns the key match. `run` loads a matching cached payload
+for READY inputs, overrides `head_sha` and `name`, and publishes without Jev. On a miss it saves the
+payload unless the status is `BLOCKED`. The CLI takes `--cache-dir` and emits `saved=true|false`;
+the workflow restores `verify-<key>` before `run` and saves only when `saved=true`, the key is
+non-empty, and the restore was not a hit. Tests cover a hit (a `SystemOne` that fails if called), a
+miss/save, `BLOCKED` (never written), a stale key, a corrupt cache, and the CLI `saved` output for
+both a hit and a save. The resolver tests already cover key changes for a different test case, PRD,
+or question set. 189 passed; basedpyright, lint-imports, and actionlint are green. A corrupt cache is
+treated as a miss; because the Actions cache key is immutable, a persistently corrupt entry must be
+deleted manually. The first live cache hit will appear on the next Test Case PR that runs twice; it
+is not exercised by these tests.
