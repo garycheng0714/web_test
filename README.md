@@ -37,8 +37,8 @@ uv run playwright install chromium
 `.github/workflows/ci.yml` runs on every pull request: the suite with a coverage report, a
 basedpyright typecheck with a ruff unused-import lint, the import-linter architecture contracts, and
 actionlint on the workflows.
-All four are shadow checks for now (visible, not required). The pipeline itself is two
-merge-triggered workflows that mirror each other (ADR-0008):
+The `test` job is required on `main`; `typecheck`, `contracts`, and `workflows` are shadow checks
+for now. The pipeline itself is two merge-triggered workflows that mirror each other (ADR-0008):
 
 - `plan.yml` runs when a pull request adding a `prd/**` file is **merged**: it runs the designer and
   the Jev verification record, and opens a test-case PR.
@@ -51,11 +51,18 @@ Both act on exactly one added file, mint a short-lived token for the `web-test-q
 OpenCode Go model key (`OPENCODE_API_KEY`), and — for `plan` — the `WEB_TEST_BASE_URL` repository
 variable. `TYPESAFE_API_KEY` is optional: without it the Jev review renders as `BLOCKED` in the PR body.
 
-`verify.yml` is a separate shadow workflow on every pull request (opened/synchronize/reopened). It
-resolves the changed `test-case/**` file, runs the Jev review, and publishes the `verify-test-case`
-check on the PR head SHA: `PASS` → success, `NEEDS_REVIEW` → action_required, `FAIL` / `BLOCKED` →
-failure. A PR with no Test Case file reports success explicitly; more than one fails with the file
-list. It mints the app token with `checks: write` and needs `TYPESAFE_API_KEY`.
+`verify.yml` runs on every pull request (opened/synchronize/reopened) and calls the shared
+`verify-shared.yml` workflow. `adjudicate.yml` listens for an approving `pull_request_review` and
+calls the same shared workflow with the review reason. The shared workflow resolves the changed
+`test-case/**` file, runs the Jev review, and publishes the `verify-test-case` check on the PR head
+SHA: `PASS` → success, `NEEDS_REVIEW` → action_required, `FAIL` / `BLOCKED` → failure. A PR with no
+Test Case file reports success explicitly; more than one fails with the file list.
+
+`verify-test-case` is required on `main` (app `web-test-qa-flow`). An approving review with a reason
+re-runs `NEEDS_REVIEW` or `BLOCKED` as success for the reviewed head; `FAIL` is not overridable. A
+repository admin can bypass the check as break-glass, but the reason must be recorded and the check
+re-run after the fix. Both verify workflows mint the app token with `checks: write` and need
+`TYPESAFE_API_KEY`.
 
 Tests live in `tests/` and run under pytest with Playwright's Python bindings. The
 `pytest-playwright` plugin provides the `page` fixture and defaults to chromium; pass `--headed`
