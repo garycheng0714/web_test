@@ -1,32 +1,11 @@
 import pytest
 
-from web_test.planning.cases_writer import render_document
-from web_test.planning.schema import Case
 from web_test.planning.verify.key import InvalidTestCase, cache_key
-
-
-def _case() -> Case:
-    return Case.model_validate(
-        {
-            "requirement_ids": ["FR-1"],
-            "module_feature": "Account",
-            "test_scenario": "Register",
-            "steps": [{"action": "Go", "expected_result": "Page shown"}],
-            "priority": "High",
-            "severity": "Critical",
-            "test_type": "Functional",
-        }
-    )
-
-
-def _case_text() -> str:
-    return render_document(
-        [_case()], id="demo", base_url="https://example.com", title="Demo"
-    )
+from verify_helpers import case_text
 
 
 def test_cache_key_is_stable_and_sensitive() -> None:
-    text = _case_text()
+    text = case_text()
 
     first = cache_key(text, "# PRD")
     second = cache_key(text, "# PRD")
@@ -37,7 +16,7 @@ def test_cache_key_is_stable_and_sensitive() -> None:
 
 
 def test_cache_key_includes_the_question_set_version(monkeypatch) -> None:
-    text = _case_text()
+    text = case_text()
     monkeypatch.setattr(
         "web_test.planning.verify.key.question_set_version",
         lambda questions: "v1",
