@@ -2,7 +2,7 @@ from pathlib import Path
 
 from web_test.planning.cases_writer import render_document
 from web_test.planning.schema import Case
-from web_test.planning.verify_resolution import ResolutionKind, resolve
+from web_test.planning.verify.resolution import ResolutionKind, resolve
 
 def _case() -> Case:
     return Case.model_validate(

@@ -1,8 +1,8 @@
 import pytest
 
 from web_test.planning.review.verification import VerificationStatus
-from web_test.planning.verify_payload import early_payload, verdict_payload
-from web_test.planning.verify_resolution import ResolutionKind
+from web_test.planning.verify.payload import early_payload, verdict_payload
+from web_test.planning.verify.resolution import ResolutionKind
 
 
 def test_nothing_is_success() -> None:

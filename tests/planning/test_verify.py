@@ -2,13 +2,15 @@ from pathlib import Path
 
 import pytest
 
-from web_test.planning import verify
 from web_test.planning.cases_writer import render_document
 from web_test.planning.review.jev import JevAnswer
 from web_test.planning.schema import Case
-from web_test.planning.verify import PreparedVerification, RunResult, prepare, run
-from web_test.planning.verify_cache import VerdictCache
-from web_test.planning.verify_resolution import ResolutionKind
+from web_test.planning.verify import cli
+from web_test.planning.verify.cache import VerdictCache
+from web_test.planning.verify.input import PreparedVerification
+from web_test.planning.verify.prepare import prepare
+from web_test.planning.verify.resolution import ResolutionKind
+from web_test.planning.verify.run import RunResult, run
 from web_test.publishing.github import CheckPayload, GitHubError
 
 
@@ -402,7 +404,7 @@ def test_cli_run_reports_a_cache_hit(
         def from_env(cls):
             return cls()
 
-    real_run = verify.run
+    real_run = cli.run
 
     def guarded_run(verification_input, *, head_sha, publish, name, cache):
         return real_run(
@@ -414,10 +416,10 @@ def test_cli_run_reports_a_cache_hit(
             system_one=_never_called,
         )
 
-    monkeypatch.setattr(verify, "run", guarded_run)
-    monkeypatch.setattr(verify, "GitHubAdapter", FakeAdapter)
+    monkeypatch.setattr(cli, "run", guarded_run)
+    monkeypatch.setattr(cli, "GitHubAdapter", FakeAdapter)
 
-    result = verify.main(
+    result = cli.main(
         [
             "run",
             "--verification-input",
@@ -467,10 +469,10 @@ def test_cli_run_reports_a_saved_verdict(
         def from_env(cls):
             return cls()
 
-    monkeypatch.setattr(verify, "run", fake_run)
-    monkeypatch.setattr(verify, "GitHubAdapter", FakeAdapter)
+    monkeypatch.setattr(cli, "run", fake_run)
+    monkeypatch.setattr(cli, "GitHubAdapter", FakeAdapter)
 
-    result = verify.main(
+    result = cli.main(
         [
             "run",
             "--verification-input",
@@ -497,7 +499,7 @@ def test_cli_prepare_writes_the_cache_key(tmp_path: Path) -> None:
     input_path = tmp_path / "verification-input.json"
     output = tmp_path / "github-output.txt"
 
-    result = verify.main(
+    result = cli.main(
         [
             "prepare",
             "--changed-files",
@@ -539,9 +541,9 @@ def test_cli_run_publishes_an_early_input(
         def from_env(cls):
             return cls()
 
-    monkeypatch.setattr(verify, "GitHubAdapter", FakeAdapter)
+    monkeypatch.setattr(cli, "GitHubAdapter", FakeAdapter)
 
-    result = verify.main(
+    result = cli.main(
         ["run", "--verification-input", str(input_path), "--head-sha", "sha"]
     )
 
@@ -565,9 +567,9 @@ def test_cli_run_returns_one_when_publishing_fails(
         def from_env(cls):
             return cls()
 
-    monkeypatch.setattr(verify, "GitHubAdapter", FakeAdapter)
+    monkeypatch.setattr(cli, "GitHubAdapter", FakeAdapter)
 
-    result = verify.main(
+    result = cli.main(
         ["run", "--verification-input", str(input_path), "--head-sha", "sha"]
     )
 
@@ -586,7 +588,7 @@ def test_cli_run_fails_fast_without_github_env(
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
 
-    result = verify.main(["run", "--verification-input", str(input_path), "--head-sha", "sha"])
+    result = cli.main(["run", "--verification-input", str(input_path), "--head-sha", "sha"])
 
     assert result == 1
     assert "failed:" in capsys.readouterr().err

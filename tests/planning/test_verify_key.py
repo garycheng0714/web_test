@@ -2,7 +2,7 @@ import pytest
 
 from web_test.planning.cases_writer import render_document
 from web_test.planning.schema import Case
-from web_test.planning.verify_key import InvalidTestCase, cache_key
+from web_test.planning.verify.key import InvalidTestCase, cache_key
 
 
 def _case() -> Case:
@@ -39,13 +39,13 @@ def test_cache_key_is_stable_and_sensitive() -> None:
 def test_cache_key_includes_the_question_set_version(monkeypatch) -> None:
     text = _case_text()
     monkeypatch.setattr(
-        "web_test.planning.verify_key.question_set_version",
+        "web_test.planning.verify.key.question_set_version",
         lambda questions: "v1",
     )
     first = cache_key(text, "# PRD")
 
     monkeypatch.setattr(
-        "web_test.planning.verify_key.question_set_version",
+        "web_test.planning.verify.key.question_set_version",
         lambda questions: "v2",
     )
     second = cache_key(text, "# PRD")
