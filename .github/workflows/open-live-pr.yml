@@ -3,6 +3,9 @@ name: open-live-pr
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/open-live-pr.yml
 
 permissions:
   contents: read
@@ -30,6 +33,16 @@ jobs:
             - A new head should void that approval.
             - Close this PR after the check; do not merge it.
         run: |
+          existing=$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --head verify/live-adjudication \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            echo "PR #$existing is already open"
+            exit 0
+          fi
           gh pr create \
             --repo "$GITHUB_REPOSITORY" \
             --base main \
