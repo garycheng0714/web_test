@@ -2,7 +2,7 @@ from dataclasses import replace
 
 from web_test.planning.review import JevAnswer, run_review
 from web_test.planning.review.report import render_report
-from web_test.planning.schema import Case, DesignOutput
+from review_helpers import answers_for, make_design
 from web_test.planning.review.verification import (
     DeterministicOutcome,
     Override,
@@ -12,38 +12,12 @@ from web_test.planning.review.verification import (
 
 
 
-def _case(**overrides):
-    data = {
-        "requirement_ids": ["FR-ACC-01"],
-        "module_feature": "Account",
-        "test_scenario": "Register",
-        "steps": [{"action": "Go", "expected_result": "Page shown"}],
-        "priority": "High",
-        "severity": "Critical",
-        "test_type": "Functional",
-        **overrides,
-    }
-    return Case.model_validate(data)
-
-
-def _design():
-    return DesignOutput(
-        cases=[_case(test_scenario="A"), _case(test_scenario="B"), _case(test_scenario="C")]
-    )
-
-
-def _answers(request, **overrides):
-    values = {question_id: JevAnswer(0.95) for question_id in request.questions}
-    values.update(overrides)
-    return values
-
-
 def _record(**overrides):
     return run_review(
         "# PRD",
-        _design(),
+        make_design(),
         "artifact",
-        system_one=lambda request: _answers(request, **overrides),
+        system_one=lambda request: answers_for(request, **overrides),
     )
 
 
@@ -66,7 +40,7 @@ def test_render_report_shows_status_counts_findings_and_evidence():
 def test_render_report_shows_blocked_reason():
     record = run_review(
         "# PRD",
-        _design(),
+        make_design(),
         "artifact",
         system_one=lambda request: (_ for _ in ()).throw(RuntimeError("no key")),
     )
@@ -81,7 +55,7 @@ def test_render_report_shows_blocked_reason():
 def test_render_report_shows_a_reason_when_every_check_is_blocked():
     record = run_review(
         "# PRD",
-        _design(),
+        make_design(),
         "artifact",
         system_one=lambda request: {"surprise": JevAnswer(0.95)},
     )

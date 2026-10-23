@@ -5,25 +5,15 @@ from web_test.planning.review.parser import parse_test_case
 from web_test.planning.review.structure import CHECK_SET_VERSION, structure_checks
 from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.schema import Case
-
-
-def _case(*, action: str = "Go", expected_result: str = "Page shown") -> Case:
-    return Case.model_validate(
-        {
-            "requirement_ids": ["FR-1"],
-            "module_feature": "Account",
-            "test_scenario": "Register",
-            "steps": [{"action": action, "expected_result": expected_result}],
-            "priority": "High",
-            "severity": "Critical",
-            "test_type": "Functional",
-        }
-    )
+from review_helpers import make_case
 
 
 def _document(cases: list[Case] | None = None) -> str:
     return render_document(
-        cases or [_case()], id="demo", base_url="https://example.com", title="Demo"
+        cases or [make_case()],
+        id="demo",
+        base_url="https://example.com",
+        title="Demo",
     )
 
 
@@ -63,7 +53,7 @@ def test_base_url_is_required() -> None:
 
 
 def test_case_numbers_are_unique() -> None:
-    text = _document([_case(), _case()]).replace("## Case 2:", "## Case 1:")
+    text = _document([make_case(), make_case()]).replace("## Case 2:", "## Case 1:")
 
     outcomes = _by_id(text)
 
@@ -72,7 +62,7 @@ def test_case_numbers_are_unique() -> None:
 
 
 def test_step_action_and_expected_result_are_required() -> None:
-    outcomes = _by_id(_document([_case(action="", expected_result="")]))
+    outcomes = _by_id(_document([make_case(steps=[{"action": "", "expected_result": ""}])]))
 
     assert outcomes["step_1_1_action"].status is VerificationStatus.FAIL
     assert outcomes["step_1_1_expected"].status is VerificationStatus.FAIL
@@ -87,8 +77,7 @@ def test_text_without_case_sections_has_no_structure_checks() -> None:
 
 
 def test_a_case_needs_at_least_one_step() -> None:
-    empty_case = _case()
-    empty_case.steps = []
+    empty_case = make_case(steps=[])
     outcomes = _by_id(_document([empty_case]))
 
     assert outcomes["case_1_steps"].status is VerificationStatus.FAIL

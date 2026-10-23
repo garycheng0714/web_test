@@ -1,7 +1,8 @@
 from web_test.planning.review.aggregation import aggregate_checks
 from web_test.planning.review.questions import expected_checks
-from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
+from web_test.planning.review.subject import ReviewStep, ReviewSubject
 from web_test.planning.review.verification import CheckOutcome, VerificationStatus
+from review_helpers import review_case, review_subject
 
 _PROBABILITY = {
     VerificationStatus.PASS: 0.95,
@@ -9,29 +10,6 @@ _PROBABILITY = {
     VerificationStatus.FAIL: 0.1,
     VerificationStatus.BLOCKED: None,
 }
-
-
-def _case(
-    *,
-    index: int = 1,
-    scenario: str = "A",
-    steps: list[ReviewStep] | None = None,
-) -> ReviewCase:
-    return ReviewCase(
-        index=index,
-        requirement_ids=["FR-1"],
-        module_feature="Account",
-        test_scenario=scenario,
-        steps=steps
-        or [
-            ReviewStep(index=1, action="Go", expected_result="Page shown"),
-            ReviewStep(index=2, action="Submit", expected_result="Done"),
-        ],
-    )
-
-
-def _subject() -> ReviewSubject:
-    return ReviewSubject(prd="# PRD", cases=[_case()])
 
 
 def _checks(subject: ReviewSubject, **overrides: VerificationStatus) -> list[CheckOutcome]:
@@ -51,7 +29,7 @@ def _checks(subject: ReviewSubject, **overrides: VerificationStatus) -> list[Che
 
 
 def test_all_pass():
-    subject = _subject()
+    subject = review_subject()
 
     steps, cases, status = aggregate_checks(subject, _checks(subject))
 
@@ -63,7 +41,7 @@ def test_all_pass():
 
 
 def test_step_failure_propagates_to_case_and_file():
-    subject = _subject()
+    subject = review_subject()
 
     steps, cases, status = aggregate_checks(
         subject, _checks(subject, step_1_1_continuity=VerificationStatus.FAIL)
@@ -75,7 +53,7 @@ def test_step_failure_propagates_to_case_and_file():
 
 
 def test_precedence_is_fail_over_blocked_over_needs_review():
-    subject = _subject()
+    subject = review_subject()
 
     steps, cases, status = aggregate_checks(
         subject,
@@ -94,7 +72,7 @@ def test_precedence_is_fail_over_blocked_over_needs_review():
 
 
 def test_ac_failure_marks_case_fail_even_when_steps_pass():
-    subject = _subject()
+    subject = review_subject()
 
     steps, cases, status = aggregate_checks(
         subject, _checks(subject, ac_1=VerificationStatus.FAIL)
@@ -109,11 +87,11 @@ def test_file_status_is_the_worst_case():
     subject = ReviewSubject(
         prd="# PRD",
         cases=[
-            _case(
+            review_case(
                 index=1,
                 steps=[ReviewStep(index=1, action="Go", expected_result="Page shown")],
             ),
-            _case(
+            review_case(
                 index=2,
                 scenario="B",
                 steps=[ReviewStep(index=1, action="Go", expected_result="Page shown")],
@@ -133,7 +111,7 @@ def test_file_status_is_the_worst_case():
 
 
 def test_empty_subject_is_blocked():
-    steps, cases, status = aggregate_checks(ReviewSubject(prd="", cases=[]), [])
+    steps, cases, status = aggregate_checks(review_subject([]), [])
 
     assert steps == []
     assert cases == []

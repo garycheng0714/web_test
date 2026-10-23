@@ -1,35 +1,25 @@
 from unittest.mock import MagicMock
 
-from typesafe_sdk import Noul, NoulAnswer
+from typesafe_sdk import Noul
 
 import web_test.planning.review.service as review_module
-from web_test.planning.review import JEV_MODEL, JevAnswer, ReviewRequest, ReviewStep, run_review
+from web_test.planning.review import (
+    JEV_MODEL,
+    JevAnswer,
+    ReviewRequest,
+    ReviewStep,
+    run_review,
+)
 from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS
-from web_test.planning.review.jev import _normalize
 from web_test.planning.review.verification import VerificationStatus, digest_text
-from web_test.planning.cases_writer import render_document
-from web_test.planning.schema import Case, DesignOutput
-
-
-
-def _case(**overrides):
-    data = {
-        "requirement_ids": ["FR-ACC-01"],
-        "module_feature": "Account",
-        "test_scenario": "Register",
-        "steps": [{"action": "Go", "expected_result": "Page shown"}],
-        "priority": "High",
-        "severity": "Critical",
-        "test_type": "Functional",
-        **overrides,
-    }
-    return Case.model_validate(data)
-
-
-def _design():
-    return DesignOutput(
-        cases=[_case(test_scenario="A"), _case(test_scenario="B"), _case(test_scenario="C")]
-    )
+from web_test.planning.schema import DesignOutput
+from review_helpers import (
+    answers_for,
+    make_case,
+    make_design,
+    passing_system_one,
+    render_case,
+)
 
 
 def _question_ids() -> list[str]:
@@ -42,18 +32,14 @@ def _question_ids() -> list[str]:
     return ids
 
 
-def _passing_answers() -> dict[str, JevAnswer]:
-    return {question_id: JevAnswer(0.95) for question_id in _question_ids()}
-
-
 def test_run_review_builds_the_three_checks():
     captured = {}
 
     def system_one(request):
         captured["request"] = request
-        return {question_id: JevAnswer(0.95) for question_id in request.questions}
+        return passing_system_one(request)
 
-    run_review("# PRD", _design(), "artifact", system_one=system_one)
+    run_review("# PRD", make_design(), "artifact", system_one=system_one)
     request = captured["request"]
 
     assert isinstance(request, ReviewRequest)
@@ -71,20 +57,27 @@ def test_run_review_passes_case_preconditions_into_the_subject():
 
     def system_one(request):
         captured["request"] = request
-        return {question_id: JevAnswer(0.95) for question_id in request.questions}
+        return passing_system_one(request)
 
-    case = _case(preconditions=["User is on /login"])
-    run_review("# PRD", DesignOutput(cases=[case]), "artifact", system_one=system_one)
+    case = make_case(preconditions=["User is on /login"])
+    run_review(
+        "# PRD", DesignOutput(cases=[case]), "artifact", system_one=system_one
+    )
 
     assert captured["request"].subject.cases[0].preconditions == ["User is on /login"]
 
 
 def test_run_review_aggregates_step_case_and_file_verdicts():
-    answers = _passing_answers()
-    answers["ac_2"] = JevAnswer(0.05)
-    answers["step_3_1_continuity"] = JevAnswer(0.6)
-
-    record = run_review("# PRD", _design(), "artifact", system_one=lambda request: answers)
+    record = run_review(
+        "# PRD",
+        make_design(),
+        "artifact",
+        system_one=lambda request: answers_for(
+            request,
+            ac_2=JevAnswer(0.05),
+            step_3_1_continuity=JevAnswer(0.6),
+        ),
+    )
 
     assert record.result.status is VerificationStatus.FAIL
     assert record.result.cases[1].status is VerificationStatus.FAIL
@@ -99,7 +92,7 @@ def test_run_review_aggregates_step_case_and_file_verdicts():
 def test_run_review_marks_missing_answers_blocked():
     record = run_review(
         "# PRD",
-        _design(),
+        make_design(),
         "artifact",
         system_one=lambda request: {"ac_1": JevAnswer(0.95)},
     )
@@ -110,11 +103,12 @@ def test_run_review_marks_missing_answers_blocked():
 
 
 def test_blocked_dominates_needs_review():
-    answers = _passing_answers()
-    answers.pop("step_1_1_observable")
-    answers["step_1_1_continuity"] = JevAnswer(0.6)
+    def system_one(request):
+        answers = answers_for(request, step_1_1_continuity=JevAnswer(0.6))
+        answers.pop("step_1_1_observable")
+        return answers
 
-    record = run_review("# PRD", _design(), "artifact", system_one=lambda request: answers)
+    record = run_review("# PRD", make_design(), "artifact", system_one=system_one)
 
     assert record.result.steps[0].status is VerificationStatus.BLOCKED
     assert record.result.cases[0].status is VerificationStatus.BLOCKED
@@ -124,9 +118,9 @@ def test_blocked_dominates_needs_review():
 def test_fail_dominates_blocked():
     record = run_review(
         "# PRD",
-        _design(),
+        make_design(),
         "artifact",
-        system_one=lambda request: {"ac_1": JevAnswer(0.05)},
+        system_one=lambda request: answers_for(request, ac_1=JevAnswer(0.05)),
     )
 
     assert record.result.cases[0].status is VerificationStatus.FAIL
@@ -136,7 +130,7 @@ def test_fail_dominates_blocked():
 def test_unknown_answers_only_are_blocked_with_a_reason():
     record = run_review(
         "# PRD",
-        _design(),
+        make_design(),
         "artifact",
         system_one=lambda request: {"surprise": JevAnswer(0.95)},
     )
@@ -152,7 +146,7 @@ def test_question_set_version_failure_is_blocked(monkeypatch):
     monkeypatch.setattr(review_module, "question_set_version", _boom)
 
     record = run_review(
-        "# PRD", _design(), "artifact", system_one=lambda request: _passing_answers()
+        "# PRD", make_design(), "artifact", system_one=passing_system_one
     )
 
     assert record.result.status is VerificationStatus.BLOCKED
@@ -162,7 +156,7 @@ def test_question_set_version_failure_is_blocked(monkeypatch):
 def test_run_review_returns_blocked_when_the_call_fails():
     record = run_review(
         "# PRD",
-        _design(),
+        make_design(),
         "artifact",
         system_one=MagicMock(side_effect=RuntimeError("no key")),
     )
@@ -173,7 +167,9 @@ def test_run_review_returns_blocked_when_the_call_fails():
 
 
 def test_run_review_returns_blocked_on_empty_answers():
-    record = run_review("# PRD", _design(), "artifact", system_one=lambda request: {})
+    record = run_review(
+        "# PRD", make_design(), "artifact", system_one=lambda request: {}
+    )
 
     assert record.result.status is VerificationStatus.BLOCKED
     assert record.result.blocked_reason == "Jev returned no answers"
@@ -182,9 +178,9 @@ def test_run_review_returns_blocked_on_empty_answers():
 def test_record_binds_digests_model_and_question_set():
     record = run_review(
         "# PRD",
-        _design(),
+        make_design(),
         "artifact",
-        system_one=lambda request: _passing_answers(),
+        system_one=passing_system_one,
     )
 
     assert record.binding.prd_digest == digest_text("# PRD")
@@ -197,38 +193,24 @@ def test_record_binds_digests_model_and_question_set():
 
 def test_question_set_version_is_stable_for_the_same_design():
     first = run_review(
-        "# PRD", _design(), "artifact", system_one=lambda request: _passing_answers()
+        "# PRD", make_design(), "artifact", system_one=passing_system_one
     )
     second = run_review(
-        "# PRD", _design(), "artifact", system_one=lambda request: _passing_answers()
+        "# PRD", make_design(), "artifact", system_one=passing_system_one
     )
 
     assert first.binding.question_set_version == second.binding.question_set_version
 
 
-def test_normalize_maps_a_noul_answer_to_a_verdict():
-    assert _normalize(NoulAnswer(noul=0.9)) == JevAnswer(0.9)
-    assert _normalize(NoulAnswer(noul=0.2)) == JevAnswer(0.2)
-
-
-def test_normalize_ignores_other_answers():
-    assert _normalize(object()) == JevAnswer(None)
-
-
 def test_run_review_combines_a_structure_failure_with_jev() -> None:
-    case = _case(steps=[{"action": "Go", "expected_result": ""}])
-    design = DesignOutput(cases=[case])
-    artifact = render_document(
-        [case], id="demo", base_url="https://example.com", title="Demo"
-    )
+    case = make_case(steps=[{"action": "Go", "expected_result": ""}])
+    artifact = render_case(case)
 
     record = run_review(
         "# PRD",
-        design,
+        DesignOutput(cases=[case]),
         artifact,
-        system_one=lambda request: {
-            question_id: JevAnswer(0.95) for question_id in request.questions
-        },
+        system_one=passing_system_one,
     )
 
     assert record.result.jev_status is VerificationStatus.PASS

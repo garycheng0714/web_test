@@ -1,5 +1,4 @@
 from web_test.planning.review.jev import JEV_MODEL, JevAnswer
-from web_test.planning.review.questions import expected_checks
 from web_test.planning.review.record import (
     DEFAULT_BANDS,
     _check_outcomes,
@@ -8,7 +7,7 @@ from web_test.planning.review.record import (
     build_record,
 )
 from web_test.planning.review.structure import CHECK_SET_VERSION
-from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
+from review_helpers import answers_for_subject, review_subject
 from web_test.planning.review.verification import (
     CheckDimension,
     CheckOutcome,
@@ -17,28 +16,6 @@ from web_test.planning.review.verification import (
     VerificationStatus,
     digest_text,
 )
-
-
-def _subject() -> ReviewSubject:
-    return ReviewSubject(
-        prd="# PRD",
-        cases=[
-            ReviewCase(
-                index=1,
-                requirement_ids=["FR-1"],
-                module_feature="Account",
-                test_scenario="A",
-                steps=[ReviewStep(index=1, action="Go", expected_result="Page shown")],
-            )
-        ],
-    )
-
-
-def _answers(subject: ReviewSubject, **overrides: JevAnswer) -> dict[str, JevAnswer]:
-    return {
-        expected.question_id: overrides.get(expected.question_id, JevAnswer(0.95))
-        for expected in expected_checks(subject)
-    }
 
 
 def _outcome(status: VerificationStatus) -> CheckOutcome:
@@ -52,11 +29,11 @@ def _outcome(status: VerificationStatus) -> CheckOutcome:
 
 
 def test_check_outcomes_classifies_answers_and_marks_missing_ones_blocked():
-    subject = _subject()
+    subject = review_subject()
 
     outcomes = _check_outcomes(
         subject,
-        _answers(
+        answers_for_subject(
             subject,
             ac_1=JevAnswer(0.6),
             step_1_1_continuity=JevAnswer(0.1),
@@ -96,7 +73,7 @@ def test_default_blocked_reason_keeps_explicit_and_fills_whole_review_failures()
 
 
 def test_build_record_binds_metadata_and_carries_override():
-    subject = _subject()
+    subject = review_subject()
     override = Override(
         original=VerificationStatus.NEEDS_REVIEW,
         reason="Expected result is observable in the PRD.",
@@ -105,7 +82,7 @@ def test_build_record_binds_metadata_and_carries_override():
 
     record = build_record(
         subject,
-        _answers(subject),
+        answers_for_subject(subject),
         test_case_text="# artifact\n",
         question_set_version="qsv",
         override=override,
@@ -122,11 +99,11 @@ def test_build_record_binds_metadata_and_carries_override():
 
 
 def test_fail_wins_over_blocked_reason():
-    subject = _subject()
+    subject = review_subject()
 
     record = build_record(
         subject,
-        _answers(subject, ac_1=JevAnswer(0.1)),
+        answers_for_subject(subject, ac_1=JevAnswer(0.1)),
         test_case_text="",
         question_set_version="qsv",
         blocked_reason="Jev call failed",
@@ -148,11 +125,11 @@ def _structure_failure() -> tuple[DeterministicOutcome, ...]:
 
 
 def test_structure_failure_wins_over_a_jev_pass():
-    subject = _subject()
+    subject = review_subject()
 
     record = build_record(
         subject,
-        _answers(subject),
+        answers_for_subject(subject),
         test_case_text="# artifact\n",
         question_set_version="qsv",
         structure=_structure_failure(),
@@ -164,7 +141,7 @@ def test_structure_failure_wins_over_a_jev_pass():
 
 
 def test_structure_failure_is_not_masked_by_a_blocked_jev():
-    subject = _subject()
+    subject = review_subject()
 
     record = build_blocked_record(
         subject,

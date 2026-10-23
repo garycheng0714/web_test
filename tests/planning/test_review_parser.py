@@ -1,32 +1,20 @@
-from web_test.planning.cases_writer import render_document
 from web_test.planning.review.parser import parse_test_case
-from web_test.planning.schema import Case
-
-
-def _case() -> Case:
-    return Case.model_validate(
-        {
-            "requirement_ids": ["FR-1"],
-            "module_feature": "Account",
-            "test_scenario": "Register",
-            "preconditions": ["The signup page is open"],
-            "steps": [
-                {"action": "Go | home", "expected_result": "Page shown"},
-                {"action": "Submit", "expected_result": "Done"},
-            ],
-            "priority": "High",
-            "severity": "Major",
-            "test_type": "Functional",
-            "notes": "Covers FR-1.",
-        }
-    )
+from review_helpers import make_case, render_case
 
 
 def _document() -> str:
-    return render_document(
-        [_case()],
+    case = make_case(
+        requirement_ids=["FR-1"],
+        preconditions=["The signup page is open"],
+        steps=[
+            {"action": "Go | home", "expected_result": "Page shown"},
+            {"action": "Submit", "expected_result": "Done"},
+        ],
+        notes="Covers FR-1.",
+    )
+    return render_case(
+        case,
         id="register",
-        base_url="https://example.com",
         title="Register",
         open_questions=["What is the password policy?"],
     )

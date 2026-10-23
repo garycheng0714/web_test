@@ -1,40 +1,16 @@
-from web_test.planning.review import JevAnswer, run_review
-from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS, expected_checks, questions_for_subject
-from web_test.planning.schema import Case, DesignOutput
+from web_test.planning.review.questions import (
+    STEP_QUALITY_DIMENSIONS,
+    expected_checks,
+    questions_for_subject,
+)
 from web_test.planning.review.verification import CheckDimension
-
-
-def _case(**overrides):
-    data = {
-        "requirement_ids": ["FR-ACC-01"],
-        "module_feature": "Account",
-        "test_scenario": "Register",
-        "steps": [
-            {"action": "Go", "expected_result": "Page shown"},
-            {"action": "Submit", "expected_result": "Done"},
-        ],
-        "priority": "High",
-        "severity": "Critical",
-        "test_type": "Functional",
-        **overrides,
-    }
-    return Case.model_validate(data)
-
-
-def _subject():
-    captured = {}
-
-    def system_one(request):
-        captured["request"] = request
-        return {question_id: JevAnswer(0.95) for question_id in request.questions}
-
-    design = DesignOutput(cases=[_case(), _case(test_scenario="Login")])
-    run_review("# PRD", design, "artifact", system_one=system_one)
-    return captured["request"].subject
+from review_helpers import review_case, review_subject
 
 
 def test_questions_for_subject_matches_expected_checks():
-    subject = _subject()
+    subject = review_subject(
+        [review_case(), review_case(index=2, scenario="Login")]
+    )
 
     assert set(questions_for_subject(subject)) == {
         spec.question_id for spec in expected_checks(subject)
@@ -42,7 +18,9 @@ def test_questions_for_subject_matches_expected_checks():
 
 
 def test_every_step_has_every_check():
-    subject = _subject()
+    subject = review_subject(
+        [review_case(), review_case(index=2, scenario="Login")]
+    )
     specs = expected_checks(subject)
 
     step_specs = [
