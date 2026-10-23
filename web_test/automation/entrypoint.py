@@ -41,6 +41,14 @@ class AutomationOutcome:
     evidence: AutomationEvidence | None = field(default=None, compare=False)
 
 
+def _generated_files(git: Git) -> list[str]:
+    """Best-effort: evidence must never change the gate."""
+    try:
+        return allowed_paths(git.changed_paths())
+    except (OSError, RuntimeError):
+        return []
+
+
 def _outcome(
     status: AutomationStatus,
     deps: AutomationDeps,
@@ -79,6 +87,7 @@ def automate(
     try:
         case, text = CaseFile.from_path(case_path)
         result = agent(text, workspace_dir=workspace, deps=deps)
+        files = _generated_files(git)
 
         if result.pr_body is None:
             return _outcome(AutomationStatus.AGENT_RED, deps, suite_result, files)
@@ -87,7 +96,6 @@ def automate(
         if suite_result.returncode != 0:
             return _outcome(AutomationStatus.SUITE_RED, deps, suite_result, files)
 
-        files = allowed_paths(git.changed_paths())
         if not files:
             return _outcome(AutomationStatus.NO_CHANGES, deps, suite_result, files)
 
