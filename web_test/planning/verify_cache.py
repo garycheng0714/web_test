@@ -4,12 +4,11 @@ from pathlib import Path
 from web_test.publishing.github import CheckPayload
 
 
-@dataclass
+@dataclass(frozen=True)
 class VerdictCache:
     """The verdict file restored from the workflow cache."""
 
     directory: Path
-    saved: bool = False
 
     @property
     def path(self) -> Path:
@@ -29,4 +28,3 @@ class VerdictCache:
     def save(self, payload: CheckPayload) -> None:
         self.directory.mkdir(parents=True, exist_ok=True)
         self.path.write_text(payload.model_dump_json() + "\n", encoding="utf-8")
-        self.saved = True

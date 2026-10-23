@@ -6,7 +6,7 @@ from web_test.planning import verify
 from web_test.planning.cases_writer import render_document
 from web_test.planning.review.jev import JevAnswer
 from web_test.planning.schema import Case
-from web_test.planning.verify import VerificationInputFile, prepare, run
+from web_test.planning.verify import RunResult, VerificationInputFile, prepare, run
 from web_test.planning.verify_cache import VerdictCache
 from web_test.planning.verify_resolution import ResolutionKind
 from web_test.publishing.github import CheckPayload, GitHubError
@@ -75,6 +75,10 @@ def _sink():
     return payloads, publish
 
 
+def _run_payload(*args, **kwargs):
+    return run(*args, **kwargs).payload
+
+
 def _ready_input(tmp_path: Path) -> VerificationInputFile:
     case_path, _ = _write_case(tmp_path)
     _write_prd(tmp_path)
@@ -104,7 +108,7 @@ def test_prepare_builds_an_early_input(tmp_path: Path) -> None:
 def test_run_publishes_success_when_nothing_changed() -> None:
     payloads, publish = _sink()
 
-    payload = run(
+    payload = _run_payload(
         VerificationInputFile(kind=ResolutionKind.NOTHING),
         head_sha="sha",
         publish=publish,
@@ -124,7 +128,7 @@ def test_run_publishes_failure_for_multiple_files() -> None:
     )
     payloads, publish = _sink()
 
-    payload = run(
+    payload = _run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=_never_called
     )
 
@@ -138,7 +142,7 @@ def test_run_publishes_failure_for_a_missing_prd() -> None:
     verification_input = VerificationInputFile(kind=ResolutionKind.MISSING_PRD, detail="/repo/prd/demo.md")
     payloads, publish = _sink()
 
-    payload = run(
+    payload = _run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=_never_called
     )
 
@@ -151,7 +155,7 @@ def test_run_publishes_failure_for_an_invalid_artifact() -> None:
     verification_input = VerificationInputFile(kind=ResolutionKind.INVALID, detail="no '## Case N' sections")
     payloads, publish = _sink()
 
-    payload = run(
+    payload = _run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=_never_called
     )
 
@@ -164,7 +168,7 @@ def test_run_publishes_pass(tmp_path: Path) -> None:
     verification_input = _ready_input(tmp_path)
     payloads, publish = _sink()
 
-    payload = run(
+    payload = _run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=_passing_system_one
     )
 
@@ -180,7 +184,7 @@ def test_run_publishes_needs_review(tmp_path: Path) -> None:
     verification_input = _ready_input(tmp_path)
     payloads, publish = _sink()
 
-    payload = run(
+    payload = _run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=_one_answer(0.6)
     )
 
@@ -192,7 +196,7 @@ def test_run_publishes_fail(tmp_path: Path) -> None:
     verification_input = _ready_input(tmp_path)
     payloads, publish = _sink()
 
-    payload = run(
+    payload = _run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=_one_answer(0.1)
     )
 
@@ -204,7 +208,7 @@ def test_run_publishes_blocked_when_jev_returns_nothing(tmp_path: Path) -> None:
     verification_input = _ready_input(tmp_path)
     payloads, publish = _sink()
 
-    payload = run(
+    payload = _run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=_empty_system_one
     )
 
@@ -240,18 +244,19 @@ def test_run_uses_a_cached_verdict(tmp_path: Path) -> None:
     )
     payloads, publish = _sink()
 
-    payload = run(
+    result = run(
         verification_input,
         head_sha="new",
         publish=publish,
         system_one=_never_called,
         cache=cache,
     )
+    payload = result.payload
 
     assert payload.summary == "cached summary"
     assert payload.head_sha == "new"
     assert payload.external_id == verification_input.cache_key
-    assert cache.saved is False
+    assert result.saved is False
     assert payloads == [payload]
 
 
@@ -261,15 +266,16 @@ def test_run_saves_a_new_verdict(tmp_path: Path) -> None:
     cache = VerdictCache(tmp_path / "cache")
     _, publish = _sink()
 
-    payload = run(
+    result = run(
         verification_input,
         head_sha="sha",
         publish=publish,
         system_one=_passing_system_one,
         cache=cache,
     )
+    payload = result.payload
 
-    assert cache.saved is True
+    assert result.saved is True
     assert cache.load(verification_input.cache_key) == payload
     assert payload.external_id == verification_input.cache_key
 
@@ -279,16 +285,17 @@ def test_run_does_not_cache_blocked(tmp_path: Path) -> None:
     cache = VerdictCache(tmp_path / "cache")
     _, publish = _sink()
 
-    payload = run(
+    result = run(
         verification_input,
         head_sha="sha",
         publish=publish,
         system_one=_empty_system_one,
         cache=cache,
     )
+    payload = result.payload
 
     assert payload.title == "Test Case verification: BLOCKED"
-    assert cache.saved is False
+    assert result.saved is False
     assert not cache.path.exists()
 
 
@@ -308,16 +315,17 @@ def test_run_ignores_a_cache_for_another_key(tmp_path: Path) -> None:
     )
     _, publish = _sink()
 
-    payload = run(
+    result = run(
         verification_input,
         head_sha="sha",
         publish=publish,
         system_one=_passing_system_one,
         cache=cache,
     )
+    payload = result.payload
 
     assert payload.title == "Test Case verification: PASS"
-    assert cache.saved is True
+    assert result.saved is True
 
 
 def test_run_ignores_a_corrupt_cache(tmp_path: Path) -> None:
@@ -327,16 +335,17 @@ def test_run_ignores_a_corrupt_cache(tmp_path: Path) -> None:
     cache.path.write_text("{not json", encoding="utf-8")
     _, publish = _sink()
 
-    payload = run(
+    result = run(
         verification_input,
         head_sha="sha",
         publish=publish,
         system_one=_passing_system_one,
         cache=cache,
     )
+    payload = result.payload
 
     assert payload.title == "Test Case verification: PASS"
-    assert cache.saved is True
+    assert result.saved is True
 
 
 def test_cli_run_reports_a_cache_hit(
@@ -424,7 +433,7 @@ def test_cli_run_reports_a_saved_verdict(
         )
         cache.save(payload)
         publish(payload)
-        return payload
+        return RunResult(payload=payload, saved=True)
 
     class FakeAdapter:
         def publish_check(self, payload):

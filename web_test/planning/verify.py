@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 from collections.abc import Callable, Iterable
+from dataclasses import dataclass
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -28,6 +29,14 @@ class VerificationInputFile(BaseModel):
     cache_key: str | None = None
 
 
+@dataclass(frozen=True)
+class RunResult:
+    """The published check and whether its verdict was written to the cache."""
+
+    payload: CheckPayload
+    saved: bool
+
+
 def prepare(
     changed_paths: Iterable[str], *, workspace: Path
 ) -> VerificationInputFile:
@@ -52,20 +61,8 @@ def run(
     name: str = "verify-test-case",
     system_one: SystemOne = typesafe_system_one,
     cache: VerdictCache | None = None,
-) -> CheckPayload:
+) -> RunResult:
     """Publish the check for the verification input: an early outcome, or the verdict."""
-    if (
-        cache is not None
-        and verification_file.kind is ResolutionKind.READY
-        and verification_file.cache_key is not None
-    ):
-        cached = cache.load(verification_file.cache_key)
-        if cached is not None:
-            payload = cached.model_copy(update={"head_sha": head_sha, "name": name})
-            publish(payload)
-            return payload
-
-    cacheable = False
     if verification_file.kind is not ResolutionKind.READY:
         payload = early_payload(
             verification_file.kind,
@@ -74,33 +71,37 @@ def run(
             files=verification_file.files,
             detail=verification_file.detail,
         )
-    else:
-        if (
-            verification_file.test_case_text is None
-            or verification_file.prd_text is None
-            or verification_file.cache_key is None
-        ):
-            raise ValueError(
-                "ready verification input is missing its verdict data"
-            )
-        subject = parse_test_case(
-            verification_file.test_case_text, verification_file.prd_text
-        )
-        record = run_review_on(
-            subject, verification_file.test_case_text, system_one=system_one
-        )
-        cacheable = record.result.status is not VerificationStatus.BLOCKED
-        payload = verdict_payload(
-            record.result.status,
-            summary=render_report(record),
-            head_sha=head_sha,
-            name=name,
-            external_id=verification_file.cache_key,
-        )
+        publish(payload)
+        return RunResult(payload=payload, saved=False)
+
+    test_case_text = verification_file.test_case_text
+    prd_text = verification_file.prd_text
+    cache_key = verification_file.cache_key
+    if test_case_text is None or prd_text is None or cache_key is None:
+        raise ValueError("ready verification input is missing its verdict data")
+
+    if cache is not None:
+        cached = cache.load(cache_key)
+        if cached is not None:
+            payload = cached.model_copy(update={"head_sha": head_sha, "name": name})
+            publish(payload)
+            return RunResult(payload=payload, saved=False)
+
+    subject = parse_test_case(test_case_text, prd_text)
+    record = run_review_on(subject, test_case_text, system_one=system_one)
+    payload = verdict_payload(
+        record.result.status,
+        summary=render_report(record),
+        head_sha=head_sha,
+        name=name,
+        external_id=cache_key,
+    )
     publish(payload)
-    if cache is not None and cacheable:
+    saved = False
+    if cache is not None and record.result.status is not VerificationStatus.BLOCKED:
         cache.save(payload)
-    return payload
+        saved = True
+    return RunResult(payload=payload, saved=saved)
 
 
 def _read_changed_files(path: Path) -> list[str]:
@@ -166,7 +167,7 @@ def main(argv: list[str] | None = None) -> int:
             Path(args.verification_input).read_text(encoding="utf-8")
         )
         cache = VerdictCache(Path(args.cache_dir)) if args.cache_dir else None
-        payload = run(
+        result = run(
             verification_input,
             head_sha=args.head_sha,
             name=args.check_name,
@@ -176,13 +177,13 @@ def main(argv: list[str] | None = None) -> int:
         if cache is not None:
             _write_output(
                 Path(args.github_output) if args.github_output else None,
-                [f"saved={'true' if cache.saved else 'false'}"],
+                [f"saved={'true' if result.saved else 'false'}"],
             )
     except (OSError, ValueError, RuntimeError) as error:
         print(f"failed: {error}", file=sys.stderr)
         return 1
 
-    print(f"published {payload.name}: {payload.conclusion}")
+    print(f"published {result.payload.name}: {result.payload.conclusion}")
     return 0
 
 
