@@ -36,3 +36,9 @@ or question set. 189 passed; basedpyright, lint-imports, and actionlint are gree
 treated as a miss; because the Actions cache key is immutable, a persistently corrupt entry must be
 deleted manually. The first live cache hit will appear on the next Test Case PR that runs twice; it
 is not exercised by these tests.
+
+**2026-10-23 — review follow-up.** `run` now validates the READY fields once, then checks the
+cache, and returns `RunResult(payload, saved)`; `VerdictCache` no longer carries a `saved` flag.
+Moving the cache lookup after validation also means an incomplete READY input cannot publish a
+cached verdict. The model-level invariant (READY implies the three fields) is still implicit and
+remains a follow-up. 189 passed; basedpyright, lint-imports, and actionlint are green.
