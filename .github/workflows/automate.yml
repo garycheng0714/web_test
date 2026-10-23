@@ -52,6 +52,17 @@ jobs:
           WEB_TEST_REPAIR_ATTEMPTS: ${{ vars.WEB_TEST_REPAIR_ATTEMPTS || '10' }}
           WEB_TEST_RUN_ID: ${{ github.run_id }}
           WEB_TEST_RUN_ATTEMPT: ${{ github.run_attempt }}
+          WEB_TEST_USAGE: "1"
+          WEB_TEST_TRACE: "1"
+          WEB_TEST_EVIDENCE_DIR: ${{ runner.temp }}/automation-evidence
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: uv run python -m web_test.automation.entrypoint --case "${{ steps.case.outputs.path }}" --workspace .
+
+      - name: Upload automation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/automation-evidence
+          if-no-files-found: ignore

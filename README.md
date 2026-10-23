@@ -43,7 +43,9 @@ for now. The pipeline itself is two merge-triggered workflows that mirror each o
 - `plan.yml` runs when a pull request adding a `prd/**` file is **merged**: it runs the designer and
   the Jev verification record, and opens a test-case PR.
 - `automate.yml` runs when a pull request adding a `test-case/**` file is **merged**: it has the coding
-  agent implement its tests, and opens a PR when the suite is green.
+  agent implement its tests, and opens a PR when the suite is green. A red run keeps the
+  deciding pytest output, suite output, trace, and generated files in a job summary and an
+  `automation-evidence-<run>-<attempt>` artifact.
 
 Both act on exactly one added file, mint a short-lived token for the `web-test-qa-flow` GitHub App
 (so the PRs they open get real CI runs), and name their branch

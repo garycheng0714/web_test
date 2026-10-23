@@ -16,7 +16,7 @@ from web_test.automation.repair_guard import (
     repair_guard,
 )
 from web_test.model import resolve_model
-from web_test.observability import log_trace, log_usage
+from web_test.observability import log_captured_trace, log_trace, log_usage
 from web_test.paths import REPO_ROOT
 from web_test.write_guard import write_guard
 
@@ -121,6 +121,7 @@ def create_automation(
     model: Model | str | None = None,
     *,
     workspace_dir: str | Path,
+    deps: AutomationDeps | None = None,
 ) -> AutomationResult:
     """Turn QA test steps into Playwright Python tests inside `workspace_dir`.
 
@@ -128,9 +129,11 @@ def create_automation(
     A run without a workspace fails at its start, so it is required.
     """
     agent = build_automation_agent(model or resolve_model(), workspace_dir=workspace_dir)
+    run_deps = deps or AutomationDeps()
     try:
-        result = run_sync(agent.run(test_steps, deps=AutomationDeps()))
+        result = run_sync(agent.run(test_steps, deps=run_deps))
     except RepairBudgetExceeded:
+        log_captured_trace(run_deps.tool_trace)
         return AutomationResult(pr_body=None)
     log_usage(result)
     log_trace(result)

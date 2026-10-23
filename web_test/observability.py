@@ -1,5 +1,6 @@
 import os
 import sys
+from collections.abc import Iterable
 from typing import Any
 
 import logfire
@@ -28,6 +29,14 @@ def log_usage_value(usage: Any) -> None:
     """Print a usage object when `WEB_TEST_USAGE` is set (also usable mid-run)."""
     if os.environ.get("WEB_TEST_USAGE"):
         print(f"usage: {usage}", file=sys.stderr)
+
+
+def log_captured_trace(lines: Iterable[str]) -> None:
+    """Print already-captured tool calls when the run itself did not return a result."""
+    if not os.environ.get("WEB_TEST_TRACE"):
+        return
+    for line in lines:
+        print(line, file=sys.stderr)
 
 
 def log_trace(result: Any) -> None:

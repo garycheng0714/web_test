@@ -1,8 +1,9 @@
 from pathlib import Path
-from unittest.mock import MagicMock, call
+from unittest.mock import ANY, MagicMock, call
 
 from web_test.automation.coding_agent import AutomationResult
 from web_test.automation.entrypoint import AutomationOutcome, AutomationStatus, automate
+from web_test.command import CommandResult
 
 SAMPLE = """\
 ---
@@ -30,7 +31,9 @@ def _deps(*, files: list[str], green: bool) -> tuple[MagicMock, MagicMock, Magic
     git.changed_paths.return_value = list(files)
     pr = MagicMock()
     suite = MagicMock()
-    suite.is_green.return_value = green
+    suite.run.return_value = CommandResult(
+        0 if green else 1, "suite stdout", "suite stderr"
+    )
     return git, pr, suite
 
 
@@ -42,7 +45,7 @@ def test_automate_publishes_on_green(tmp_path: Path) -> None:
     outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
 
     assert outcome == AutomationOutcome(AutomationStatus.PUBLISHED)
-    assert agent.call_args == call(SAMPLE, workspace_dir=tmp_path)
+    assert agent.call_args == call(SAMPLE, workspace_dir=tmp_path, deps=ANY)
     assert git.changed_paths.called
     assert pr.open_pull_request.called
 
@@ -55,7 +58,7 @@ def test_automate_skips_publish_when_the_agent_reports_red(tmp_path: Path) -> No
     outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
 
     assert outcome == AutomationOutcome(AutomationStatus.AGENT_RED)
-    suite.is_green.assert_not_called()
+    suite.run.assert_not_called()
     pr.assert_not_called()
 
 
@@ -140,8 +143,51 @@ def test_automate_reports_a_suite_failure(tmp_path: Path) -> None:
     case = _write_case(tmp_path)
     agent = MagicMock(return_value=AutomationResult(pr_body="body"))
     git, pr, suite = _deps(files=["tests/a.py"], green=True)
-    suite.is_green.side_effect = FileNotFoundError("uv")
+    suite.run.side_effect = FileNotFoundError("uv")
 
     outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
 
     assert outcome.status is AutomationStatus.FAILED
+
+
+def test_automate_keeps_the_deciding_suite_output(tmp_path: Path) -> None:
+    case = _write_case(tmp_path)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/a.py"], green=False)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.evidence is not None
+    assert outcome.evidence.suite == CommandResult(1, "suite stdout", "suite stderr")
+
+
+def test_automate_captures_the_agent_pytest_output(tmp_path: Path) -> None:
+    case = _write_case(tmp_path)
+
+    def agent(text, *, workspace_dir, deps):
+        deps.last_pytest_output = "agent red output"
+        deps.pytest_runs = 2
+        deps.tool_trace.append("-> uv run pytest")
+        return AutomationResult(pr_body=None)
+
+    git, pr, suite = _deps(files=[], green=True)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.AGENT_RED
+    assert outcome.evidence is not None
+    assert outcome.evidence.pytest_output == "agent red output"
+    assert outcome.evidence.pytest_runs == 2
+    assert "-> uv run pytest" in outcome.evidence.trace
+
+
+def test_automate_captures_the_generated_files(tmp_path: Path) -> None:
+    case = _write_case(tmp_path)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/a.py", "pages/home.py"], green=True)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.PUBLISHED
+    assert outcome.evidence is not None
+    assert outcome.evidence.files == ("tests/a.py", "pages/home.py")

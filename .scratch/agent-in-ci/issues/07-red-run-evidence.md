@@ -34,16 +34,16 @@ change the gate (ADR-0006 still holds: red opens no branch and no PR).
 
 **Blocked by:** 05 Automation entrypoint and approval gate, 06 End-to-end workflow and docs.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] The pytest output of the run that **decided** red is kept (not just a fresh re-run, which can
+- [x] The pytest output of the run that **decided** red is kept (not just a fresh re-run, which can
       pass on the flaky SUT and hide the failure)
-- [ ] The agent's generated files are captured, including **untracked** new files (`git diff` alone misses them)
-- [ ] The agent's tool-call sequence is logged even when the repair budget is exhausted
-- [ ] The outcome and the evidence are surfaced: a job summary line and an uploaded workflow artifact
-- [ ] `WEB_TEST_USAGE` (and `WEB_TEST_TRACE`) are on for the automate run
-- [ ] The artifact excludes `.playwright-cli/` and `.venv` (the CLI state may hold credentials — see AGENTS.md)
-- [ ] Unit-tested: the component that runs the suite keeps the failing output for the caller
+- [x] The agent's generated files are captured, including **untracked** new files (`git diff` alone misses them)
+- [x] The agent's tool-call sequence is logged even when the repair budget is exhausted
+- [x] The outcome and the evidence are surfaced: a job summary line and an uploaded workflow artifact
+- [x] `WEB_TEST_USAGE` (and `WEB_TEST_TRACE`) are on for the automate run
+- [x] The artifact excludes `.playwright-cli/` and `.venv` (the CLI state may hold credentials — see AGENTS.md)
+- [x] Unit-tested: the component that runs the suite keeps the failing output for the caller
 
 
 ## Triage Notes
@@ -100,3 +100,19 @@ Decisions (proposed defaults; adjust in review):
 - **Retention:** leave `retain-days` unset (repo default).
 
 Out of scope: changing the publisher or the merge gate, and dispatch-verifying the two ticket-06 items.
+
+**2026-10-23 — implemented.**
+
+- `Suite.run()` returns the `CommandResult` with the deciding stdout/stderr.
+- `AutomationDeps` captures the last pytest output and a bounded shell trace; the
+  `after_tool_execute` hook keeps the output even when the repair budget stops the run.
+- `AutomationOutcome.evidence` carries the agent output, suite result, generated files, and trace.
+- `automation/evidence.py` writes `summary.md`, pytest/suite output, the trace, and copies only
+  allowed `.py` files; `.venv` and `.playwright-cli` are excluded by the allowed-directory rule.
+- `automate.yml` enables usage/trace, sets the evidence directory, writes the job summary, and
+  uploads the `automation-evidence-<run>-<attempt>` artifact even when the run is red.
+- `uv run pytest`: 237 passed, 1 skipped; basedpyright, lint-imports, ruff F401, and actionlint are
+  green.
+
+Not yet live-run: the workflow artifact/step-summary path is actionlint-verified only. The next
+merged Test Case PR will exercise it.

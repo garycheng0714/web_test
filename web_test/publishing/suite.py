@@ -1,13 +1,14 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from web_test.command import Runner
+from web_test.command import CommandResult, Runner
 
 
 @dataclass(frozen=True)
 class Suite:
-    run: Runner
+    runner: Runner
     workspace: Path
 
-    def is_green(self) -> bool:
-        return self.run(["uv", "run", "pytest", "-q"], cwd=self.workspace).returncode == 0
+    def run(self) -> CommandResult:
+        """Run the suite and keep the deciding output for the caller."""
+        return self.runner(["uv", "run", "pytest", "-q"], cwd=self.workspace)
