@@ -15,7 +15,7 @@ done and the required check is verified live.
 
 - [x] **24b-1** Adjudicate the verification check — review-triggered override, original verdict
       recorded, head binding, tests. Code ticket.
-- [ ] **24b-2** Require the verification check — branch protection, shadow-to-required rollout,
+- [x] **24b-2** Require the verification check — branch protection, shadow-to-required rollout,
       break-glass policy, live Test Case PR. Repository admin step.
 
 ## Acceptance
