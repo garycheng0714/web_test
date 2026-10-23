@@ -21,8 +21,9 @@ PR. This needs repository admin; it is not an agent-only change.
 
 ## Decisions / assumptions
 
-- Use the kept `test-case/test-case-register-login.md` as the live Test Case artifact. It stays
-  untracked on `main` and is added on the live PR branch.
+- The kept `test-case/test-case-register-login.md` is the real artifact, but it is near-band
+  (`ac_2` 0.78 live / 0.82 local). The live NEEDS_REVIEW and FAIL heads used deliberate variants;
+  the PASS head used a stable G1-derived case. Do not use the real artifact as a PASS fixture.
 - The repository admin owns the branch-protection change and the break-glass action. The agent can
   prepare the ticket and the live PR, but cannot promise the protection setting.
 - Enabling "dismiss stale approvals on new commits" is recommended as defense-in-depth, but the
@@ -81,6 +82,12 @@ live test a real non-PASS verdict without touching `TYPESAFE_API_KEY`.
 - **H3 `75749bc`** (deliberate FAIL variant): `verify-test-case` was `FAIL` / `failure`; merge was
   `BLOCKED`; the other required checks were green. This confirms `FAIL` is unmergeable without an
   admin bypass.
+- **H4 `a304f34`** (the real artifact): `verify-test-case` was `NEEDS_REVIEW` /
+  `action_required` (`ac_2` p=0.78) and merge was `BLOCKED`. This is the near-band flakiness from
+  ticket 26 appearing live: the same artifact passed locally (`ac_2` 0.82) but not in CI.
+- **H5 `affb2fd`** (a stable G1 PASS case): `verify-test-case` was `PASS` / `success`; the summary
+  had no override; `test` and the other checks were green; merge became `CLEAN`. This confirms
+  `FAIL` -> fix -> new head -> `PASS`.
 - Break-glass: direct pushes `2ce5649` and `1292f75`/`9ba6a3c` to `main` bypassed the required
   checks to add the docs and the temporary live-PR workflow. The reason is recorded here; the
   temporary workflow was removed after the live test. A cleanup push for this ticket and the
