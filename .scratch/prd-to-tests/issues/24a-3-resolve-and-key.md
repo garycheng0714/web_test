@@ -6,7 +6,7 @@ both texts, and compute `test_case_digest`, `prd_digest`, the question-set versi
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] Only `test-case/test-case-*.md` artifacts are considered
 - [x] Zero artifacts returns a "nothing to verify" outcome
@@ -49,3 +49,5 @@ both texts, and compute `test_case_digest`, `prd_digest`, the question-set versi
 `ResolvedTexts(test_case_text, prd_text)`; `TestCaseInput` and `PrdInput` were removed. The cache
 key moved to `verify_key.py` (`cache_key`, `InvalidTestCase`), and its tests moved to
 `test_verify_key.py`. 191 passed.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

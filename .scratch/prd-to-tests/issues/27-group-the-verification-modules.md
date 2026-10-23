@@ -18,7 +18,7 @@ The workflow command stays `python -m web_test.planning.verify`.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] The package has `__init__.py` and `__main__.py`; `uv run python -m web_test.planning.verify --help` works.
 - [x] The boundary model, prepare, run, and CLI no longer share one module; each has its own module.
@@ -31,3 +31,5 @@ The workflow command stays `python -m web_test.planning.verify`.
 `python -m web_test.planning.verify` working. The boundary model, prepare, run, and CLI each live in
 their own module; the workflow command, JSON, flags, key, and publish behavior are unchanged. 191
 passed; basedpyright, lint-imports, and actionlint are green.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

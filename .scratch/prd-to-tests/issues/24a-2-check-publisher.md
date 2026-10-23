@@ -8,7 +8,7 @@ instead of creating a duplicate. The payload carries `name`, `head_sha`, `status
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] `CheckPayload` carries the fields above; `conclusion` is limited to `success`,
       `action_required`, or `failure`
@@ -39,3 +39,5 @@ instead of creating a duplicate. The payload carries `name`, `head_sha`, `status
 **2026-10-21 — transport superseded.** 24a-2b replaces the `gh api` calls with githubkit and renames
 the adapter to `GitHubAdapter`. The payload, conclusion mapping, and idempotent create/update logic
 are unchanged; the `Runner`-based transport is removed.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

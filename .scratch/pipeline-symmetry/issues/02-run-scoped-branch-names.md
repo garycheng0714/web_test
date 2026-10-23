@@ -7,7 +7,7 @@ absent (a local run), a UTC timestamp is used instead.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] Plan and automation branches are produced by one shared naming rule, not two divergent ones
 - [x] The suffix uses the GitHub run id and attempt when supplied by the environment
@@ -26,3 +26,5 @@ Implemented: `web_test/naming.py` (`run_token`, `branch_for`); both stages build
 - This is a prefactor: apart from branch names, behaviour does not change.
 - The automation branch is currently fixed (`automation/<id>`) and the plan branch is timestamped;
   this ticket makes both run-scoped.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

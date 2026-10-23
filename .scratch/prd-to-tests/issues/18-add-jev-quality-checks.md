@@ -12,7 +12,7 @@ The review stays advisory. It does not block the plan PR, edit the designer's ou
 
 **Category:** enhancement
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 ## Decisions from the 2026-10-20 experiment
 
@@ -133,3 +133,5 @@ Update `tests/planning/test_plan.py` if the report section names change.
 - Live review-only run on `prd/login-smoke.md` (no PR opened): 3 cases, 8 steps; AC alignment 3/3; step quality 8/8 reasonable, 8/8 complete, 7/8 observable; one finding, five low-confidence items.
 
 The run still uses `prd_text + cases` only. No images, screen descriptions, or Appendix A parsing were added.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

@@ -6,7 +6,7 @@ commit is by the app, and the `test` check registers and executes on the PR.
 
 **Blocked by:** 01 (app identity and secret), 02 (run-scoped branch names).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] The automation workflow mints an app installation token and uses it for both checkout and `gh`
 - [x] Workflow permissions are reduced to read-only (the app token does the writes)
@@ -30,3 +30,5 @@ stages). `uv run pytest`: 103 passed, 1 skipped.
 - Today the workflow uses `secrets.GITHUB_TOKEN` for `gh pr create`; the switch is what removes the
   approval-required stall.
 - The app token is exposed to the agent's shell; it is short-lived and scoped to this repository.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

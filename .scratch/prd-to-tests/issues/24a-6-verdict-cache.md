@@ -6,7 +6,7 @@ cached payload without calling Jev. `BLOCKED` is not cached.
 
 **Blocked by:** 24a-5.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] The workflow restores the cache with `verify-<key>` before `run`
 - [x] A cache hit skips Jev (a test uses a `SystemOne` that would fail if called)
@@ -42,3 +42,5 @@ cache, and returns `RunResult(payload, saved)`; `VerdictCache` no longer carries
 Moving the cache lookup after validation also means an incomplete READY input cannot publish a
 cached verdict. The model-level invariant (READY implies the three fields) is still implicit and
 remains a follow-up. 189 passed; basedpyright, lint-imports, and actionlint are green.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

@@ -20,7 +20,7 @@ new head gets a fresh verdict.
 
 **Blocked by:** None (24a is complete; ticket 26's calibration passed).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] A `pull_request_review` submitted event with an approving review, a non-empty reason, a
       reviewer in `OWNER`/`MEMBER`/`COLLABORATOR`, and `review.commit_id == PR head SHA` re-runs the
@@ -88,3 +88,5 @@ Jev for a cached `NEEDS_REVIEW` or `FAIL`.
 - The workflow cache key gains a `v2` prefix so old-format entries are not restored forever.
 - `uv run pytest`: 215 passed, 1 skipped; basedpyright, lint-imports, ruff F401, and actionlint are
   green.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

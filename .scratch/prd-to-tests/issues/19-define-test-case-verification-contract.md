@@ -74,7 +74,7 @@ invalidate it.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] Claim and non-claims are stated
 - [x] Verdict bands and thresholds are stated
@@ -95,3 +95,5 @@ Calibration evidence is in ticket 26.
 control the PRD describes without contradicting an AC. Only contradictions, or behaviour the PRD
 does not describe at all, fail AC alignment. This lets a happy-path case operate PRD-described
 optional controls (e.g. marketing checkboxes) without being flagged as invented.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

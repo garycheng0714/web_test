@@ -9,7 +9,7 @@ one-run and small-sample limits instead of presenting a directional result as st
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] Known-bad and known-good variants are checked in as fixtures
 - [x] One command runs the full set without hand-built request files
@@ -98,3 +98,5 @@ VerificationRecord
 cost is low (about 12.5k input / 1.3k output tokens and 0.5 s per run) and was not an input to any
 decision, while reading it forced the eval to keep a second Jev adapter that parsed the SDK's usage
 payload. The report keeps model, question-set version, and the needs-review rate.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.

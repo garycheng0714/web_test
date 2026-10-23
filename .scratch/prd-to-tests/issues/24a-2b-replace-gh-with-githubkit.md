@@ -7,7 +7,7 @@ test suite.
 
 **Blocked by:** 24a-2 (the payload and the check-run calls it replaces).
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 - [x] Add `githubkit` as a dependency
 - [x] `GitHubAdapter(client, owner, repo)` replaces the `Runner`/`workspace` adapter
@@ -51,3 +51,5 @@ test suite.
 - `uv run pytest`: 147 passed, 1 skipped. `uv run basedpyright`: 0 errors, 0 warnings.
   `uv run lint-imports`: 2 contracts kept. `uv lock --check` passes.
 - `grep '"gh"' web_test` returns nothing; `subprocess_runner` remains only for `Git` and `Suite`.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
