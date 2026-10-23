@@ -1,0 +1,38 @@
+# Temporary workflow for the 24b-2 live verification. Remove it after the test.
+name: open-live-pr
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  open:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v3
+        id: app
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: read
+          permission-pull-requests: write
+      - name: Open the live Test Case PR
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PR_BODY: |
+            Live verification for ticket 24b-2.
+
+            - Adds a NEEDS_REVIEW Test Case variant.
+            - The required `verify-test-case` check should be `action_required`.
+            - An approving review with a reason on this head should turn it into success.
+            - A new head should void that approval.
+            - Close this PR after the check; do not merge it.
+        run: |
+          gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base main \
+            --head verify/live-adjudication \
+            --title "Verify the required check on a Test Case PR" \
+            --body "$PR_BODY"
