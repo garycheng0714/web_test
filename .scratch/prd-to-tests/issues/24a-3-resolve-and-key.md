@@ -44,3 +44,8 @@ both texts, and compute `test_case_digest`, `prd_digest`, the question-set versi
   version).
 - `uv run pytest`: 156 passed, 1 skipped. `uv run basedpyright`: 0 errors, 0 warnings.
   `uv run lint-imports`: 2 contracts kept.
+
+**2026-10-23 — result slimmed.** `resolve` now only resolves files: `Resolution.texts` carries
+`ResolvedTexts(test_case_text, prd_text)`; `TestCaseInput` and `PrdInput` were removed. The cache
+key moved to `verify_key.py` (`cache_key`, `InvalidTestCase`), and its tests moved to
+`test_verify_key.py`. 191 passed.

@@ -28,7 +28,7 @@ The run exits 0 after publishing any verdict; infrastructure or publish failures
 ## Decisions / assumptions
 
 - The workflow job stays green for verdicts; only publishing or infrastructure failures are red.
-- The verification input file crosses a process boundary, so `VerificationInputFile` is a Pydantic
+- The verification input file crosses a process boundary, so `PreparedVerification` is a Pydantic
   model. It carries only flat fields (`test_case_text`, `prd_text`, `cache_key`); the internal
   `VerificationData` (with `TestCaseInput` and `PrdInput`) does not cross the boundary.
 - The check name is `verify-test-case`; `external_id` is the cache key.
@@ -42,7 +42,7 @@ The run exits 0 after publishing any verdict; infrastructure or publish failures
   - `verify_resolution.py`: `ResolutionKind`, `TestCaseInput`, `PrdInput`,
     `VerificationData`, `Resolution`, `resolve`.
   - `verify_payload.py`: `early_payload`, `verdict_payload`, the conclusion table.
-  - `verify.py`: `VerificationInputFile` (flat boundary fields only), `prepare`, `run`, and the
+  - `verify.py`: `PreparedVerification` (flat boundary fields only), `prepare`, `run`, and the
     `prepare` / `run` CLI.
 - The `prepare` command reads the changed-file list from a file (the workflow supplies it), writes
   the verification input, and emits `key=`. `prepare()` itself is pure (returns the model) and the
@@ -57,3 +57,10 @@ The run exits 0 after publishing any verdict; infrastructure or publish failures
   `SystemOne` and fake publish callables; no network, tokens, or GitHub calls.
 - After the split and review fixes: `uv run pytest` 182 passed, 1 skipped; `uv run basedpyright`
   0 errors, 0 warnings; `uv run lint-imports` 2 contracts kept.
+
+**2026-10-23 — prepare composes resolve and cache_key.** `prepare` turns a READY resolution into
+the verification input with `verify_key.cache_key`; a Test Case that cannot be parsed becomes
+`INVALID`. The key tests now live in `test_verify_key.py`. 191 passed.
+
+**2026-10-23 — renamed.** `VerificationInputFile` is now `PreparedVerification`; the JSON shape,
+CLI flag, and file name are unchanged. 191 passed.
