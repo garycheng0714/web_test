@@ -78,3 +78,86 @@ def verdict_payload(
         summary=summary,
         external_id=external_id,
     )
+
+
+def _reason(reason: str) -> str:
+    return "\n".join(f"> {line}" for line in reason.splitlines())
+
+
+def _with_adjudication(
+    payload: CheckPayload,
+    *,
+    original: VerificationStatus,
+    reason: str,
+    head_sha: str,
+    overridden: bool,
+) -> CheckPayload:
+    if overridden:
+        outcome = (
+            "- This override applies to this head only; a new head needs a fresh verdict."
+        )
+    else:
+        outcome = (
+            "- Approval ignored: `FAIL` is not overridable; fix the Test Case or the "
+            "question set."
+        )
+    section = "\n".join(
+        (
+            "",
+            "## Human adjudication",
+            "",
+            f"- Original verdict: `{original.value}`",
+            f"- Head: `{head_sha}`",
+            outcome,
+            "",
+            "**Reason:**",
+            "",
+            _reason(reason),
+        )
+    )
+    title = (
+        "Test Case verification: PASS (adjudicated)"
+        if overridden
+        else payload.title
+    )
+    return payload.model_copy(
+        update={
+            "conclusion": "success" if overridden else payload.conclusion,
+            "title": title,
+            "summary": payload.summary + section,
+        }
+    )
+
+
+def adjudicated_payload(
+    payload: CheckPayload,
+    *,
+    original: VerificationStatus,
+    reason: str,
+    head_sha: str,
+) -> CheckPayload:
+    """Turn a NEEDS_REVIEW or BLOCKED payload into an adjudicated success."""
+    return _with_adjudication(
+        payload,
+        original=original,
+        reason=reason,
+        head_sha=head_sha,
+        overridden=True,
+    )
+
+
+def approval_ignored_payload(
+    payload: CheckPayload,
+    *,
+    original: VerificationStatus,
+    reason: str,
+    head_sha: str,
+) -> CheckPayload:
+    """Keep a FAIL verdict, recording that an approval did not apply."""
+    return _with_adjudication(
+        payload,
+        original=original,
+        reason=reason,
+        head_sha=head_sha,
+        overridden=False,
+    )

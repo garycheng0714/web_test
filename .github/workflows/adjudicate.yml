@@ -1,0 +1,29 @@
+name: adjudicate
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  adjudicate:
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.review.state == 'approved' &&
+      github.event.review.body != '' &&
+      github.event.review.commit_id == github.event.pull_request.head.sha &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association)
+    uses: ./.github/workflows/verify-shared.yml
+    with:
+      head_sha: ${{ github.event.pull_request.head.sha }}
+      base_sha: ${{ github.event.pull_request.base.sha }}
+      approval_state: ${{ github.event.review.state }}
+      approval_reason: ${{ github.event.review.body }}
+      approval_head_sha: ${{ github.event.review.commit_id }}
+    secrets:
+      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+      TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}

@@ -2,8 +2,10 @@ from pathlib import Path
 
 import pytest
 
+from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.verify import cli
-from web_test.planning.verify.input import PreparedVerification
+from web_test.planning.verify.cache import CachedVerdict
+from web_test.planning.verify.input import Approval, PreparedVerification
 from web_test.planning.verify.resolution import ResolutionKind
 from web_test.planning.verify.run import RunResult
 from web_test.publishing.github import CheckPayload, GitHubError
@@ -20,12 +22,15 @@ def test_cli_run_reports_a_cache_hit(
     cache_dir = tmp_path / "cache"
     cache_dir.mkdir()
     (cache_dir / "verdict.json").write_text(
-        CheckPayload(
-            head_sha="old",
-            conclusion="success",
-            title="Test Case verification: PASS",
-            summary="cached summary",
-            external_id=verification_input.cache_key,
+        CachedVerdict(
+            status=VerificationStatus.PASS,
+            payload=CheckPayload(
+                head_sha="old",
+                conclusion="success",
+                title="Test Case verification: PASS",
+                summary="cached summary",
+                external_id=verification_input.cache_key,
+            ),
         ).model_dump_json(),
         encoding="utf-8",
     )
@@ -42,7 +47,9 @@ def test_cli_run_reports_a_cache_hit(
 
     real_run = cli.run
 
-    def guarded_run(verification_input, *, head_sha, publish, name, cache):
+    def guarded_run(
+        verification_input, *, head_sha, publish, name, cache, approval=None
+    ):
         return real_run(
             verification_input,
             head_sha=head_sha,
@@ -50,6 +57,7 @@ def test_cli_run_reports_a_cache_hit(
             name=name,
             cache=cache,
             system_one=never_called,
+            approval=approval,
         )
 
     monkeypatch.setattr(cli, "run", guarded_run)
@@ -83,7 +91,9 @@ def test_cli_run_reports_a_saved_verdict(
     output = tmp_path / "github-output.txt"
     published = []
 
-    def fake_run(verification_input, *, head_sha, publish, name, cache):
+    def fake_run(
+        verification_input, *, head_sha, publish, name, cache, approval=None
+    ):
         assert verification_input.cache_key is not None
         payload = CheckPayload(
             head_sha=head_sha,
@@ -92,9 +102,9 @@ def test_cli_run_reports_a_saved_verdict(
             summary="new summary",
             external_id=verification_input.cache_key,
         )
-        cache.save(payload)
+        cache.save(VerificationStatus.PASS, payload)
         publish(payload)
-        return RunResult(payload=payload, saved=True)
+        return RunResult(payload=payload, saved=True, status=VerificationStatus.PASS)
 
     class FakeAdapter:
         def publish_check(self, payload):
@@ -223,3 +233,83 @@ def test_cli_run_fails_fast_without_github_env(
 
     assert result == 1
     assert "failed:" in capsys.readouterr().err
+
+
+def test_cli_run_passes_the_approval_flags(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    input_path = tmp_path / "verification-input.json"
+    input_path.write_text(
+        PreparedVerification(kind=ResolutionKind.NOTHING).model_dump_json(),
+        encoding="utf-8",
+    )
+    captured = {}
+
+    class FakeAdapter:
+        def publish_check(self, payload):
+            captured["payload"] = payload
+
+        @classmethod
+        def from_env(cls):
+            return cls()
+
+    def fake_run(verification_input, *, head_sha, publish, name, cache, approval=None):
+        captured["approval"] = approval
+        payload = CheckPayload(
+            head_sha=head_sha,
+            conclusion="success",
+            title="Test Case verification: no Test Case file",
+            summary="no Test Case",
+            external_id="no-test-case",
+        )
+        publish(payload)
+        return RunResult(payload=payload, saved=False)
+
+    monkeypatch.setattr(cli, "run", fake_run)
+    monkeypatch.setattr(cli, "GitHubAdapter", FakeAdapter)
+
+    result = cli.main(
+        [
+            "run",
+            "--verification-input",
+            str(input_path),
+            "--head-sha",
+            "sha",
+            "--approval-state",
+            "approved",
+            "--approval-reason",
+            "looks good",
+            "--approval-head-sha",
+            "sha",
+        ]
+    )
+
+    assert result == 0
+    assert captured["approval"] == Approval(
+        state="approved", reason="looks good", head_sha="sha"
+    )
+
+
+def test_cli_run_rejects_partial_approval_flags(
+    tmp_path: Path, capsys
+) -> None:
+    input_path = tmp_path / "verification-input.json"
+    input_path.write_text(
+        PreparedVerification(kind=ResolutionKind.NOTHING).model_dump_json(),
+        encoding="utf-8",
+    )
+
+    result = cli.main(
+        [
+            "run",
+            "--verification-input",
+            str(input_path),
+            "--head-sha",
+            "sha",
+            "--approval-state",
+            "approved",
+        ]
+    )
+
+    assert result == 1
+    assert "approval flags must be provided together" in capsys.readouterr().err

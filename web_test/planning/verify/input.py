@@ -1,8 +1,10 @@
 from typing import Self
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 from web_test.planning.verify.resolution import ResolutionKind
+
+_REASON_LIMIT = 4000
 
 
 class PreparedVerification(BaseModel):
@@ -26,3 +28,30 @@ class PreparedVerification(BaseModel):
         elif any(field is not None for field in fields):
             raise ValueError("early verification input has verdict data")
         return self
+
+
+class Approval(BaseModel):
+    """An approving review that may override a non-final verdict."""
+
+    state: str
+    reason: str
+    head_sha: str
+
+    @field_validator("reason")
+    @classmethod
+    def _clean_reason(cls, value: str) -> str:
+        text = value.strip()
+        return text if len(text) <= _REASON_LIMIT else f"{text[:_REASON_LIMIT - 1]}…"
+
+    @field_validator("head_sha")
+    @classmethod
+    def _clean_head_sha(cls, value: str) -> str:
+        return value.strip()
+
+    def applies_to(self, head_sha: str) -> bool:
+        return (
+            self.state == "approved"
+            and bool(self.reason)
+            and bool(self.head_sha)
+            and self.head_sha == head_sha
+        )

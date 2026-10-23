@@ -3,7 +3,7 @@ from pathlib import Path
 from web_test.planning.cases_writer import render_document
 from web_test.planning.review.jev import JevAnswer
 from web_test.planning.schema import Case
-from web_test.planning.verify.input import PreparedVerification
+from web_test.planning.verify.input import Approval, PreparedVerification
 from web_test.planning.verify.prepare import prepare
 from web_test.planning.verify.run import run
 
@@ -75,6 +75,15 @@ def sink():
         payloads.append(payload)
 
     return payloads, publish
+
+
+def approval(
+    *,
+    head_sha: str = "sha",
+    reason: str = "human checked the case",
+    state: str = "approved",
+) -> Approval:
+    return Approval(state=state, reason=reason, head_sha=head_sha)
 
 
 def run_payload(*args, **kwargs):

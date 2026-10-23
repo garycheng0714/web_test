@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from web_test.planning.verify.cache import VerdictCache
-from web_test.planning.verify.input import PreparedVerification
+from web_test.planning.verify.input import Approval, PreparedVerification
 from web_test.planning.verify.prepare import prepare
 from web_test.planning.verify.run import run
 from web_test.publishing.github import GitHubAdapter
@@ -27,6 +27,19 @@ def _write_output(path: Path | None, lines: list[str]) -> None:
             handle.write(text)
 
 
+def _approval(args: argparse.Namespace) -> Approval | None:
+    values = (args.approval_state, args.approval_reason, args.approval_head_sha)
+    if all(value is None for value in values):
+        return None
+    if any(value is None for value in values):
+        raise ValueError("approval flags must be provided together")
+    return Approval(
+        state=args.approval_state,
+        reason=args.approval_reason,
+        head_sha=args.approval_head_sha,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="review-check", description="Publish the Test Case verification check."
@@ -44,6 +57,9 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--head-sha", required=True)
     run_parser.add_argument("--check-name", default="verify-test-case")
     run_parser.add_argument("--cache-dir")
+    run_parser.add_argument("--approval-state")
+    run_parser.add_argument("--approval-reason")
+    run_parser.add_argument("--approval-head-sha")
     run_parser.add_argument("--github-output", default=os.environ.get("GITHUB_OUTPUT"))
 
     args = parser.parse_args(argv)
@@ -73,12 +89,14 @@ def main(argv: list[str] | None = None) -> int:
             Path(args.verification_input).read_text(encoding="utf-8")
         )
         cache = VerdictCache(Path(args.cache_dir)) if args.cache_dir else None
+        approval = _approval(args)
         result = run(
             prepared_verification,
             head_sha=args.head_sha,
             name=args.check_name,
             publish=GitHubAdapter.from_env().publish_check,
             cache=cache,
+            approval=approval,
         )
         if cache is not None:
             _write_output(

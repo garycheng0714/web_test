@@ -11,64 +11,11 @@ permissions:
 jobs:
   verify:
     if: github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/create-github-app-token@v3
-        id: app
-        with:
-          client-id: ${{ secrets.APP_CLIENT_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          permission-checks: write
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-      - uses: astral-sh/setup-uv@v10.3.0
-        with:
-          python-version: "3.13"
-          enable-cache: true
-      - run: uv sync --locked
-
-      - name: List the changed files
-        run: |
-          mkdir -p .verify
-          git diff --name-only --diff-filter=ACMR \
-            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" \
-            > .verify/changed-files.txt
-
-      - name: Resolve the verification input
-        id: prepare
-        run: |
-          uv run python -m web_test.planning.verify prepare \
-            --changed-files .verify/changed-files.txt \
-            --workspace . \
-            --verification-input .verify/verification-input.json \
-            --github-output "$GITHUB_OUTPUT"
-
-      - name: Restore the cached verdict
-        id: cache
-        if: steps.prepare.outputs.key != ''
-        uses: actions/cache/restore@v6
-        with:
-          path: .verify/cache
-          key: verify-${{ steps.prepare.outputs.key }}
-
-      - name: Publish the verification check
-        id: run
-        env:
-          GH_TOKEN: ${{ steps.app.outputs.token }}
-          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
-        run: |
-          uv run python -m web_test.planning.verify run \
-            --verification-input .verify/verification-input.json \
-            --head-sha "${{ github.event.pull_request.head.sha }}" \
-            --cache-dir .verify/cache \
-            --github-output "$GITHUB_OUTPUT"
-
-      - name: Save the cached verdict
-        if: steps.run.outputs.saved == 'true' && steps.prepare.outputs.key != '' && steps.cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: .verify/cache
-          key: verify-${{ steps.prepare.outputs.key }}
+    uses: ./.github/workflows/verify-shared.yml
+    with:
+      head_sha: ${{ github.event.pull_request.head.sha }}
+      base_sha: ${{ github.event.pull_request.base.sha }}
+    secrets:
+      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+      TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}

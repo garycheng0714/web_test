@@ -7,9 +7,14 @@ from web_test.planning.review.report import render_report
 from web_test.planning.review.service import run_review_on
 from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.verify.cache import VerdictCache
-from web_test.planning.verify.input import PreparedVerification
+from web_test.planning.verify.input import Approval, PreparedVerification
 from web_test.planning.verify.key import InvalidTestCase, cache_key as compute_cache_key
-from web_test.planning.verify.payload import early_payload, verdict_payload
+from web_test.planning.verify.payload import (
+    adjudicated_payload,
+    approval_ignored_payload,
+    early_payload,
+    verdict_payload,
+)
 from web_test.planning.verify.resolution import ResolutionKind
 from web_test.publishing.github import CheckPayload
 
@@ -20,6 +25,46 @@ class RunResult:
 
     payload: CheckPayload
     saved: bool
+    status: VerificationStatus | None = None
+    overridden: bool = False
+
+
+@dataclass(frozen=True)
+class _Adjudication:
+    payload: CheckPayload
+    overridden: bool
+
+
+def _adjudicate(
+    payload: CheckPayload,
+    status: VerificationStatus,
+    *,
+    approval: Approval | None,
+    head_sha: str,
+) -> _Adjudication:
+    if approval is None or not approval.applies_to(head_sha):
+        return _Adjudication(payload=payload, overridden=False)
+    if status in (VerificationStatus.NEEDS_REVIEW, VerificationStatus.BLOCKED):
+        return _Adjudication(
+            payload=adjudicated_payload(
+                payload,
+                original=status,
+                reason=approval.reason,
+                head_sha=head_sha,
+            ),
+            overridden=True,
+        )
+    if status is VerificationStatus.FAIL:
+        return _Adjudication(
+            payload=approval_ignored_payload(
+                payload,
+                original=status,
+                reason=approval.reason,
+                head_sha=head_sha,
+            ),
+            overridden=False,
+        )
+    return _Adjudication(payload=payload, overridden=False)
 
 
 def run(
@@ -30,6 +75,7 @@ def run(
     name: str = "verify-test-case",
     system_one: SystemOne = typesafe_system_one,
     cache: VerdictCache | None = None,
+    approval: Approval | None = None,
 ) -> RunResult:
     """Publish the check for the verification input: an early outcome, or the verdict."""
     if prepared_verification.kind is not ResolutionKind.READY:
@@ -56,25 +102,36 @@ def run(
     if expected_key != stored_key:
         raise ValueError("verification input cache key does not match its texts")
 
-    if cache is not None:
-        cached = cache.load(stored_key)
-        if cached is not None:
-            payload = cached.model_copy(update={"head_sha": head_sha, "name": name})
-            publish(payload)
-            return RunResult(payload=payload, saved=False)
-
-    subject = parse_test_case(test_case_text, prd_text)
-    record = run_review_on(subject, test_case_text, system_one=system_one)
-    payload = verdict_payload(
-        record.result.status,
-        summary=render_report(record),
-        head_sha=head_sha,
-        name=name,
-        external_id=stored_key,
-    )
-    publish(payload)
     saved = False
-    if cache is not None and record.result.status is not VerificationStatus.BLOCKED:
-        cache.save(payload)
-        saved = True
-    return RunResult(payload=payload, saved=saved)
+    cached = cache.load(stored_key) if cache is not None else None
+    if cached is not None:
+        status = cached.status
+        payload = cached.payload.model_copy(update={"head_sha": head_sha, "name": name})
+    else:
+        subject = parse_test_case(test_case_text, prd_text)
+        record = run_review_on(subject, test_case_text, system_one=system_one)
+        status = record.result.status
+        payload = verdict_payload(
+            status,
+            summary=render_report(record),
+            head_sha=head_sha,
+            name=name,
+            external_id=stored_key,
+        )
+        if cache is not None and status is not VerificationStatus.BLOCKED:
+            cache.save(status, payload)
+            saved = True
+
+    adjudication = _adjudicate(
+        payload,
+        status,
+        approval=approval,
+        head_sha=head_sha,
+    )
+    publish(adjudication.payload)
+    return RunResult(
+        payload=adjudication.payload,
+        saved=saved,
+        status=status,
+        overridden=adjudication.overridden,
+    )
