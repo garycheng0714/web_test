@@ -13,7 +13,7 @@ AD_URL_PATTERN = re.compile(
 )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def block_ads(context: BrowserContext) -> None:
     context.route(AD_URL_PATTERN, lambda route: route.abort())
 

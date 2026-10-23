@@ -3,6 +3,8 @@ import pytest
 from components.header import NAV_NAMES
 from pages.home_page import HomePage
 
+pytestmark = pytest.mark.usefixtures("block_ads")
+
 
 def test_home_header_is_visible(home_page: HomePage):
     home_page.open()

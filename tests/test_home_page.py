@@ -1,7 +1,10 @@
+import pytest
 from playwright.sync_api import expect
 
 from components.header import NAV_NAMES
 from pages.home_page import HomePage
+
+pytestmark = pytest.mark.usefixtures("block_ads")
 
 
 def test_home_page_loads(home_page: HomePage) -> None:
