@@ -20,8 +20,14 @@ The workflow command stays `python -m web_test.planning.verify`.
 
 **Status:** ready-for-agent
 
-- [ ] The package has `__init__.py` and `__main__.py`; `uv run python -m web_test.planning.verify --help` works.
-- [ ] The boundary model, prepare, run, and CLI no longer share one module; each has its own module.
-- [ ] All production and test imports use the package paths; no flat `verify_*.py` imports remain.
-- [ ] The verification input JSON, CLI flags, cache key, and published check behavior are unchanged.
-- [ ] `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`, and `actionlint` pass.
+- [x] The package has `__init__.py` and `__main__.py`; `uv run python -m web_test.planning.verify --help` works.
+- [x] The boundary model, prepare, run, and CLI no longer share one module; each has its own module.
+- [x] All production and test imports use the package paths; no flat `verify_*.py` imports remain.
+- [x] The verification input JSON, CLI flags, cache key, and published check behavior are unchanged.
+- [x] `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`, and `actionlint` pass.
+
+**2026-10-23 — implemented.** The verification code is now a package: `input`, `prepare`, `run`,
+`cli`, `resolution`, `key`, `payload`, and `cache`, with `__main__.py` keeping
+`python -m web_test.planning.verify` working. The boundary model, prepare, run, and CLI each live in
+their own module; the workflow command, JSON, flags, key, and publish behavior are unchanged. 191
+passed; basedpyright, lint-imports, and actionlint are green.
