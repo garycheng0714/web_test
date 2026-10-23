@@ -17,7 +17,7 @@ from verify_helpers import (
 )
 
 
-def test_run_rejects_aready_input_without_verdict_data() -> None:
+def test_run_rejects_a_ready_input_without_verdict_data() -> None:
     _, publish = sink()
 
     with pytest.raises(ValueError, match="missing its verdict data"):
@@ -27,6 +27,21 @@ def test_run_rejects_aready_input_without_verdict_data() -> None:
             publish=publish,
             system_one=never_called,
         )
+
+
+def test_run_rejects_a_mismatched_cache_key(tmp_path: Path) -> None:
+    verification_input = ready_input(tmp_path)
+    tampered = verification_input.model_copy(update={"cache_key": "0" * 64})
+    _, publish = sink()
+
+    with pytest.raises(ValueError, match="cache key"):
+        run(
+            tampered,
+            head_sha="sha",
+            publish=publish,
+            system_one=never_called,
+        )
+
 
 def test_run_publishes_success_when_nothing_changed() -> None:
     payloads, publish = sink()

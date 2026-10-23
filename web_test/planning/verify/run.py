@@ -8,6 +8,7 @@ from web_test.planning.review.service import run_review_on
 from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.verify.cache import VerdictCache
 from web_test.planning.verify.input import PreparedVerification
+from web_test.planning.verify.key import InvalidTestCase, cache_key as compute_cache_key
 from web_test.planning.verify.payload import early_payload, verdict_payload
 from web_test.planning.verify.resolution import ResolutionKind
 from web_test.publishing.github import CheckPayload
@@ -44,12 +45,19 @@ def run(
 
     test_case_text = prepared_verification.test_case_text
     prd_text = prepared_verification.prd_text
-    cache_key = prepared_verification.cache_key
-    if test_case_text is None or prd_text is None or cache_key is None:
+    stored_key = prepared_verification.cache_key
+    if test_case_text is None or prd_text is None or stored_key is None:
         raise ValueError("ready verification input is missing its verdict data")
 
+    try:
+        expected_key = compute_cache_key(test_case_text, prd_text)
+    except InvalidTestCase as error:
+        raise ValueError(f"verification input is invalid: {error}") from error
+    if expected_key != stored_key:
+        raise ValueError("verification input cache key does not match its texts")
+
     if cache is not None:
-        cached = cache.load(cache_key)
+        cached = cache.load(stored_key)
         if cached is not None:
             payload = cached.model_copy(update={"head_sha": head_sha, "name": name})
             publish(payload)
@@ -62,7 +70,7 @@ def run(
         summary=render_report(record),
         head_sha=head_sha,
         name=name,
-        external_id=cache_key,
+        external_id=stored_key,
     )
     publish(payload)
     saved = False
