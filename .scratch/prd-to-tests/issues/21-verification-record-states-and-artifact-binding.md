@@ -9,7 +9,7 @@ the original verdict, the reason, and the head it applied to.
 
 **Blocked by:** 19 (the contract fixes the vocabulary and authority).
 
-**Status:** needs-triage
+**Status:** ready-for-human
 
 - [x] The record models `PASS`, `NEEDS_REVIEW`, `FAIL`, and `BLOCKED` at step, case, and file level
 - [x] Aggregation follows `FAIL > BLOCKED > NEEDS_REVIEW > PASS`
@@ -39,3 +39,6 @@ the original verdict, the reason, and the head it applied to.
 - Follow-up: all-blocked records carry a reason, question-set-version failures return `BLOCKED`,
   and the publisher passes `content` explicitly.
 - `uv run pytest`: 117 passed, 1 skipped.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to
+`ready-for-human`.

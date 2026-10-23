@@ -19,7 +19,7 @@ Live v3 result from ticket 20:
 
 **Blocked by:** 20 (eval harness).
 
-**Status:** needs-triage
+**Status:** ready-for-human
 
 - [x] Reproduce the live result with the ticket 20 eval command
 - [x] Classify the cause: question wording, bands, or fixture data
@@ -120,3 +120,6 @@ expected result that exercises a control the PRD describes without contradicting
 contradictions, or behaviour the PRD does not describe at all, fail AC alignment. The designer is
 left as is. Editing the artifact was rejected because `render_document` overwrites
 `test-case/<prd-stem>.md` on the next plan run.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked and the kill criteria
+pass; status moved to `ready-for-human`. The 24b required-check flip can proceed after triage.

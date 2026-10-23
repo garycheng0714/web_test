@@ -6,7 +6,7 @@ contents; no digest or stale comparison is performed.
 
 **Blocked by:** 21 (the review engine and record).
 
-**Status:** needs-triage
+**Status:** ready-for-human
 
 - [x] A file produced by Plan round-trips back into step-level review state
 - [x] The parsed state preserves each step's action and expected result
@@ -29,3 +29,6 @@ contents; no digest or stale comparison is performed.
 - Tests: `tests/planning/test_review_parser.py` (round trip, edit) and
   `tests/planning/test_review_local.py` (review run, edited step reaches Jev, CLI error).
 - `uv run pytest`: 132 passed, 1 skipped.
+
+**2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to
+`ready-for-human`.

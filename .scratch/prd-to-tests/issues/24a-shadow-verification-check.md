@@ -9,7 +9,7 @@ of them are done and the check is verified live.
 
 **Blocked by:** 24a-1, 24a-2, 24a-2b, 24a-3, 24a-4, 24a-5, 24a-6.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 ## Subtickets
 
@@ -19,7 +19,7 @@ of them are done and the check is verified live.
 - [x] **24a-3** Resolver and cache key (pure)
 - [x] **24a-4** Verdict CLI (`prepare` / `run`)
 - [x] **24a-5** Workflow and live shadow check
-- [ ] **24a-6** Cached verdict
+- [x] **24a-6** Cached verdict
 
 ## Acceptance
 
@@ -99,3 +99,7 @@ changed test-case artifacts?
 **2026-10-23 — 24a-5 verified live.** PR #11 exercised the workflow: `PASS` on the first head,
 PATCH on reopen, and a fresh check on synchronize. The synchronize run returned `NEEDS_REVIEW` for
 the same digests (Case 2 p=0.79), confirming the near-band flakiness; 24a-6 and 26 remain.
+
+**2026-10-23 — all subtickets done.** 24a-1 through 24a-6 are complete. 24a-5 was verified live;
+24a-6's cache reuse is unit-tested, but the first live cache hit has not been exercised. Status moved
+to `ready-for-human` for close and verification.
