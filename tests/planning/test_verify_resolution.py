@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from web_test.planning.cases_writer import render_document
-from web_test.planning.review.verification import digest_text
 from web_test.planning.schema import Case
 from web_test.planning.verify_resolution import ResolutionKind, resolve
 
@@ -49,24 +48,17 @@ def test_nothing_when_no_artifact_changed(tmp_path: Path) -> None:
     )
 
 
-def test_ready_binds_the_digests_and_the_key(tmp_path: Path) -> None:
+def test_ready_returns_the_texts(tmp_path: Path) -> None:
     case_path, case_text = _write_case(tmp_path)
-    prd_path = _write_prd(tmp_path)
+    _write_prd(tmp_path)
 
     result = resolve([case_path], workspace=tmp_path)
 
     assert result.kind is ResolutionKind.READY
-    check = result.verdict_input
-    assert check is not None
-    assert check.test_case.path == Path(case_path)
-    assert check.test_case.id == "demo"
-    assert check.test_case.text == case_text
-    assert check.test_case.digest == digest_text(case_text)
-    assert check.prd.path == prd_path
-    assert check.prd.text == "# PRD"
-    assert check.prd.digest == digest_text("# PRD")
-    assert check.question_set_version
-    assert len(check.cache_key) == 64
+    texts = result.texts
+    assert texts is not None
+    assert texts.test_case_text == case_text
+    assert texts.prd_text == "# PRD"
 
 
 def test_multiple_artifacts_are_reported(tmp_path: Path) -> None:
@@ -77,7 +69,7 @@ def test_multiple_artifacts_are_reported(tmp_path: Path) -> None:
 
     assert result.kind is ResolutionKind.MULTIPLE
     assert result.files == (first, second)
-    assert result.verdict_input is None
+    assert result.texts is None
 
 
 def test_missing_prd_is_reported(tmp_path: Path) -> None:
@@ -128,18 +120,6 @@ def test_a_prd_that_disappears_during_read_is_missing(
     assert str(prd_path) in result.detail
 
 
-def test_an_artifact_without_cases_is_invalid(tmp_path: Path) -> None:
-    path = tmp_path / "test-case" / "test-case-demo.md"
-    path.parent.mkdir()
-    path.write_text("---\nid: demo\n---\n\n# Demo\n", encoding="utf-8")
-    _write_prd(tmp_path)
-
-    result = resolve(["test-case/test-case-demo.md"], workspace=tmp_path)
-
-    assert result.kind is ResolutionKind.INVALID
-    assert "no '## Case N' sections" in result.detail
-
-
 def test_missing_front_matter_is_invalid(tmp_path: Path) -> None:
     path = tmp_path / "test-case" / "test-case-demo.md"
     path.parent.mkdir()
@@ -162,46 +142,3 @@ def test_a_missing_front_matter_id_is_invalid(tmp_path: Path) -> None:
 
     assert result.kind is ResolutionKind.INVALID
     assert "string id" in result.detail
-
-
-def test_cache_key_is_stable_and_sensitive(tmp_path: Path) -> None:
-    case_path, case_text = _write_case(tmp_path)
-    _write_prd(tmp_path)
-
-    first = resolve([case_path], workspace=tmp_path).verdict_input
-    second = resolve([case_path], workspace=tmp_path).verdict_input
-    assert first is not None and second is not None
-    assert first.cache_key == second.cache_key
-
-    (tmp_path / case_path).write_text(case_text + "\n", encoding="utf-8")
-    changed_case = resolve([case_path], workspace=tmp_path).verdict_input
-    assert changed_case is not None
-    assert changed_case.cache_key != first.cache_key
-
-    _write_prd(tmp_path, text="# PRD v2")
-    changed_prd = resolve([case_path], workspace=tmp_path).verdict_input
-    assert changed_prd is not None
-    assert changed_prd.cache_key != changed_case.cache_key
-
-
-def test_cache_key_includes_the_question_set_version(
-    tmp_path: Path, monkeypatch
-) -> None:
-    case_path, _ = _write_case(tmp_path)
-    _write_prd(tmp_path)
-    monkeypatch.setattr(
-        "web_test.planning.verify_resolution.question_set_version",
-        lambda questions: "v1",
-    )
-    first = resolve([case_path], workspace=tmp_path).verdict_input
-
-    monkeypatch.setattr(
-        "web_test.planning.verify_resolution.question_set_version",
-        lambda questions: "v2",
-    )
-    second = resolve([case_path], workspace=tmp_path).verdict_input
-
-    assert first is not None and second is not None
-    assert first.question_set_version == "v1"
-    assert second.question_set_version == "v2"
-    assert first.cache_key != second.cache_key

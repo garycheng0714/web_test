@@ -6,7 +6,7 @@ from web_test.planning import verify
 from web_test.planning.cases_writer import render_document
 from web_test.planning.review.jev import JevAnswer
 from web_test.planning.schema import Case
-from web_test.planning.verify import RunResult, VerificationInputFile, prepare, run
+from web_test.planning.verify import PreparedVerification, RunResult, prepare, run
 from web_test.planning.verify_cache import VerdictCache
 from web_test.planning.verify_resolution import ResolutionKind
 from web_test.publishing.github import CheckPayload, GitHubError
@@ -79,7 +79,7 @@ def _run_payload(*args, **kwargs):
     return run(*args, **kwargs).payload
 
 
-def _ready_input(tmp_path: Path) -> VerificationInputFile:
+def _ready_input(tmp_path: Path) -> PreparedVerification:
     case_path, _ = _write_case(tmp_path)
     _write_prd(tmp_path)
     return prepare([case_path], workspace=tmp_path)
@@ -105,11 +105,35 @@ def test_prepare_builds_an_early_input(tmp_path: Path) -> None:
     assert verification_input.test_case_text is None
 
 
+def test_prepare_marks_a_test_case_without_cases_invalid(tmp_path: Path) -> None:
+    path = tmp_path / "test-case" / "test-case-demo.md"
+    path.parent.mkdir()
+    path.write_text("---\nid: demo\n---\n\n# Demo\n", encoding="utf-8")
+    _write_prd(tmp_path)
+
+    verification_input = prepare(["test-case/test-case-demo.md"], workspace=tmp_path)
+
+    assert verification_input.kind is ResolutionKind.INVALID
+    assert "no '## Case N' sections" in verification_input.detail
+
+
+def test_run_rejects_a_ready_input_without_verdict_data() -> None:
+    _, publish = _sink()
+
+    with pytest.raises(ValueError, match="missing its verdict data"):
+        run(
+            PreparedVerification(kind=ResolutionKind.READY),
+            head_sha="sha",
+            publish=publish,
+            system_one=_never_called,
+        )
+
+
 def test_run_publishes_success_when_nothing_changed() -> None:
     payloads, publish = _sink()
 
     payload = _run_payload(
-        VerificationInputFile(kind=ResolutionKind.NOTHING),
+        PreparedVerification(kind=ResolutionKind.NOTHING),
         head_sha="sha",
         publish=publish,
         system_one=_never_called,
@@ -122,7 +146,7 @@ def test_run_publishes_success_when_nothing_changed() -> None:
 
 
 def test_run_publishes_failure_for_multiple_files() -> None:
-    verification_input = VerificationInputFile(
+    verification_input = PreparedVerification(
         kind=ResolutionKind.MULTIPLE,
         files=["test-case/test-case-a.md", "test-case/test-case-b.md"],
     )
@@ -139,7 +163,7 @@ def test_run_publishes_failure_for_multiple_files() -> None:
 
 
 def test_run_publishes_failure_for_a_missing_prd() -> None:
-    verification_input = VerificationInputFile(kind=ResolutionKind.MISSING_PRD, detail="/repo/prd/demo.md")
+    verification_input = PreparedVerification(kind=ResolutionKind.MISSING_PRD, detail="/repo/prd/demo.md")
     payloads, publish = _sink()
 
     payload = _run_payload(
@@ -152,7 +176,7 @@ def test_run_publishes_failure_for_a_missing_prd() -> None:
 
 
 def test_run_publishes_failure_for_an_invalid_artifact() -> None:
-    verification_input = VerificationInputFile(kind=ResolutionKind.INVALID, detail="no '## Case N' sections")
+    verification_input = PreparedVerification(kind=ResolutionKind.INVALID, detail="no '## Case N' sections")
     payloads, publish = _sink()
 
     payload = _run_payload(
@@ -490,7 +514,7 @@ def test_cli_prepare_writes_the_cache_key(tmp_path: Path) -> None:
     assert result == 0
     key = output.read_text(encoding="utf-8").strip().removeprefix("key=")
     assert len(key) == 64
-    written = VerificationInputFile.model_validate_json(
+    written = PreparedVerification.model_validate_json(
         input_path.read_text(encoding="utf-8")
     )
     assert written.cache_key == key
@@ -503,7 +527,7 @@ def test_cli_run_publishes_an_early_input(
 ) -> None:
     input_path = tmp_path / "verification-input.json"
     input_path.write_text(
-        VerificationInputFile(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
+        PreparedVerification(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
     )
     published = []
 
@@ -530,7 +554,7 @@ def test_cli_run_returns_one_when_publishing_fails(
 ) -> None:
     input_path = tmp_path / "verification-input.json"
     input_path.write_text(
-        VerificationInputFile(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
+        PreparedVerification(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
     )
 
     class FakeAdapter:
@@ -556,7 +580,7 @@ def test_cli_run_fails_fast_without_github_env(
 ) -> None:
     input_path = tmp_path / "verification-input.json"
     input_path.write_text(
-        VerificationInputFile(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
+        PreparedVerification(kind=ResolutionKind.NOTHING).model_dump_json(), encoding="utf-8"
     )
     monkeypatch.delenv("GH_TOKEN", raising=False)
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)

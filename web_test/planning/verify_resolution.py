@@ -4,16 +4,6 @@ from enum import StrEnum
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel
-
-from web_test.planning.review.jev import JEV_MODEL
-from web_test.planning.review.parser import parse_test_case
-from web_test.planning.review.questions import (
-    question_set_version,
-    questions_for_subject,
-)
-from web_test.planning.review.record import DEFAULT_BANDS
-from web_test.planning.review.verification import digest_text
 
 
 class ResolutionKind(StrEnum):
@@ -26,30 +16,12 @@ class ResolutionKind(StrEnum):
     INVALID = "invalid"
 
 
-class TestCaseInput(BaseModel):
-    """The raw Test Case artifact a verdict is bound to."""
+@dataclass(frozen=True)
+class ResolvedTexts:
+    """The Test Case and PRD texts resolved from the changed paths."""
 
-    path: Path
-    id: str
-    text: str
-    digest: str
-
-
-class PrdInput(BaseModel):
-    """The raw PRD a verdict is bound to."""
-
-    path: Path
-    text: str
-    digest: str
-
-
-class VerificationData(BaseModel):
-    """The raw artifacts and binding a verdict is computed from."""
-
-    test_case: TestCaseInput
-    prd: PrdInput
-    question_set_version: str
-    cache_key: str
+    test_case_text: str
+    prd_text: str
 
 
 @dataclass(frozen=True)
@@ -59,7 +31,7 @@ class Resolution:
     kind: ResolutionKind
     files: tuple[str, ...] = ()
     detail: str = ""
-    verdict_input: VerificationData | None = None
+    texts: ResolvedTexts | None = None
 
 
 # shortcut: mirrors automation.case_file's artifact shape; share if a third caller appears.
@@ -87,42 +59,22 @@ def _front_matter_id(text: str) -> str:
     return case_id
 
 
-def _read_case(workspace: Path, case_path: Path) -> TestCaseInput:
+def _read_case(workspace: Path, case_path: Path) -> tuple[str, str]:
     case_file = case_path if case_path.is_absolute() else workspace / case_path
     text = case_file.read_text(encoding="utf-8")
-    return TestCaseInput(
-        path=case_path,
-        id=_front_matter_id(text),
-        text=text,
-        digest=digest_text(text),
-    )
+    return _front_matter_id(text), text
 
 
-def _read_prd(workspace: Path, case_id: str) -> PrdInput:
+def _read_prd(workspace: Path, case_id: str) -> str:
     path = workspace / "prd" / f"{case_id}.md"
     if not path.is_file():
         raise FileNotFoundError(f"{path} does not exist")
     try:
-        text = path.read_text(encoding="utf-8")
+        return path.read_text(encoding="utf-8")
     except FileNotFoundError:
         raise
     except OSError as error:
         raise ValueError(f"reading PRD {path} failed: {error}") from error
-    return PrdInput(path=path, text=text, digest=digest_text(text))
-
-
-def _cache_key(test_case_digest: str, prd_digest: str, version: str) -> str:
-    payload = "\n".join(
-        [
-            test_case_digest,
-            prd_digest,
-            version,
-            JEV_MODEL,
-            str(DEFAULT_BANDS.pass_min),
-            str(DEFAULT_BANDS.needs_review_min),
-        ]
-    )
-    return digest_text(payload)
 
 
 def resolve(changed_paths: Iterable[str], *, workspace: Path) -> Resolution:
@@ -137,29 +89,18 @@ def resolve(changed_paths: Iterable[str], *, workspace: Path) -> Resolution:
 
     case_path = artifacts[0]
     try:
-        test_case = _read_case(workspace, case_path)
+        case_id, case_text = _read_case(workspace, case_path)
     except (OSError, ValueError) as error:
         return Resolution(ResolutionKind.INVALID, detail=str(error))
 
     try:
-        prd = _read_prd(workspace, test_case.id)
+        prd_text = _read_prd(workspace, case_id)
     except FileNotFoundError as error:
         return Resolution(ResolutionKind.MISSING_PRD, detail=str(error))
     except ValueError as error:
         return Resolution(ResolutionKind.INVALID, detail=str(error))
 
-    try:
-        subject = parse_test_case(test_case.text, prd.text)
-    except (ValueError, yaml.YAMLError) as error:
-        return Resolution(ResolutionKind.INVALID, detail=str(error))
-
-    version = question_set_version(questions_for_subject(subject))
     return Resolution(
         ResolutionKind.READY,
-        verdict_input=VerificationData(
-            test_case=test_case,
-            prd=prd,
-            question_set_version=version,
-            cache_key=_cache_key(test_case.digest, prd.digest, version),
-        ),
+        texts=ResolvedTexts(test_case_text=case_text, prd_text=prd_text),
     )

@@ -13,12 +13,13 @@ from web_test.planning.review.report import render_report
 from web_test.planning.review.service import run_review_on
 from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.verify_cache import VerdictCache
+from web_test.planning.verify_key import InvalidTestCase, cache_key
 from web_test.planning.verify_payload import early_payload, verdict_payload
 from web_test.planning.verify_resolution import ResolutionKind, resolve
 from web_test.publishing.github import CheckPayload, GitHubAdapter
 
 
-class VerificationInputFile(BaseModel):
+class PreparedVerification(BaseModel):
     """The verification input file `prepare` writes and `run` reads."""
 
     kind: ResolutionKind
@@ -39,22 +40,33 @@ class RunResult:
 
 def prepare(
     changed_paths: Iterable[str], *, workspace: Path
-) -> VerificationInputFile:
+) -> PreparedVerification:
     """Resolve the changed paths to the verification input."""
     resolution = resolve(changed_paths, workspace=workspace)
-    verdict_input = resolution.verdict_input
-    return VerificationInputFile(
-        kind=resolution.kind,
-        files=list(resolution.files),
-        detail=resolution.detail,
-        test_case_text=verdict_input.test_case.text if verdict_input else None,
-        prd_text=verdict_input.prd.text if verdict_input else None,
-        cache_key=verdict_input.cache_key if verdict_input else None,
+    if resolution.kind is not ResolutionKind.READY:
+        return PreparedVerification(
+            kind=resolution.kind,
+            files=list(resolution.files),
+            detail=resolution.detail,
+        )
+
+    texts = resolution.texts
+    if texts is None:
+        raise ValueError("ready resolution is missing its texts")
+    try:
+        key = cache_key(texts.test_case_text, texts.prd_text)
+    except InvalidTestCase as error:
+        return PreparedVerification(kind=ResolutionKind.INVALID, detail=str(error))
+    return PreparedVerification(
+        kind=ResolutionKind.READY,
+        test_case_text=texts.test_case_text,
+        prd_text=texts.prd_text,
+        cache_key=key,
     )
 
 
 def run(
-    verification_file: VerificationInputFile,
+    prepared_verification: PreparedVerification,
     *,
     head_sha: str,
     publish: Callable[[CheckPayload], None],
@@ -63,20 +75,20 @@ def run(
     cache: VerdictCache | None = None,
 ) -> RunResult:
     """Publish the check for the verification input: an early outcome, or the verdict."""
-    if verification_file.kind is not ResolutionKind.READY:
+    if prepared_verification.kind is not ResolutionKind.READY:
         payload = early_payload(
-            verification_file.kind,
+            prepared_verification.kind,
             head_sha=head_sha,
             name=name,
-            files=verification_file.files,
-            detail=verification_file.detail,
+            files=prepared_verification.files,
+            detail=prepared_verification.detail,
         )
         publish(payload)
         return RunResult(payload=payload, saved=False)
 
-    test_case_text = verification_file.test_case_text
-    prd_text = verification_file.prd_text
-    cache_key = verification_file.cache_key
+    test_case_text = prepared_verification.test_case_text
+    prd_text = prepared_verification.prd_text
+    cache_key = prepared_verification.cache_key
     if test_case_text is None or prd_text is None or cache_key is None:
         raise ValueError("ready verification input is missing its verdict data")
 
@@ -145,14 +157,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "prepare":
         try:
             changed = _read_changed_files(Path(args.changed_files))
-            verification_input = prepare(changed, workspace=Path(args.workspace))
+            prepared_verification = prepare(changed, workspace=Path(args.workspace))
             input_path = Path(args.verification_input)
             input_path.parent.mkdir(parents=True, exist_ok=True)
             input_path.write_text(
-                verification_input.model_dump_json(indent=2) + "\n",
+                prepared_verification.model_dump_json(indent=2) + "\n",
                 encoding="utf-8",
             )
-            key = verification_input.cache_key or ""
+            key = prepared_verification.cache_key or ""
             _write_output(
                 Path(args.github_output) if args.github_output else None,
                 [f"key={key}"],
@@ -163,12 +175,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     try:
-        verification_input = VerificationInputFile.model_validate_json(
+        prepared_verification = PreparedVerification.model_validate_json(
             Path(args.verification_input).read_text(encoding="utf-8")
         )
         cache = VerdictCache(Path(args.cache_dir)) if args.cache_dir else None
         result = run(
-            verification_input,
+            prepared_verification,
             head_sha=args.head_sha,
             name=args.check_name,
             publish=GitHubAdapter.from_env().publish_check,
