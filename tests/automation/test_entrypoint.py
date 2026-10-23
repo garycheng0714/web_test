@@ -70,7 +70,8 @@ def test_automate_skips_publish_when_the_suite_is_red(tmp_path: Path) -> None:
     outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
 
     assert outcome == AutomationOutcome(AutomationStatus.SUITE_RED)
-    git.changed_paths.assert_not_called()
+    assert outcome.evidence is not None
+    assert outcome.evidence.files == ("tests/a.py",)
     pr.assert_not_called()
 
 
@@ -191,3 +192,16 @@ def test_automate_captures_the_generated_files(tmp_path: Path) -> None:
     assert outcome.status is AutomationStatus.PUBLISHED
     assert outcome.evidence is not None
     assert outcome.evidence.files == ("tests/a.py", "pages/home.py")
+
+
+def test_automate_keeps_red_evidence_when_git_fails(tmp_path: Path) -> None:
+    case = _write_case(tmp_path)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/a.py"], green=False)
+    git.changed_paths.side_effect = RuntimeError("git boom")
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.SUITE_RED
+    assert outcome.evidence is not None
+    assert outcome.evidence.files == ()
