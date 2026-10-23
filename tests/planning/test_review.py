@@ -7,6 +7,7 @@ from web_test.planning.review import JEV_MODEL, JevAnswer, ReviewRequest, Review
 from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS
 from web_test.planning.review.jev import _normalize
 from web_test.planning.review.verification import VerificationStatus, digest_text
+from web_test.planning.cases_writer import render_document
 from web_test.planning.schema import Case, DesignOutput
 
 
@@ -212,3 +213,28 @@ def test_normalize_maps_a_noul_answer_to_a_verdict():
 
 def test_normalize_ignores_other_answers():
     assert _normalize(object()) == JevAnswer(None)
+
+
+def test_run_review_combines_a_structure_failure_with_jev() -> None:
+    case = _case(steps=[{"action": "Go", "expected_result": ""}])
+    design = DesignOutput(cases=[case])
+    artifact = render_document(
+        [case], id="demo", base_url="https://example.com", title="Demo"
+    )
+
+    record = run_review(
+        "# PRD",
+        design,
+        artifact,
+        system_one=lambda request: {
+            question_id: JevAnswer(0.95) for question_id in request.questions
+        },
+    )
+
+    assert record.result.jev_status is VerificationStatus.PASS
+    assert record.result.status is VerificationStatus.FAIL
+    assert any(
+        outcome.check_id == "step_1_1_expected"
+        and outcome.status is VerificationStatus.FAIL
+        for outcome in record.result.structure
+    )

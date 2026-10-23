@@ -2,8 +2,9 @@ from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS
 from web_test.planning.review.verification import (
     CheckDimension,
     CheckOutcome,
-    VerificationStatus,
     VerificationRecord,
+    VerificationStatus,
+    worst,
 )
 
 _LABEL_LIMIT = 120
@@ -54,9 +55,40 @@ def render_report(record: VerificationRecord) -> str:
         blocked.extend(blocked_checks)
 
     lines = [
-        "## Jev review",
+        "## Verification",
         "",
         f"**Status:** `{result.status.value}`",
+    ]
+
+    if result.structure:
+        structure_status = worst(outcome.status for outcome in result.structure)
+        passed = sum(
+            1
+            for outcome in result.structure
+            if outcome.status is VerificationStatus.PASS
+        )
+        failures = [
+            f"- {_text(outcome.label)}: {_text(outcome.detail)}"
+            for outcome in result.structure
+            if outcome.status is VerificationStatus.FAIL
+        ]
+        lines += [
+            "",
+            "## Structure",
+            "",
+            f"**Structure status:** `{structure_status.value}`; "
+            f"{passed}/{len(result.structure)} checks passed",
+            "",
+            "**Structure findings**",
+            "",
+            _bullets(failures),
+        ]
+
+    lines += [
+        "",
+        "## Jev review",
+        "",
+        f"**Jev status:** `{(result.jev_status or result.status).value}`",
         "",
         f"**AC alignment:** {_count(checks, CheckDimension.AC_ALIGNMENT)}/{cases} cases aligned",
         "",
@@ -97,6 +129,7 @@ def render_report(record: VerificationRecord) -> str:
         f"- Test Case: `sha256:{binding.test_case_digest}`",
         f"- Model: `{binding.model}`",
         f"- Question set: `{binding.question_set_version}`",
+        f"- Check set: `{binding.check_set_version}`",
         f"- Bands: pass >= {binding.bands.pass_min}, "
         f"needs review >= {binding.bands.needs_review_min}",
         "",

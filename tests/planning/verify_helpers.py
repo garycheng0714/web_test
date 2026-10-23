@@ -29,10 +29,18 @@ def case_text() -> str:
 
 
 def write_case(
-    root: Path, case_id: str = "demo", *, title: str = "Demo"
+    root: Path,
+    case_id: str = "demo",
+    *,
+    title: str = "Demo",
+    steps: list[dict[str, str]] | None = None,
 ) -> tuple[str, str]:
+    data = case().model_dump()
+    if steps is not None:
+        data["steps"] = steps
+    rendered = Case.model_validate(data)
     text = render_document(
-        [case()], id=case_id, base_url="https://example.com", title=title
+        [rendered], id=case_id, base_url="https://example.com", title=title
     )
     path = root / "test-case" / f"test-case-{case_id}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -90,7 +98,9 @@ def run_payload(*args, **kwargs):
     return run(*args, **kwargs).payload
 
 
-def ready_input(tmp_path: Path) -> PreparedVerification:
-    case_path, _ = write_case(tmp_path)
+def ready_input(
+    tmp_path: Path, *, steps: list[dict[str, str]] | None = None
+) -> PreparedVerification:
+    case_path, _ = write_case(tmp_path, steps=steps)
     write_prd(tmp_path)
     return prepare([case_path], workspace=tmp_path)

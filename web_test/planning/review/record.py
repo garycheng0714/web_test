@@ -3,16 +3,19 @@ from collections.abc import Mapping
 from web_test.planning.review.aggregation import aggregate_checks
 from web_test.planning.review.jev import JEV_MODEL, JevAnswer
 from web_test.planning.review.questions import expected_checks
+from web_test.planning.review.structure import CHECK_SET_VERSION
 from web_test.planning.review.subject import ReviewSubject
 from web_test.planning.review.verification import (
     Bands,
     CheckOutcome,
+    DeterministicOutcome,
     Override,
     VerificationBinding,
     VerificationRecord,
     VerificationResult,
     VerificationStatus,
     digest_text,
+    worst,
 )
 
 DEFAULT_BANDS = Bands()
@@ -61,14 +64,18 @@ def build_record(
     bands: Bands = DEFAULT_BANDS,
     blocked_reason: str | None = None,
     override: Override | None = None,
+    structure: tuple[DeterministicOutcome, ...] = (),
+    check_set_version: str = CHECK_SET_VERSION,
 ) -> VerificationRecord:
     """Build the per-check, per-step, per-case, and file status from Jev's answers."""
     checks = _check_outcomes(subject, answers, bands)
     blocked_reason = _default_blocked_reason(checks, blocked_reason)
-    steps, cases, status = aggregate_checks(subject, checks)
+    steps, cases, jev_status = aggregate_checks(subject, checks)
 
-    if blocked_reason and status is not VerificationStatus.FAIL:
-        status = VerificationStatus.BLOCKED
+    if blocked_reason and jev_status is not VerificationStatus.FAIL:
+        jev_status = VerificationStatus.BLOCKED
+
+    status = worst([jev_status, *(outcome.status for outcome in structure)])
 
     return VerificationRecord(
         result=VerificationResult(
@@ -76,6 +83,8 @@ def build_record(
             checks=tuple(checks),
             steps=tuple(steps),
             cases=tuple(cases),
+            structure=structure,
+            jev_status=jev_status,
             blocked_reason=blocked_reason,
             override=override,
         ),
@@ -85,6 +94,7 @@ def build_record(
             model=model,
             question_set_version=question_set_version,
             bands=bands,
+            check_set_version=check_set_version,
         ),
     )
 
@@ -96,6 +106,8 @@ def build_blocked_record(
     question_set_version: str,
     reason: str,
     bands: Bands = DEFAULT_BANDS,
+    structure: tuple[DeterministicOutcome, ...] = (),
+    check_set_version: str = CHECK_SET_VERSION,
 ) -> VerificationRecord:
     """Build a record for a review that could not produce answers."""
     return build_record(
@@ -105,4 +117,6 @@ def build_blocked_record(
         question_set_version=question_set_version,
         bands=bands,
         blocked_reason=reason,
+        structure=structure,
+        check_set_version=check_set_version,
     )

@@ -3,7 +3,12 @@ from dataclasses import replace
 from web_test.planning.review import JevAnswer, run_review
 from web_test.planning.review.report import render_report
 from web_test.planning.schema import Case, DesignOutput
-from web_test.planning.review.verification import Override, VerificationStatus, digest_text
+from web_test.planning.review.verification import (
+    DeterministicOutcome,
+    Override,
+    VerificationStatus,
+    digest_text,
+)
 
 
 
@@ -125,3 +130,32 @@ def test_render_report_records_an_override():
     assert "**Status:** `PASS`" in text
     assert "NEEDS_REVIEW -> PASS at abc123" in text
     assert "Expected result is observable in the PRD." in text
+
+
+def test_render_report_shows_the_structure_section():
+    record = _record()
+    structured = replace(
+        record,
+        result=replace(
+            record.result,
+            status=VerificationStatus.FAIL,
+            jev_status=VerificationStatus.PASS,
+            structure=(
+                DeterministicOutcome(
+                    "front_matter",
+                    "Front matter is present and valid",
+                    VerificationStatus.FAIL,
+                    "front matter is missing or invalid",
+                ),
+            ),
+        ),
+    )
+
+    text = render_report(structured)
+
+    assert "**Status:** `FAIL`" in text
+    assert "## Structure" in text
+    assert "**Structure status:** `FAIL`; 0/1 checks passed" in text
+    assert "**Jev status:** `PASS`" in text
+    assert "front matter is missing or invalid" in text
+    assert "Check set: `structure-v1`" in text

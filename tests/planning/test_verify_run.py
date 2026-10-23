@@ -348,3 +348,28 @@ def test_run_uses_a_cached_verdict_with_an_approval(tmp_path: Path) -> None:
     assert "cached summary" in result.payload.summary
     assert "Original verdict: `NEEDS_REVIEW`" in result.payload.summary
     assert payloads == [result.payload]
+
+
+def test_run_fails_on_a_structure_error_and_ignores_an_approval(tmp_path: Path) -> None:
+    verification_input = ready_input(
+        tmp_path, steps=[{"action": "Go", "expected_result": ""}]
+    )
+    payloads, publish = sink()
+
+    result = run(
+        verification_input,
+        head_sha="sha",
+        publish=publish,
+        system_one=passing_system_one,
+        approval=approval(reason="looks fine"),
+    )
+
+    assert result.status is VerificationStatus.FAIL
+    assert result.overridden is False
+    assert result.payload.conclusion == "failure"
+    assert result.payload.title == "Test Case verification: FAIL"
+    assert "## Structure" in result.payload.summary
+    assert "expected result is empty" in result.payload.summary
+    assert "Approval ignored" in result.payload.summary
+    assert "Original verdict: `FAIL`" in result.payload.summary
+    assert payloads == [result.payload]

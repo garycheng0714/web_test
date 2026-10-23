@@ -3,8 +3,13 @@ from collections.abc import Callable
 from web_test.planning.review.jev import ReviewRequest, SystemOne, typesafe_system_one
 from web_test.planning.review.questions import question_set_version, questions_for_subject
 from web_test.planning.review.record import DEFAULT_BANDS, build_blocked_record, build_record
+from web_test.planning.review.structure import structure_checks
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
-from web_test.planning.review.verification import Bands, VerificationRecord
+from web_test.planning.review.verification import (
+    Bands,
+    DeterministicOutcome,
+    VerificationRecord,
+)
 from web_test.planning.schema import DesignOutput
 
 # A seam over the whole review: takes the PRD, design, and rendered artifact.
@@ -43,6 +48,7 @@ def run_review_on(
     bands: Bands = DEFAULT_BANDS,
 ) -> VerificationRecord:
     """Judge an existing review subject and always return a record, blocked or not."""
+    structure = structure_checks(subject, test_case_text)
     try:
         questions = questions_for_subject(subject)
         request = ReviewRequest(subject=subject, questions=questions)
@@ -54,9 +60,17 @@ def run_review_on(
             question_set_version="",
             bands=bands,
             reason=f"request build failed: {error}",
+            structure=structure,
         )
 
-    return _review_request(request, test_case_text, version, system_one=system_one, bands=bands)
+    return _review_request(
+        request,
+        test_case_text,
+        version,
+        system_one=system_one,
+        bands=bands,
+        structure=structure,
+    )
 
 
 def _review_request(
@@ -66,6 +80,7 @@ def _review_request(
     *,
     system_one: SystemOne,
     bands: Bands,
+    structure: tuple[DeterministicOutcome, ...],
 ) -> VerificationRecord:
     try:
         answers = system_one(request)
@@ -76,6 +91,7 @@ def _review_request(
             question_set_version=version,
             bands=bands,
             reason=f"Jev call failed: {error}",
+            structure=structure,
         )
 
     if not answers:
@@ -85,6 +101,7 @@ def _review_request(
             question_set_version=version,
             bands=bands,
             reason="Jev returned no answers",
+            structure=structure,
         )
 
     return build_record(
@@ -93,6 +110,7 @@ def _review_request(
         test_case_text=test_case_text,
         question_set_version=version,
         bands=bands,
+        structure=structure,
     )
 
 

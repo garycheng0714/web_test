@@ -4,12 +4,15 @@ from web_test.planning.review.record import (
     DEFAULT_BANDS,
     _check_outcomes,
     _default_blocked_reason,
+    build_blocked_record,
     build_record,
 )
+from web_test.planning.review.structure import CHECK_SET_VERSION
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
 from web_test.planning.review.verification import (
     CheckDimension,
     CheckOutcome,
+    DeterministicOutcome,
     Override,
     VerificationStatus,
     digest_text,
@@ -114,6 +117,7 @@ def test_build_record_binds_metadata_and_carries_override():
     assert record.binding.model == JEV_MODEL
     assert record.binding.question_set_version == "qsv"
     assert record.binding.bands == DEFAULT_BANDS
+    assert record.binding.check_set_version == CHECK_SET_VERSION
     assert record.result.override == override
 
 
@@ -130,3 +134,46 @@ def test_fail_wins_over_blocked_reason():
 
     assert record.result.status is VerificationStatus.FAIL
     assert record.result.blocked_reason == "Jev call failed"
+
+
+def _structure_failure() -> tuple[DeterministicOutcome, ...]:
+    return (
+        DeterministicOutcome(
+            "front_matter",
+            "Front matter is present and valid",
+            VerificationStatus.FAIL,
+            "front matter is missing or invalid",
+        ),
+    )
+
+
+def test_structure_failure_wins_over_a_jev_pass():
+    subject = _subject()
+
+    record = build_record(
+        subject,
+        _answers(subject),
+        test_case_text="# artifact\n",
+        question_set_version="qsv",
+        structure=_structure_failure(),
+    )
+
+    assert record.result.jev_status is VerificationStatus.PASS
+    assert record.result.status is VerificationStatus.FAIL
+    assert record.result.structure == _structure_failure()
+
+
+def test_structure_failure_is_not_masked_by_a_blocked_jev():
+    subject = _subject()
+
+    record = build_blocked_record(
+        subject,
+        test_case_text="",
+        question_set_version="",
+        reason="Jev unavailable",
+        structure=_structure_failure(),
+    )
+
+    assert record.result.jev_status is VerificationStatus.BLOCKED
+    assert record.result.status is VerificationStatus.FAIL
+    assert record.result.blocked_reason == "Jev unavailable"

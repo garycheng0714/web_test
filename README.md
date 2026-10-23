@@ -54,9 +54,10 @@ variable. `TYPESAFE_API_KEY` is optional: without it the Jev review renders as `
 `verify.yml` runs on every pull request (opened/synchronize/reopened) and calls the shared
 `verify-shared.yml` workflow. `adjudicate.yml` listens for an approving `pull_request_review` and
 calls the same shared workflow with the review reason. The shared workflow resolves the changed
-`test-case/**` file, runs the Jev review, and publishes the `verify-test-case` check on the PR head
-SHA: `PASS` → success, `NEEDS_REVIEW` → action_required, `FAIL` / `BLOCKED` → failure. A PR with no
-Test Case file reports success explicitly; more than one fails with the file list.
+`test-case/**` file, runs deterministic structure checks and the Jev review, and publishes the
+`verify-test-case` check on the PR head SHA: `PASS` → success, `NEEDS_REVIEW` → action_required,
+`FAIL` / `BLOCKED` → failure. A structural failure is `FAIL` and is not approval-overridable. A PR
+with no Test Case file reports success explicitly; more than one fails with the file list.
 
 `verify-test-case` is required on `main` (app `web-test-qa-flow`). An approving review with a reason
 re-runs `NEEDS_REVIEW` or `BLOCKED` as success for the reviewed head; `FAIL` is not overridable. A
