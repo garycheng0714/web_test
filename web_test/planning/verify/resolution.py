@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
+from typing import Literal
 
 import yaml
 
@@ -24,14 +25,32 @@ class ResolvedTexts:
     prd_text: str
 
 
-@dataclass(frozen=True)
-class Resolution:
-    """The result of resolving the changed paths."""
+EarlyKind = Literal[
+    ResolutionKind.NOTHING,
+    ResolutionKind.MULTIPLE,
+    ResolutionKind.MISSING_PRD,
+    ResolutionKind.INVALID,
+]
 
-    kind: ResolutionKind
+
+@dataclass(frozen=True)
+class EarlyResolution:
+    """A resolution that has no Test Case and PRD texts to verify."""
+
+    kind: EarlyKind
     files: tuple[str, ...] = ()
     detail: str = ""
-    texts: ResolvedTexts | None = None
+
+
+@dataclass(frozen=True)
+class ReadyResolution:
+    """A resolved Test Case and PRD ready for a verdict."""
+
+    texts: ResolvedTexts
+    kind: Literal[ResolutionKind.READY] = ResolutionKind.READY
+
+
+Resolution = ReadyResolution | EarlyResolution
 
 
 # shortcut: mirrors automation.case_file's artifact shape; share if a third caller appears.
@@ -83,24 +102,23 @@ def resolve(changed_paths: Iterable[str], *, workspace: Path) -> Resolution:
         path for path in (Path(raw) for raw in changed_paths) if _is_artifact(path)
     )
     if not artifacts:
-        return Resolution(ResolutionKind.NOTHING)
+        return EarlyResolution(ResolutionKind.NOTHING)
     if len(artifacts) > 1:
-        return Resolution(ResolutionKind.MULTIPLE, files=tuple(str(path) for path in artifacts))
+        return EarlyResolution(ResolutionKind.MULTIPLE, files=tuple(str(path) for path in artifacts))
 
     case_path = artifacts[0]
     try:
         case_id, case_text = _read_case(workspace, case_path)
     except (OSError, ValueError) as error:
-        return Resolution(ResolutionKind.INVALID, detail=str(error))
+        return EarlyResolution(ResolutionKind.INVALID, detail=str(error))
 
     try:
         prd_text = _read_prd(workspace, case_id)
     except FileNotFoundError as error:
-        return Resolution(ResolutionKind.MISSING_PRD, detail=str(error))
+        return EarlyResolution(ResolutionKind.MISSING_PRD, detail=str(error))
     except ValueError as error:
-        return Resolution(ResolutionKind.INVALID, detail=str(error))
+        return EarlyResolution(ResolutionKind.INVALID, detail=str(error))
 
-    return Resolution(
-        ResolutionKind.READY,
+    return ReadyResolution(
         texts=ResolvedTexts(test_case_text=case_text, prd_text=prd_text),
     )

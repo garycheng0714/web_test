@@ -3,7 +3,11 @@ from pathlib import Path
 
 from web_test.planning.verify.input import PreparedVerification
 from web_test.planning.verify.key import InvalidTestCase, cache_key
-from web_test.planning.verify.resolution import ResolutionKind, resolve
+from web_test.planning.verify.resolution import (
+    EarlyResolution,
+    ResolutionKind,
+    resolve,
+)
 
 
 def prepare(
@@ -11,7 +15,7 @@ def prepare(
 ) -> PreparedVerification:
     """Resolve the changed paths to the verification input."""
     resolution = resolve(changed_paths, workspace=workspace)
-    if resolution.kind is not ResolutionKind.READY:
+    if isinstance(resolution, EarlyResolution):
         return PreparedVerification(
             kind=resolution.kind,
             files=list(resolution.files),
@@ -19,8 +23,6 @@ def prepare(
         )
 
     texts = resolution.texts
-    if texts is None:
-        raise ValueError("ready resolution is missing its texts")
     try:
         key = cache_key(texts.test_case_text, texts.prd_text)
     except InvalidTestCase as error:

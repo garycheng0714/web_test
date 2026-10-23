@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from web_test.planning.verify.resolution import ResolutionKind, resolve
+from web_test.planning.verify.resolution import EarlyResolution, ResolutionKind, resolve
 from verify_helpers import write_case, write_prd
 
 
@@ -23,7 +23,6 @@ def test_ready_returns_the_texts(tmp_path: Path) -> None:
 
     assert result.kind is ResolutionKind.READY
     texts = result.texts
-    assert texts is not None
     assert texts.test_case_text == case_text
     assert texts.prd_text == "# PRD"
 
@@ -36,7 +35,7 @@ def test_multiple_artifacts_are_reported(tmp_path: Path) -> None:
 
     assert result.kind is ResolutionKind.MULTIPLE
     assert result.files == (first, second)
-    assert result.texts is None
+    assert isinstance(result, EarlyResolution)
 
 
 def test_missing_prd_is_reported(tmp_path: Path) -> None:
