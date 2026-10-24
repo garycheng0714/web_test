@@ -48,6 +48,8 @@ jobs:
         with:
           python-version: "3.13"
           enable-cache: true
+          # Only the ci `test` job saves the shared uv cache; parallel jobs race on the key.
+          save-cache: false
       - run: uv sync --locked
 
       - name: List the changed files
