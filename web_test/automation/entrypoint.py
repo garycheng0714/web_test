@@ -1,7 +1,7 @@
 import argparse
 import os
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
@@ -92,6 +92,34 @@ def _outcome(
     )
 
 
+def _run_suite(
+    suite: Suite, workspace: Path, files: Sequence[str]
+) -> tuple[CommandResult, RunReport]:
+    """Run the suite and read its JUnit results."""
+    result = suite.run()
+    report = build_run_report(read_junit(workspace / JUNIT_XML), files)
+    return result, report
+
+
+def _publish(
+    case_id: str,
+    pr_body: str,
+    report: RunReport,
+    files: list[str],
+    *,
+    git: Git,
+    pr: GitHubAdapter,
+    token: str | None,
+) -> None:
+    """Append the run report to the PR body and publish."""
+    Publisher(git=git, pr=pr).publish(
+        case_id=case_id,
+        body=f"{pr_body}\n\n{render_run_report(report)}",
+        files=files,
+        token=token or run_token(),
+    )
+
+
 def automate(
     case_path: str | Path,
     *,
@@ -128,8 +156,7 @@ def automate(
                 quality=quality,
             )
 
-        suite_result = suite.run()
-        report = build_run_report(read_junit(workspace / JUNIT_XML), files)
+        suite_result, report = _run_suite(suite, workspace, files)
         if suite_result.returncode != 0:
             return _outcome(
                 AutomationStatus.SUITE_RED,
@@ -150,12 +177,7 @@ def automate(
                 report=report,
             )
 
-        Publisher(git=git, pr=pr).publish(
-            case_id=case.id,
-            body=f"{pr_body}\n\n{render_run_report(report)}",
-            files=files,
-            token=token or run_token(),
-        )
+        _publish(case.id, pr_body, report, files, git=git, pr=pr, token=token)
     except (RuntimeError, ValueError, OSError) as error:
         return _outcome(
             AutomationStatus.FAILED,
