@@ -28,5 +28,5 @@ contract，其餘方向仍靠慣例。
 
 - 換得：不會有 import cycle / order-dependent failure；automation 不會間接依賴 review；
   schema 與 publishing 可被單獨 import、測試與重用；改動漣漪被限制在單一 stage。
-- 代價：新增 contract 可能擋下「其實很方便」的 import；架構變更要同步改 ADR/contract；
-  `web_test.planning` 新增子模組時，automation 的 contract 清單要跟著更新。
+- 代價：新增 contract 可能擋下「其實很方便」的 import；架構變更要同步改 ADR/contract。
+  `web_test.planning.**` 會自動涵蓋新子模組，因此不需要手動維護清單。
