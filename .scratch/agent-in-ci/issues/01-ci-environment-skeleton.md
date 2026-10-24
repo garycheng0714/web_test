@@ -7,7 +7,7 @@ It runs no agent and publishes nothing — it de-risks the runner environment be
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 - [x] A `workflow_dispatch` workflow exists that runs on a GitHub-hosted runner
 - [x] It checks out the repo, installs the Python dependencies, and installs Chromium for Playwright
@@ -30,3 +30,7 @@ Admin note resolution: the suite targets the public `automationexercise.com`, so
 needed for this ticket; the model key is only required at ticket 06. The runner dispatch itself has not
 been executed (needs a push + manual trigger) — local green plus structural validation are the evidence
 so far.
+
+**2026-10-24 — bookkeeping: done.**
+
+`ci.yml` runs the suite, typecheck, contracts, and actionlint on every pull request. Status → `ready-for-human (done; verified live)`.

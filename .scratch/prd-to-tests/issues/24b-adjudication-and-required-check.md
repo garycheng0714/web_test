@@ -9,7 +9,7 @@ done and the required check is verified live.
 
 **Blocked by:** 24b-1, 24b-2.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 ## Subtickets
 
@@ -68,3 +68,7 @@ the required-check flip is no longer blocked by calibration.
   ▼
 24b umbrella closes
 ```
+
+**2026-10-24 — bookkeeping: done.**
+
+Both subtickets are done; the required check is live. Status → `ready-for-human (done; verified live)`.

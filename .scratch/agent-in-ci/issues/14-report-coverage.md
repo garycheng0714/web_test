@@ -5,7 +5,7 @@ check cannot fail the build. Record the first baseline.
 
 **Blocked by:** None.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; threshold decision open)
 
 - [x] Add `pytest-cov` as a dev dependency
 - [x] Add the coverage flags to the `test` job
@@ -23,3 +23,7 @@ check cannot fail the build. Record the first baseline.
 - No threshold. The automation paths are exercised against a live site, so a coverage trend is
   informative rather than a merge gate. The remaining human decision is whether to require a
   threshold later.
+
+**2026-10-24 — bookkeeping: done.**
+
+`ci.yml` runs pytest with `--cov=web_test --cov-report=term-missing`. The open item is whether to set a threshold. Status → `ready-for-human (done; threshold decision open)`.

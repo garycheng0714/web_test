@@ -8,7 +8,7 @@ runtime check.)
 **Blocked by:** 02 Deterministic publisher, 03 Grounding on the in-process browser capability,
 04 Agent-produced PR body.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 - [x] An entrypoint reads one merged `test-case/<id>.md` and has the coding agent implement it
 - [x] Validates the artifact (path shape + front-matter `id`/`base_url`); rejects anything else
@@ -47,3 +47,7 @@ Implemented:
 
 Deferred: the `plan` agent producing these per-case files + PR (front-matter schema to be shared),
 and the per-case `base_url` → generated-test runtime plumbing (`DEFAULT_BASE_URL` is used for now).
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/automation/entrypoint.py` (`automate()`) is the entrypoint; a red outcome skips publish. Status → `ready-for-human (done; verified live)`.

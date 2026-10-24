@@ -9,7 +9,7 @@ of them are done and the check is verified live.
 
 **Blocked by:** 24a-1, 24a-2, 24a-2b, 24a-3, 24a-4, 24a-5, 24a-6.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 ## Subtickets
 
@@ -103,3 +103,7 @@ the same digests (Case 2 p=0.79), confirming the near-band flakiness; 24a-6 and 
 **2026-10-23 — all subtickets done.** 24a-1 through 24a-6 are complete. 24a-5 was verified live;
 24a-6's cache reuse is unit-tested, but the first live cache hit has not been exercised. Status moved
 to `ready-for-human` for close and verification.
+
+**2026-10-24 — bookkeeping: done.**
+
+All subtickets 24a-1..6 are complete; 24a-5 was verified live. Status → `ready-for-human (done; verified live)`.

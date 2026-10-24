@@ -6,7 +6,7 @@ repository, with evidence recorded.
 
 **Blocked by:** 03 (automation CI identity), 04 (plan in CI).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 - [x] The plan workflow is on `main`
 - [x] Merging an added `prd/**` PR produces a test-case PR authored by the app, with a real `ci` run
@@ -43,3 +43,7 @@ One surprise: `actionlint` 1.7.12 reports `create-github-app-token@v3` as missin
 not defining `client-id`. Its bundled metadata is stale — the action's real `action.yml` accepts
 `client-id` and deprecates `app-id`. The warning also fires on the pre-existing `automate.yml`, so it
 is a false positive, not a defect in either workflow.
+
+**2026-10-24 — bookkeeping: done.**
+
+Both stages were exercised live (PR #11, #13, #22; automate runs 39986654910 and 40055442740). Status → `ready-for-human (done; verified live)`.

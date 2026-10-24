@@ -7,7 +7,7 @@ document. The document is the qa table format, rendered from a structured result
 
 **Blocked by:** 01
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] A single agent turns PRD text into a structured `QaReport` (no separate PRD parsing step)
 - [x] The `qa-test-case-generation` skill is loaded on demand via harness `Skills` (deferred capability)
@@ -49,3 +49,7 @@ argument). The qa mockup/live-URL sections are out of v1 scope.
 artifact it feeds changed: cases are now one `test-case/<id>.md` per case with a front-matter, opened
 as a PR — not a single qa-table document at `.scratch/<feature>/test-cases.md` with `approval`. The
 `render` / `is_approved` path is replaced by the ticket-06 rewrite.
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/planning/` holds the designer agent; its artifact shape was later superseded by ADR-0006/0007. Status → `ready-for-human (done; implemented)`.

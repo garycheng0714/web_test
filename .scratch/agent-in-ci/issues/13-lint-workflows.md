@@ -5,7 +5,7 @@ known actionlint version, with one documented ignore for stale action metadata.
 
 **Blocked by:** None.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; required-check decision open)
 
 - [x] Run actionlint locally and record the baseline
 - [x] Pin the actionlint version used in CI
@@ -29,3 +29,7 @@ known actionlint version, with one documented ignore for stale action metadata.
     comment. Remove the ignore when actionlint's metadata or the action changes.
 - No other findings: expressions, shell, and runner labels are clean.
 - Remaining human decision: whether to make the check required.
+
+**2026-10-24 — bookkeeping: done.**
+
+`ci.yml` runs actionlint. The open item is whether to make the job required. Status → `ready-for-human (done; required-check decision open)`.

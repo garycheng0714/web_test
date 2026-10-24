@@ -6,7 +6,7 @@ baseline, then widen only after the gate is green.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; required-check decision open)
 
 - [x] Choose the tool (mypy / pyright / basedpyright / ty) and record why
 - [x] Add it as a dev dependency and check in its config
@@ -49,3 +49,7 @@ Recent refactors renamed `VerificationStatus`, split the review modules, and cha
 - `uv run pytest -q` → 138 passed, 1 skipped.
 - Commands documented in `AGENTS.md` and `README.md`.
 - Remaining human decision: whether to make the check required (branch protection).
+
+**2026-10-24 — bookkeeping: done.**
+
+`ci.yml` runs `basedpyright` and `ruff check --select F401`. The only open item is whether to make the job required; that box is left unchecked. Status → `ready-for-human (done; required-check decision open)`.

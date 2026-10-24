@@ -20,7 +20,7 @@ new head gets a fresh verdict.
 
 **Blocked by:** None (24a is complete; ticket 26's calibration passed).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] A `pull_request_review` submitted event with an approving review, a non-empty reason, a
       reviewer in `OWNER`/`MEMBER`/`COLLABORATOR`, and `review.commit_id == PR head SHA` re-runs the
@@ -90,3 +90,7 @@ Jev for a cached `NEEDS_REVIEW` or `FAIL`.
   green.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+Adjudication lives in `web_test/planning/verify/run.py` and `.github/workflows/adjudicate.yml`. Status → `ready-for-human (done; implemented)`.

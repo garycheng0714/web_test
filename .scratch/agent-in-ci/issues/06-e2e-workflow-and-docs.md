@@ -6,7 +6,7 @@ behind. The change is documented.
 
 **Blocked by:** 01 CI environment skeleton, 05 Automation entrypoint and approval gate.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 - [x] The workflow triggers on a merged `test-case/**` PR and invokes the entrypoint with the credentials it needs (repo token and model key)
 - [x] CI runs the suite on every pull request (`.github/workflows/ci.yml`)
@@ -58,3 +58,7 @@ skill (Summary / Evidence / Merge Danger). Notes for a rerun:
 
 Deferred: the `plan` agent's PR creation and the `prd-to-tests/spec.md` rewrite (the spec still describes
 the old gate/artifact); the front-matter schema in ADR-0006 is the contract they must follow.
+
+**2026-10-24 — bookkeeping: done.**
+
+`automate.yml` runs on a merged `test-case/**` PR; runs 39986654910 (published) and 40055442740 (red). Status → `ready-for-human (done; verified live)`.

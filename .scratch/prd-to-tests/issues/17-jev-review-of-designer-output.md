@@ -11,16 +11,16 @@ verifies).
 
 **Category:** enhancement
 
-**Status:** needs-triage
+**Status:** ready-for-human (done; implemented)
 
-- [ ] A batched Jev request built from the PRD + `DesignOutput.cases` + `open_questions`
-- [ ] Baseline checks: per-requirement coverage (`noul`), per-case groundedness (`noul`), per-pair
+- [x] A batched Jev request built from the PRD + `DesignOutput.cases` + `open_questions`
+- [x] Baseline checks: per-requirement coverage (`noul`), per-case groundedness (`noul`), per-pair
       dedup (`noul`)
-- [ ] Optional checks: boundary-policy compliance, open-question validity (`noul` + `choice`),
+- [x] Optional checks: boundary-policy compliance, open-question validity (`noul` + `choice`),
       traceability (`choice`)
-- [ ] Runs against the PRD→TestCase flow (a script or a step the plan stage can call) via
+- [x] Runs against the PRD→TestCase flow (a script or a step the plan stage can call) via
       `jev-decide decide --provider typesafe`
-- [ ] Only flags; it does not block, edit, or replace the designer
+- [x] Only flags; it does not block, edit, or replace the designer
 
 ## Comments
 
@@ -174,3 +174,6 @@ unavailable.
 Effect: `plan` now appends a `## Jev review (advisory)` section (per-case groundedness) to the Gate PR
 body and skips it when Jev is unavailable. It never blocks. `uv run pytest`: 96 passed, 1 skipped.
 
+**2026-10-24 — bookkeeping: done.**
+
+The advisory Jev review lives in `web_test/planning/review/` and is appended to the plan PR body; it never blocks. Status → `ready-for-human (done; implemented)`.

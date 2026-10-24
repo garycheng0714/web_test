@@ -6,7 +6,7 @@ cached payload without calling Jev. `BLOCKED` is not cached.
 
 **Blocked by:** 24a-5.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] The workflow restores the cache with `verify-<key>` before `run`
 - [x] A cache hit skips Jev (a test uses a `SystemOne` that would fail if called)
@@ -44,3 +44,7 @@ cached verdict. The model-level invariant (READY implies the three fields) is st
 remains a follow-up. 189 passed; basedpyright, lint-imports, and actionlint are green.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/planning/verify/cache.py` caches verdicts by digest and configuration. Status → `ready-for-human (done; implemented)`.

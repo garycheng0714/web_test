@@ -10,7 +10,7 @@ dropped.
 
 **Category:** enhancement
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] The skill's coverage/boundary/dedup/output sections encode the tighter policy
 - [x] The designer returns `DesignOutput(cases, open_questions)`
@@ -57,3 +57,7 @@ The sample PRD now yields **7 cases** (one per FR happy path, plus the two PRD-s
 duplicate email and failed login; Create Account + Continue merged) and **11 open questions**.
 
 `uv run pytest`: 86 passed, 1 skipped.
+
+**2026-10-24 — bookkeeping: done.**
+
+The designer instructions right-size case generation; covered by `tests/planning`. Status → `ready-for-human (done; implemented)`.

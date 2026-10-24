@@ -6,7 +6,7 @@ can run a smoke test that drives the app through a page object.
 
 **Blocked by:** 01
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] A base page and one canonical example page object are checked in as the house pattern
 - [x] Locators are encapsulated in page objects; assertions live in the tests (the example demonstrates both)
@@ -38,3 +38,7 @@ Known pre-existing failure left untouched per maintainer decision:
 `tests/test_home_header.py::test_home_header_shows_nav_links` — `Header.nav_names()` returns the
 real accessible name `"\ue8f8 Products"` for the Products link (see `.scratch/known-issues.md`).
 The ticket 02 smoke test itself passes; `uv run pytest` is otherwise green.
+
+**2026-10-24 — bookkeeping: done.**
+
+`pages/` and `components/` provide the Page Object Model scaffold. Status → `ready-for-human (done; implemented)`.

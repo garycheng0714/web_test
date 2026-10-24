@@ -74,7 +74,7 @@ invalidate it.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; decided)
 
 - [x] Claim and non-claims are stated
 - [x] Verdict bands and thresholds are stated
@@ -97,3 +97,7 @@ does not describe at all, fail AC alignment. This lets a happy-path case operate
 optional controls (e.g. marketing checkboxes) without being flagged as invented.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+The v1 contract is recorded in this ticket and reflected in `web_test/planning/review/verification.py`. Status → `ready-for-human (done; decided)`.

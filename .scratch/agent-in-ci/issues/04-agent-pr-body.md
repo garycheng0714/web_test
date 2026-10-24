@@ -6,7 +6,7 @@ publisher to use. A red suite produces no body.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] The coding agent can load the `pr` skill on demand
 - [x] On green, the agent's output is a PR body following the skill's template
@@ -41,3 +41,7 @@ lives in `INSTRUCTIONS`. The test does prove the `pr` skill is loadable at run t
 `uv run pytest`: 52 passed, 1 skipped (the pre-existing Products PUA header test).
 
 Left for ticket 05: wire `create_automation`'s `AutomationResult` into the publisher's `body`.
+
+**2026-10-24 — bookkeeping: done.**
+
+`AutomationResult.pr_body` is wired into the publisher body and covered by `tests/automation`. Status → `ready-for-human (done; implemented)`.

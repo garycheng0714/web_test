@@ -19,7 +19,7 @@ Live v3 result from ticket 20:
 
 **Blocked by:** 20 (eval harness).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] Reproduce the live result with the ticket 20 eval command
 - [x] Classify the cause: question wording, bands, or fixture data
@@ -123,3 +123,7 @@ left as is. Editing the artifact was rejected because `render_document` overwrit
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked and the kill criteria
 pass; status moved to `ready-for-human`. The 24b required-check flip can proceed after triage.
+
+**2026-10-24 — bookkeeping: done.**
+
+The `complete` dimension was replaced by `behavior`; the calibration kill criteria pass. Status → `ready-for-human (done; implemented)`.

@@ -5,7 +5,7 @@ automation tests can run. No Node workspace.
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] pytest is configured; Playwright's Python bindings are installed via uv
 - [x] `uv run pytest` runs an existing trivial test and passes
@@ -20,3 +20,7 @@ group, a `[tool.pytest.ini_options] testpaths = ["tests"]` config, a browser-lau
 (1 test). No Node toolchain introduced. Code review (Standards + Spec) surfaced a broken
 `--browser firefox` example (only chromium was installed) and a stale "no tests configured"
 line in `AGENTS.md`; both fixed.
+
+**2026-10-24 — bookkeeping: done.**
+
+`pyproject.toml` carries pytest, playwright, and pytest-playwright; the suite runs. Status → `ready-for-human (done; implemented)`.

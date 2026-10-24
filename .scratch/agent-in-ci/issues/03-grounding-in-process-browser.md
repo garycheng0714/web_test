@@ -7,7 +7,7 @@ the CLI snapshot — but without Node, npm, or a global CLI in the environment.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] The coding agent exposes the browser capability's navigate and accessibility-snapshot tools
 - [x] Grounding instructions name the capability's tools instead of the external CLI
@@ -52,3 +52,7 @@ environment (the capability's private-address block refuses an unresolved host),
 `uv run pytest`: 50 passed, 1 skipped (the pre-existing Products PUA header test).
 
 Left for ticket 06: `AGENTS.md` and `README.md` still describe grounding via `playwright-cli`.
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/automation/coding_agent.py` grounds through the in-process `PlaywrightBrowser` capability. Status → `ready-for-human (done; implemented)`.
