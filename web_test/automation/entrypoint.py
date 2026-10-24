@@ -32,6 +32,11 @@ class AutomationStatus(StrEnum):
     FAILED = "failed"
 
 
+def exit_code(status: AutomationStatus) -> int:
+    """Red outcomes fail the job so a silent run is visible; the gate is unchanged."""
+    return 0 if status in (AutomationStatus.PUBLISHED, AutomationStatus.NO_CHANGES) else 1
+
+
 @dataclass(frozen=True)
 class AutomationOutcome:
     """How an automation run ended, with a failure reason and red-run evidence."""
@@ -154,9 +159,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if outcome.status is AutomationStatus.FAILED:
         print(f"failed: {outcome.error}", file=sys.stderr)
-        return 1
-    print(outcome.status.value)
-    return 0
+    else:
+        print(outcome.status.value)
+    return exit_code(outcome.status)
 
 
 if __name__ == "__main__":

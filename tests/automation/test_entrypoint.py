@@ -1,8 +1,15 @@
 from pathlib import Path
 from unittest.mock import ANY, MagicMock, call
 
+import pytest
+
 from web_test.automation.coding_agent import AutomationResult
-from web_test.automation.entrypoint import AutomationOutcome, AutomationStatus, automate
+from web_test.automation.entrypoint import (
+    AutomationOutcome,
+    AutomationStatus,
+    automate,
+    exit_code,
+)
 from web_test.command import CommandResult
 
 SAMPLE = """\
@@ -205,3 +212,17 @@ def test_automate_keeps_red_evidence_when_git_fails(tmp_path: Path) -> None:
     assert outcome.status is AutomationStatus.SUITE_RED
     assert outcome.evidence is not None
     assert outcome.evidence.files == ()
+
+
+@pytest.mark.parametrize(
+    ("status", "code"),
+    [
+        (AutomationStatus.PUBLISHED, 0),
+        (AutomationStatus.NO_CHANGES, 0),
+        (AutomationStatus.AGENT_RED, 1),
+        (AutomationStatus.SUITE_RED, 1),
+        (AutomationStatus.FAILED, 1),
+    ],
+)
+def test_exit_code_marks_red_outcomes(status: AutomationStatus, code: int) -> None:
+    assert exit_code(status) == code
