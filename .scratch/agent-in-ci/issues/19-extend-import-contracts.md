@@ -13,8 +13,14 @@ Contracts to add:
 - `web_test.planning` does not import `web_test.automation` (replaces the narrower review-only
   contract).
 - `web_test.planning.review` does not import `web_test.planning.verify`.
-- `web_test.automation` does not import `web_test.planning.review` or `web_test.planning.verify`
-  (only `web_test.planning.schema` is allowed).
+- `web_test.automation` imports only `web_test.planning.schema` from planning; it must not import
+  the planning entrypoint, publisher, cases writer, designer, review, or verify stages.
+
+## Why
+
+Shared modules (`planning.schema`, `publishing`) are leaves: a leaf that imports a use case creates
+cycles (`planning.review.service` already imports `schema`) and pulls model/client dependencies into
+the other stage. See `docs/adr/0009-shared-modules-are-leaves.md`.
 
 **Shape:** only `[tool.importlinter]` contracts in `pyproject.toml`. Invariant: the baseline passes
 with 0 broken; a failing contract is a real dependency to fix, not a reason to weaken the rule.

@@ -61,6 +61,8 @@ publish check
   only one of them, and one can be understood and tested without importing the other. Code that
   always changes together, shares one type, and has no independent test is one responsibility.
 - Keep dependency arrows pointing from composition roots and use cases toward shared schemas. Shared schemas must not import review or automation modules.
+- Shared modules (`web_test.planning.schema`, `web_test.publishing`) are leaves; see
+  `docs/adr/0009-shared-modules-are-leaves.md`. `uv run lint-imports` enforces the direction.
 - Put cross-type conversion in the composition root or an adapter, not as a method on either data model.
 - Name by role and domain language; check `CONTEXT.md` first and avoid overloading existing terms.
 - Internal closed sets use `StrEnum`; otherwise follow the boundary/internal data convention above.
