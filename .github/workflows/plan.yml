@@ -38,6 +38,10 @@ jobs:
           # The merged PR's own changes: the last commit on the base branch. Covers merge and squash
           # merges (GitHub's default); a multi-commit rebase merge would show only its last commit.
           mapfile -t files < <(git diff --name-only --diff-filter=A HEAD^ HEAD -- 'prd/*.md')
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "no PRD added; nothing to plan"
+            exit 0
+          fi
           if [ "${#files[@]}" -ne 1 ]; then
             echo "expected exactly one added PRD file, got ${#files[@]}"
             printf '%s\n' "${files[@]}"
@@ -46,6 +50,7 @@ jobs:
           echo "path=${files[0]}" >> "$GITHUB_OUTPUT"
 
       - name: Design the test cases and open a PR
+        if: steps.prd.outputs.path != ''
         env:
           WEB_TEST_RUN_ID: ${{ github.run_id }}
           WEB_TEST_RUN_ATTEMPT: ${{ github.run_attempt }}
