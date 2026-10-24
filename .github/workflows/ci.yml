@@ -26,6 +26,8 @@ jobs:
         with:
           python-version: "3.13"
           enable-cache: true
+          # The parallel jobs share one cache key; only `test` saves it.
+          save-cache: false
       - run: uv sync --locked
       - run: uv run basedpyright
       - run: uv run ruff check --select F401
@@ -39,6 +41,8 @@ jobs:
         with:
           python-version: "3.13"
           enable-cache: true
+          # The parallel jobs share one cache key; only `test` saves it.
+          save-cache: false
       - run: uv sync --locked
       - run: uv run lint-imports
 
