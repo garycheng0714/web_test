@@ -4,7 +4,7 @@
 (`web_test/automation/case_file.py:23`) and `coding_agent.py:62` reads it to ground — but the URL
 really lives inside the test steps. Decide and implement the endgame.
 
-**Blocked by:** 12, 13.
+**Blocked by:** None (12/13 are superseded; the decision is open).
 
 **Status:** needs-triage
 
@@ -19,3 +19,5 @@ ADR-0006, `CaseFile`, and the existing sample files. The open question is whethe
 the URL is already present in the steps (e.g. `test-case/test-case-0001.md` step 2), and the automation
 side uses the front-matter value only for grounding — the generated test runs against `DEFAULT_BASE_URL`
 today (ticket 05 deferred the per-case plumbing).
+
+**2026-10-24 — metadata.** 12 and 13 are superseded, so the old blocker is gone. The current behavior keeps `base_url` in the front matter; the endgame (keep it vs infer it from the steps) is still undecided.

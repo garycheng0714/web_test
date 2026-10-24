@@ -3,7 +3,7 @@
 **What to build:** After a human reviews the generated tests PR (`automation/**`) and leaves
 comments, the agent can be re-triggered to apply the requested changes on the same PR.
 
-**Blocked by:** 06 End-to-end workflow and docs (and 10, for branch identity).
+**Blocked by:** None (06 and 10 complete).
 
 **Status:** needs-triage
 
@@ -36,3 +36,5 @@ Sketch (implementation details to decide later):
 
 Open: slash command vs any comment; who may trigger; red behavior (comment vs silent); whether to
 also update the PR body.
+
+**2026-10-24 — metadata.** 06 and 10 are done (run-scoped branch names), so this is unblocked. The trigger, permission, and red-behavior decisions are still open.
