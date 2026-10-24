@@ -10,6 +10,7 @@ from web_test.automation.case_file import CaseFile
 from web_test.automation.coding_agent import AutomationResult, create_automation
 from web_test.automation.evidence import (
     AutomationEvidence,
+    collect_traces,
     render_summary,
     write_evidence,
 )
@@ -59,9 +60,11 @@ def _outcome(
     deps: AutomationDeps,
     suite: CommandResult | None,
     files: list[str],
+    workspace: Path,
     *,
     error: str | None = None,
 ) -> AutomationOutcome:
+    traces, traces_skipped = collect_traces(workspace)
     return AutomationOutcome(
         status=status,
         error=error,
@@ -71,6 +74,8 @@ def _outcome(
             suite=suite,
             files=tuple(files),
             trace=tuple(deps.tool_trace),
+            traces=traces,
+            traces_skipped=traces_skipped,
         ),
     )
 
@@ -86,6 +91,7 @@ def automate(
     token: str | None = None,
 ) -> AutomationOutcome:
     """Implement the tests for one merged test-case artifact, and publish when green."""
+    workspace = Path(workspace)
     deps = AutomationDeps()
     suite_result: CommandResult | None = None
     files: list[str] = []
@@ -95,14 +101,14 @@ def automate(
         files = _generated_files(git)
 
         if result.pr_body is None:
-            return _outcome(AutomationStatus.AGENT_RED, deps, suite_result, files)
+            return _outcome(AutomationStatus.AGENT_RED, deps, suite_result, files, workspace)
 
         suite_result = suite.run()
         if suite_result.returncode != 0:
-            return _outcome(AutomationStatus.SUITE_RED, deps, suite_result, files)
+            return _outcome(AutomationStatus.SUITE_RED, deps, suite_result, files, workspace)
 
         if not files:
-            return _outcome(AutomationStatus.NO_CHANGES, deps, suite_result, files)
+            return _outcome(AutomationStatus.NO_CHANGES, deps, suite_result, files, workspace)
 
         Publisher(git=git, pr=pr).publish(
             case_id=case.id, body=result.pr_body, files=files, token=token or run_token()
@@ -113,10 +119,11 @@ def automate(
             deps,
             suite_result,
             files,
+            workspace,
             error=str(error),
         )
 
-    return _outcome(AutomationStatus.PUBLISHED, deps, suite_result, files)
+    return _outcome(AutomationStatus.PUBLISHED, deps, suite_result, files, workspace)
 
 
 def main(argv: list[str] | None = None) -> int:

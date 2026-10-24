@@ -5,6 +5,10 @@ from pathlib import Path, PurePosixPath
 from web_test.command import CommandResult
 from web_test.write_guard import ALLOWED_DIRS
 
+# Keep the artifact bounded: a trace can be several MB, and the evidence is best-effort.
+MAX_TRACE_FILES = 20
+MAX_TRACE_BYTES = 50 * 1024 * 1024
+
 
 @dataclass(frozen=True)
 class AutomationEvidence:
@@ -15,6 +19,8 @@ class AutomationEvidence:
     suite: CommandResult | None = None
     files: tuple[str, ...] = ()
     trace: tuple[str, ...] = ()
+    traces: tuple[str, ...] = ()
+    traces_skipped: int = 0
 
 
 def _fenced(text: str) -> str:
@@ -29,6 +35,40 @@ def _suite_text(suite: CommandResult | None) -> str:
         f"--- stdout ---\n{suite.stdout.rstrip()}\n\n"
         f"--- stderr ---\n{suite.stderr.rstrip()}"
     )
+
+
+def collect_traces(workspace: Path) -> tuple[tuple[str, ...], int]:
+    """The failing tests' traces, capped for the artifact. Best-effort."""
+    root = workspace / "test-results"
+    try:
+        candidates = sorted(path for path in root.rglob("*.zip") if path.is_file())
+    except OSError:
+        return (), 0
+
+    traces: list[str] = []
+    skipped = 0
+    total = 0
+    workspace_root = workspace.resolve()
+    for path in candidates:
+        try:
+            resolved = path.resolve()
+        except OSError:
+            continue
+        if not resolved.is_relative_to(workspace_root):
+            continue
+        if len(traces) >= MAX_TRACE_FILES:
+            skipped += 1
+            continue
+        try:
+            size = path.stat().st_size
+        except OSError:
+            continue
+        if total + size > MAX_TRACE_BYTES:
+            skipped += 1
+            continue
+        total += size
+        traces.append(path.relative_to(workspace).as_posix())
+    return tuple(traces), skipped
 
 
 def render_summary(
@@ -58,10 +98,29 @@ def render_summary(
         "",
         _fenced(_suite_text(evidence.suite)),
         "",
+        "### Traces",
+        "",
+        _fenced(
+            "\n".join(evidence.traces)
+            if evidence.traces
+            else "no trace produced (green run or tracing unavailable)"
+        ),
+        *(
+            ["", "The files are copied under `traces/` in the artifact."]
+            if evidence.traces
+            else []
+        ),
+        "",
         "### Tool trace",
         "",
         _fenced("\n".join(evidence.trace) if evidence.trace else "trace unavailable"),
     ]
+    if evidence.traces_skipped:
+        lines += [
+            "",
+            f"{evidence.traces_skipped} trace(s) skipped by the "
+            f"{MAX_TRACE_FILES}-file / {MAX_TRACE_BYTES // (1024 * 1024)}MB cap.",
+        ]
     return "\n".join(lines)
 
 
@@ -87,6 +146,30 @@ def _copy_generated(
     if not resolved.is_relative_to(workspace.resolve()):
         return
     target = directory / "files" / Path(*candidate.parts)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
+
+
+def _copy_trace(workspace: Path, directory: Path, relative: str) -> None:
+    candidate = PurePosixPath(relative)
+    if (
+        candidate.is_absolute()
+        or not candidate.parts
+        or ".." in candidate.parts
+        or candidate.parts[0] != "test-results"
+        or candidate.suffix != ".zip"
+    ):
+        return
+    source = workspace / Path(*candidate.parts)
+    if not source.is_file():
+        return
+    try:
+        resolved = source.resolve()
+    except OSError:
+        return
+    if not resolved.is_relative_to(workspace.resolve()):
+        return
+    target = directory / "traces" / Path(*candidate.parts)
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, target)
 
@@ -119,5 +202,7 @@ def write_evidence(
         )
         for relative in evidence.files:
             _copy_generated(workspace, directory, relative)
+        for relative in evidence.traces:
+            _copy_trace(workspace, directory, relative)
 
     return summary

@@ -226,3 +226,18 @@ def test_automate_keeps_red_evidence_when_git_fails(tmp_path: Path) -> None:
 )
 def test_exit_code_marks_red_outcomes(status: AutomationStatus, code: int) -> None:
     assert exit_code(status) == code
+
+
+def test_automate_captures_the_traces(tmp_path: Path) -> None:
+    case = _write_case(tmp_path)
+    trace = tmp_path / "test-results" / "suite" / "a" / "trace.zip"
+    trace.parent.mkdir(parents=True)
+    trace.write_bytes(b"trace")
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/a.py"], green=False)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.SUITE_RED
+    assert outcome.evidence is not None
+    assert outcome.evidence.traces == ("test-results/suite/a/trace.zip",)
