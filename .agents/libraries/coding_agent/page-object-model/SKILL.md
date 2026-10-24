@@ -76,6 +76,10 @@ existing suite and a UI change stays a one-place edit.
 19. **Follow the case's steps in order.** Do not replace a `navigate` or `click` step with a direct
     URL or a page object's `open()`, and do not drop a setup step; a test that skips the case's
     navigation path is not covering that case.
+20. **Tag every generated test with its source case.** Decorate each test function with
+    `@pytest.mark.case("<file-id>", <case-number>)`: the front-matter `id` and the integer from the
+    file's `## Case N:` heading. One marker per test; a case may have more than one test. Add the
+    decorator to each test function; do not replace an existing `pytestmark`.
 
 ## House example (read these before writing)
 
@@ -113,3 +117,4 @@ exactly, pass `exact=True`. If a snapshot or terminal looks clean but a match fa
   `expect_loaded()` readiness check (rule 12).
 - Reused or extended existing page objects where possible.
 - New files placed in the right directory and importable.
+- Every generated test carries `@pytest.mark.case("<file-id>", <n>)` (rule 20).

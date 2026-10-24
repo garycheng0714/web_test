@@ -1,3 +1,4 @@
+import ast
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import TypeVar
@@ -13,6 +14,8 @@ from web_test._run import run_sync
 from web_test.automation.coding_agent import (
     GROUNDING_POLICY,
     INSTRUCTIONS,
+    SKILL_LIBRARY,
+    SKILL_NAME,
     AutomationResult,
     build_automation_agent,
 )
@@ -103,6 +106,34 @@ def test_grounding_instructions_name_the_capability_tools() -> None:
     assert "navigate" in INSTRUCTIONS
     assert "snapshot" in INSTRUCTIONS
     assert "playwright-cli" not in INSTRUCTIONS
+
+
+def test_instructions_require_the_case_marker() -> None:
+    assert "pytest.mark.case" in INSTRUCTIONS
+    assert "## Case N" in INSTRUCTIONS
+    assert "front matter" in INSTRUCTIONS
+
+
+def test_page_object_skill_requires_the_case_marker() -> None:
+    skill = (SKILL_LIBRARY / SKILL_NAME / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "pytest.mark.case" in skill
+    assert "## Case N" in skill
+
+
+def test_case_marker_is_parseable() -> None:
+    tree = ast.parse(
+        '@pytest.mark.case("register-login", 1)\n'
+        "def test_signup() -> None:\n"
+        "    pass\n"
+    )
+    function = tree.body[0]
+    assert isinstance(function, ast.FunctionDef)
+    decorator = function.decorator_list[0]
+    assert isinstance(decorator, ast.Call)
+    assert isinstance(decorator.func, ast.Attribute)
+    assert decorator.func.attr == "case"
+    assert [ast.literal_eval(arg) for arg in decorator.args] == ["register-login", 1]
 
 
 def test_browser_tools_are_dispatched_through_the_agent(tmp_path: Path) -> None:

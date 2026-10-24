@@ -27,6 +27,9 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "case(id, number): the source test-case id and case number",
+]
 
 [tool.basedpyright]
 include = ["web_test"]

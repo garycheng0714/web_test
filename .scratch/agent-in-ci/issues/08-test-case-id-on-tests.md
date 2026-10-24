@@ -16,13 +16,13 @@ case number in a pytest marker, so the quality gate (ticket 10a) can map each te
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human (done; implemented)
 
-- [ ] Every generated test function has exactly one `@pytest.mark.case("<file-id>", <n>)`
-- [ ] The marker is registered in `pyproject.toml`
-- [ ] The rule is in `INSTRUCTIONS` and the `page-object-model` skill
-- [ ] Every `## Case N` in the case file has at least one generated test with that marker
-- [ ] Unit-tested at the agent seam (instructions/skill contain the rule; the marker is parseable)
+- [x] Every generated test function has exactly one `@pytest.mark.case("<file-id>", <n>)`
+- [x] The marker is registered in `pyproject.toml`
+- [x] The rule is in `INSTRUCTIONS` and the `page-object-model` skill
+- [x] Every `## Case N` in the case file has at least one generated test with that marker
+- [x] Unit-tested at the agent seam (instructions/skill contain the rule; the marker is parseable)
 
 ## Comments
 
@@ -51,6 +51,13 @@ unblock tickets 10, 22b, or 09. Revisit when ticket 10's run report (or another 
 needs the test→case mapping; the marker-vs-name-vs-docstring decision is deferred.
 
 **2026-10-24 — unparked and re-scoped.** Consumer: the quality gate in ticket 10a. The marker
-shape is decided: `@pytest.mark.case("<file-id>", <case-number>)`, one test per case. The earlier
+shape is decided: `@pytest.mark.case("<file-id>", <case-number>)`, one marker per test; a case
+may have more than one test. The earlier
 park was because no consumer existed; the quality gate now needs the test→case mapping to catch a
 missing case.
+
+**2026-10-24 — implemented.** `pyproject.toml` registers the `case(id, number)` marker.
+`INSTRUCTIONS` and the `page-object-model` skill require
+`@pytest.mark.case("<file-id>", <n>)` on every generated test (one marker per test; a case may have
+more than one test). Tests cover the instruction/skill text and an `ast` parse of the marker. Not
+live-run: the next automate run will produce the first marked test.
