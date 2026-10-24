@@ -37,7 +37,7 @@ uv run playwright install chromium
 `.github/workflows/ci.yml` runs on every pull request: the suite with a coverage report, a
 basedpyright typecheck with a ruff unused-import lint, the import-linter architecture contracts, and
 actionlint on the workflows.
-The `test` job is required on `main`; `typecheck`, `contracts`, and `workflows` are shadow checks
+The `test`, `typecheck`, and `contracts` jobs are required on `main`; `workflows` is a shadow check
 for now. The pipeline itself is two merge-triggered workflows that mirror each other (ADR-0008):
 
 - `plan.yml` runs when a pull request adding a `prd/**` file is **merged**: it runs the designer and

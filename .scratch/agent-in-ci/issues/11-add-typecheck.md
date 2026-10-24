@@ -6,7 +6,7 @@ baseline, then widen only after the gate is green.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human (done; required-check decision open)
+**Status:** ready-for-human (done; required check)
 
 - [x] Choose the tool (mypy / pyright / basedpyright / ty) and record why
 - [x] Add it as a dev dependency and check in its config
@@ -14,7 +14,7 @@ baseline, then widen only after the gate is green.
 - [x] Add the `uv run ...` command to AGENTS.md / README
 - [x] Record the baseline: fix errors or list explicit ignores
 - [x] Add the command to `.github/workflows/ci.yml`
-- [ ] Decide whether the check is required; if yes, update branch protection
+- [x] Decide whether the check is required; if yes, update branch protection
 - [x] `uv run pytest` stays green (138 passed, 1 skipped)
 - [x] No runtime behaviour changes
 
@@ -28,7 +28,7 @@ baseline, then widen only after the gate is green.
   functions and would add noise before a wider pass.
 - Third-party policy: no stubs were needed. `pyyaml` has no `py.typed`, and standard mode accepts the
   resulting untyped `yaml.safe_load`; no global `ignore_missing_imports` was added.
-- CI: a `typecheck` job in `.github/workflows/ci.yml`, shadow (not required) for now.
+- CI: a `typecheck` job in `.github/workflows/ci.yml`, required on `main` since 2026-10-24.
 
 ## Comments
 
@@ -53,3 +53,5 @@ Recent refactors renamed `VerificationStatus`, split the review modules, and cha
 **2026-10-24 — bookkeeping: done.**
 
 `ci.yml` runs `basedpyright` and `ruff check --select F401`. The only open item is whether to make the job required; that box is left unchecked. Status → `ready-for-human (done; required-check decision open)`.
+
+**2026-10-24 — required.** `typecheck` is a required status check on `main` (app id 15368), together with `test`, `contracts`, and `verify-test-case`; `workflows` stays shadow. Status → `ready-for-human (done; required check)`.
