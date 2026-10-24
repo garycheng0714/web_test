@@ -12,7 +12,7 @@ The run exits 0 after publishing any verdict; infrastructure or publish failures
 
 **Blocked by:** 24a-2b, 24a-3.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] `prepare` writes the verification input and emits `key=` to `$GITHUB_OUTPUT` (empty when no review)
 - [x] `run` handles the early outcomes (0 files, more than one file, missing PRD)
@@ -66,3 +66,9 @@ the verification input with `verify_key.cache_key`; a Test Case that cannot be p
 CLI flag, and file name are unchanged. 191 passed.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+## Comments
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/planning/verify/cli.py` is the verdict CLI. Status → `ready-for-human (done; implemented)`.

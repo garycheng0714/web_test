@@ -7,7 +7,7 @@ publishing or infrastructure failures turn it red.
 
 **Blocked by:** 24a-4.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 - [x] Triggers on opened/synchronize/reopened and checks out the head SHA
 - [x] A PR with no test-case artifact publishes success explicitly
@@ -47,3 +47,7 @@ creating a duplicate. An empty commit (`1cc892e`, run 39832614584) published a n
 (120012549069) for the new head; the same content returned `NEEDS_REVIEW` (Case 2 AC alignment
 p=0.79, pass band >= 0.8) with the identical cache key `4c0564...`. This confirms the known Jev
 flakiness near the band; 24a-6's cache and 26's calibration address it.
+
+**2026-10-24 — bookkeeping: done.**
+
+`.github/workflows/verify.yml` wires the shadow check; verified live on PR #11. Status → `ready-for-human (done; verified live)`.

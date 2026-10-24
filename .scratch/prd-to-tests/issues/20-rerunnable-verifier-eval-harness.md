@@ -9,7 +9,7 @@ one-run and small-sample limits instead of presenting a directional result as st
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] Known-bad and known-good variants are checked in as fixtures
 - [x] One command runs the full set without hand-built request files
@@ -100,3 +100,7 @@ decision, while reading it forced the eval to keep a second Jev adapter that par
 payload. The report keeps model, question-set version, and the needs-review rate.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+The rerunnable eval harness lives in `web_test/planning/review/{eval,eval_set,eval_report}.py`. Status → `ready-for-human (done; implemented)`.

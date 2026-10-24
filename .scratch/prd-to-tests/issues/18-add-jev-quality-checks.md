@@ -12,7 +12,7 @@ The review stays advisory. It does not block the plan PR, edit the designer's ou
 
 **Category:** enhancement
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 ## Decisions from the 2026-10-20 experiment
 
@@ -135,3 +135,7 @@ Update `tests/planning/test_plan.py` if the report section names change.
 The run still uses `prd_text + cases` only. No images, screen descriptions, or Appendix A parsing were added.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+AC alignment, step quality, and observability checks live in `web_test/planning/review/questions.py`. Status → `ready-for-human (done; implemented)`.

@@ -8,7 +8,7 @@ instead of creating a duplicate. The payload carries `name`, `head_sha`, `status
 
 **Blocked by:** None.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] `CheckPayload` carries the fields above; `conclusion` is limited to `success`,
       `action_required`, or `failure`
@@ -41,3 +41,9 @@ the adapter to `GitHubAdapter`. The payload, conclusion mapping, and idempotent 
 are unchanged; the `Runner`-based transport is removed.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+## Comments
+
+**2026-10-24 — bookkeeping: done.**
+
+The check publisher lives in `web_test/planning/verify/payload.py`; transport was later replaced by 24a-2b. Status → `ready-for-human (done; implemented)`.

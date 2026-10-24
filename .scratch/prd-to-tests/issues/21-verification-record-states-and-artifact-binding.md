@@ -9,7 +9,7 @@ the original verdict, the reason, and the head it applied to.
 
 **Blocked by:** 19 (the contract fixes the vocabulary and authority).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] The record models `PASS`, `NEEDS_REVIEW`, `FAIL`, and `BLOCKED` at step, case, and file level
 - [x] Aggregation follows `FAIL > BLOCKED > NEEDS_REVIEW > PASS`
@@ -42,3 +42,7 @@ the original verdict, the reason, and the head it applied to.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to
 `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/planning/review/record.py` records the verification state and binds it to the artifact. Status → `ready-for-human (done; implemented)`.

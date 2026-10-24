@@ -7,7 +7,7 @@ and merge settings are configured. This is the identity and settings prerequisit
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 - [x] App `web-test-qa-flow` created: webhook off; Contents read/write; Pull-requests read/write;
       installed **only** on this repository
@@ -28,3 +28,7 @@ renamed to `web-test-qa-flow`; its bot user is `web-test-qa-flow[bot]` (id 34440
 
 - Short-lived installation tokens (≈1 hour) outlast the 30-minute jobs, so no re-mint is needed.
 - The app authors the PRs, so a human (not the app) can approve them if a review gate is ever added.
+
+**2026-10-24 — bookkeeping: done.**
+
+The `web-test-qa-flow` app, its secrets, and the repository variable are in use by both workflows. Status → `ready-for-human (done; verified live)`.

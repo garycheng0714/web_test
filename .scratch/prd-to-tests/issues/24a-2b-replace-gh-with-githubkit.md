@@ -7,7 +7,7 @@ test suite.
 
 **Blocked by:** 24a-2 (the payload and the check-run calls it replaces).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] Add `githubkit` as a dependency
 - [x] `GitHubAdapter(client, owner, repo)` replaces the `Runner`/`workspace` adapter
@@ -53,3 +53,7 @@ test suite.
 - `grep '"gh"' web_test` returns nothing; `subprocess_runner` remains only for `Git` and `Suite`.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/publishing/github.py` uses githubkit instead of the `gh` subprocess. Status → `ready-for-human (done; implemented)`.

@@ -6,7 +6,7 @@ both texts, and compute `test_case_digest`, `prd_digest`, the question-set versi
 
 **Blocked by:** None.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] Only `test-case/test-case-*.md` artifacts are considered
 - [x] Zero artifacts returns a "nothing to verify" outcome
@@ -51,3 +51,9 @@ key moved to `verify_key.py` (`cache_key`, `InvalidTestCase`), and its tests mov
 `test_verify_key.py`. 191 passed.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+## Comments
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/planning/verify/{resolution,key}.py` resolve the case and compute the verdict key. Status → `ready-for-human (done; implemented)`.

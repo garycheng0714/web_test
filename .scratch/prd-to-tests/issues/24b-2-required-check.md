@@ -6,7 +6,7 @@ PR. This needs repository admin; it is not an agent-only change.
 
 **Blocked by:** 24b-1 (adjudication); ticket 26's calibration is already satisfied.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 - [x] Branch protection on `main` requires the `verify-test-case` check
 - [x] The shadow-to-required rollout is documented: the evidence used, the observation period, and
@@ -92,3 +92,7 @@ live test a real non-PASS verdict without touching `TYPESAFE_API_KEY`.
   checks to add the docs and the temporary live-PR workflow. The reason is recorded here; the
   temporary workflow was removed after the live test. A cleanup push for this ticket and the
   workflow removal is the same break-glass path.
+
+**2026-10-24 — bookkeeping: done.**
+
+`verify-test-case` is a required check; the PASS, FAIL, NEEDS_REVIEW, and approval paths were verified live. Status → `ready-for-human (done; verified live)`.

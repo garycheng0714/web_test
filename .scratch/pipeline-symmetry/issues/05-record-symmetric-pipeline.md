@@ -7,7 +7,7 @@ unchanged.
 
 **Blocked by:** 03 (automation CI identity), 04 (plan in CI).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] The spec's "pipeline shape / where it runs" describes `plan` running in CI, triggered by a
       merged PRD, and no longer "may run locally"
@@ -34,3 +34,7 @@ with `contents: read`, both act on exactly one added file, and both take their s
 ## Notes
 
 - Keep the ADR short; it records a decision, not a tutorial.
+
+**2026-10-24 — bookkeeping: done.**
+
+`docs/adr/0008-both-stages-in-ci-under-one-app-identity.md` records the decision. Status → `ready-for-human (done; implemented)`.

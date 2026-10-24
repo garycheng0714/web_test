@@ -34,7 +34,7 @@ Checks in this slice:
 
 **Blocked by:** None (21 and 24b are complete).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] Front matter `id` and `base_url` are checked
 - [x] Case numbers are checked for duplicates
@@ -83,3 +83,7 @@ Checks in this slice:
 - `README.md`: the required check now mentions deterministic structure checks.
 - `uv run pytest`: 228 passed, 1 skipped; basedpyright, lint-imports, ruff F401, and actionlint are
   green.
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/planning/review/structure.py` implements the deterministic checks; `CHECK_SET_VERSION = "structure-v1"`. Status → `ready-for-human (done; implemented)`.

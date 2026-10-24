@@ -6,7 +6,7 @@ contents; no digest or stale comparison is performed.
 
 **Blocked by:** 21 (the review engine and record).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] A file produced by Plan round-trips back into step-level review state
 - [x] The parsed state preserves each step's action and expected result
@@ -32,3 +32,7 @@ contents; no digest or stale comparison is performed.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to
 `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+Reviewing an existing Test Case file is covered by `web_test/planning/review/service.py` and its CLI. Status → `ready-for-human (done; implemented)`.

@@ -7,7 +7,7 @@ driving git and the GitHub CLI; it is not a model action.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] Collects the changed files and keeps only the paths the write guard already permits (test, page, and component Python files)
 - [x] Re-runs the suite itself; when it is not green it performs no git or gh action
@@ -32,3 +32,7 @@ Tests: `test_git.py` (argv per method + failure + `parse_git_status`), `test_git
 argv + failure), `test_publish.py` (injects `RecordingGit`/`RecordingGitHub`/`StubSuite`; asserts the
 call sequence, allowlist filtering, and the no-op-on-red / no-changes paths — no network). Full suite is
 green.
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/publishing/{git,github,publish}.py` and their tests implement the deterministic publisher. Status → `ready-for-human (done; implemented)`.

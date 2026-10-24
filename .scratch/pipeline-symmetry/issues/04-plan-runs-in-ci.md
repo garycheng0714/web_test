@@ -48,3 +48,7 @@ opened **PR #9** authored by `app/web-test-qa-flow`, branch `plan/login-smoke-39
 - Only **added** PRDs trigger (not modifications) — matching the existing automation pattern.
 - The PRD carries no base URL; the base URL lives in the test-case front-matter, supplied here from
   the repository variable.
+
+**2026-10-24 — bookkeeping: done.**
+
+`plan.yml` runs on a merged `prd/**` PR; verified live. Status → `ready-for-human (done; verified live)`.

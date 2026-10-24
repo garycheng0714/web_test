@@ -7,7 +7,7 @@ absent (a local run), a UTC timestamp is used instead.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] Plan and automation branches are produced by one shared naming rule, not two divergent ones
 - [x] The suffix uses the GitHub run id and attempt when supplied by the environment
@@ -28,3 +28,7 @@ Implemented: `web_test/naming.py` (`run_token`, `branch_for`); both stages build
   this ticket makes both run-scoped.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+**2026-10-24 — bookkeeping: done.**
+
+`web_test/naming.py` (`run_token`, `branch_for`) is shared by both stages. Status → `ready-for-human (done; implemented)`.

@@ -7,7 +7,7 @@ resolution and key tests to remove duplicated case/file builders. Production cod
 
 **Blocked by:** 27 (the package import paths must exist first).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] `test_verify.py` is removed; prepare, run, cache, and CLI tests live in separate files.
 - [x] Shared helpers are defined once; the resolution and key tests use them.
@@ -20,3 +20,9 @@ ready input, and run-payload helper; the resolution and key tests use it. The su
 passing tests, and basedpyright, lint-imports, and actionlint are green.
 
 **2026-10-23 — tracker cleanup.** All acceptance items are checked; status moved to `ready-for-human`.
+
+## Comments
+
+**2026-10-24 — bookkeeping: done.**
+
+The verification tests are split into prepare, run, cache, and CLI modules. Status → `ready-for-human (done; implemented)`.

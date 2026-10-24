@@ -6,7 +6,7 @@ not import automation.
 
 **Blocked by:** None.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; required-check decision open)
 
 - [x] Add `import-linter` as a dev dependency
 - [x] Define the contracts in `pyproject.toml`
@@ -37,3 +37,7 @@ not import automation.
   0 broken.
 - CI: `contracts` job runs `uv sync --locked` then `uv run lint-imports`.
 - Remaining human decision: whether to make the check required.
+
+**2026-10-24 — bookkeeping: done.**
+
+`ci.yml` runs `uv run lint-imports`; both contracts are kept. The open item is whether to make the job required. Status → `ready-for-human (done; required-check decision open)`.

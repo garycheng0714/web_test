@@ -11,7 +11,7 @@ that setup from the planning/automation/unit tests.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; implemented)
 
 - [x] `block_ads` is no longer `autouse=True` in `tests/conftest.py`
 - [x] `tests/test_home_page.py`, `tests/test_home_header.py`, and `tests/test_test_cases.py` request
@@ -55,3 +55,9 @@ that setup from the planning/automation/unit tests.
   are unchanged.
 - `uv run pytest`: 237 passed, 1 skipped (10.62s locally); basedpyright, lint-imports, ruff F401, and
   actionlint are green.
+
+## Comments
+
+**2026-10-24 — bookkeeping: done.**
+
+The three UI modules use `pytestmark = pytest.mark.usefixtures("block_ads")`; planning tests no longer launch a browser. Status → `ready-for-human (done; implemented)`.
