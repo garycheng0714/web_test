@@ -102,7 +102,11 @@ def build_automation_agent(
         output_type=AutomationResult,
         instructions=INSTRUCTIONS,
         capabilities=[
-            LocalWorkspace(str(workspace_dir)),
+            LocalWorkspace(
+                str(workspace_dir),
+                # The agent's own pytest run is the deciding run for AGENT_RED, so keep its traces.
+                env={"PYTEST_ADDOPTS": "--tracing=retain-on-failure"},
+            ),
             Coder(sub_agents=False, repo_context=False),
             write_guard,
             repair_guard,
