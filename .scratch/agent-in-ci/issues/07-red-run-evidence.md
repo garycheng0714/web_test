@@ -147,3 +147,6 @@ merged Test Case PR will exercise it.
   `pull_request`-only). `WEB_TEST_REPAIR_ATTEMPTS=2` is set on the repository for the red run and
   must be deleted or reset (it overrides the workflow default of 10).
 - Playwright traces (`--tracing=retain-on-failure`) remain unimplemented and are split to ticket 16.
+- **Superseded (2026-10-24):** the "keep the job green" decision was reversed by ticket 17:
+  `AGENT_RED` and `SUITE_RED` now exit 1 so the run is visible without opening it. The evidence
+  behaviour is unchanged.
