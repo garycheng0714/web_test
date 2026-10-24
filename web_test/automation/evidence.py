@@ -5,7 +5,7 @@ from pathlib import Path, PurePosixPath
 from web_test.automation.quality import QualityFinding
 from web_test.automation.report import RunReport, render_run_report
 from web_test.command import CommandResult
-from web_test.write_guard import ALLOWED_DIRS
+from web_test.write_guard import ALLOWED_DIRS, resolve_workspace_path
 
 # Keep the artifact bounded: a trace can be several MB, and the evidence is best-effort.
 MAX_TRACE_FILES = 20
@@ -142,22 +142,10 @@ def _copy_generated(
     workspace: Path, directory: Path, relative: str
 ) -> None:
     candidate = PurePosixPath(relative)
-    if (
-        candidate.is_absolute()
-        or not candidate.parts
-        or ".." in candidate.parts
-        or candidate.parts[0] not in ALLOWED_DIRS
-        or candidate.suffix != ".py"
-    ):
+    if not candidate.parts or candidate.parts[0] not in ALLOWED_DIRS:
         return
-    source = workspace / Path(*candidate.parts)
-    if not source.is_file():
-        return
-    try:
-        resolved = source.resolve()
-    except OSError:
-        return
-    if not resolved.is_relative_to(workspace.resolve()):
+    source = resolve_workspace_path(workspace, relative, suffix=".py")
+    if source is None:
         return
     target = directory / "files" / Path(*candidate.parts)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -166,22 +154,10 @@ def _copy_generated(
 
 def _copy_trace(workspace: Path, directory: Path, relative: str) -> None:
     candidate = PurePosixPath(relative)
-    if (
-        candidate.is_absolute()
-        or not candidate.parts
-        or ".." in candidate.parts
-        or candidate.parts[0] != "test-results"
-        or candidate.suffix != ".zip"
-    ):
+    if not candidate.parts or candidate.parts[0] != "test-results":
         return
-    source = workspace / Path(*candidate.parts)
-    if not source.is_file():
-        return
-    try:
-        resolved = source.resolve()
-    except OSError:
-        return
-    if not resolved.is_relative_to(workspace.resolve()):
+    source = resolve_workspace_path(workspace, relative, suffix=".zip")
+    if source is None:
         return
     target = directory / "traces" / Path(*candidate.parts)
     target.parent.mkdir(parents=True, exist_ok=True)
