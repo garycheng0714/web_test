@@ -1,16 +1,28 @@
 # 08: Tag generated tests with the test-case id
 
-**What to build:** Every generated Automation Test carries the id of the `test-case/<id>.md` it came
-from, so a test (and its CI output) is traceable back to its source case.
+**What to build:** Every generated Automation Test carries the source test-case file id and the
+case number in a pytest marker, so the quality gate (ticket 10a) can map each test back to
+`test-case/<file-id>.md` case N.
 
-**Blocked by:** None (05 complete).
+**Shape:**
 
-**Status:** needs-triage
+- Marker: `@pytest.mark.case("<file-id>", <case-number>)` on every generated test function.
+- `<file-id>` is the test-case front-matter `id`; `<case-number>` is the integer in the file's
+  `## Case N:` heading.
+- Registered in `pyproject.toml` under `[tool.pytest.ini_options].markers`.
+- Required by the agent's `INSTRUCTIONS` and the `page-object-model` skill.
+- Invariants: exactly one marker per test; one test maps to one case; every `## Case N` in the case
+  file has at least one generated test with that marker.
 
-- [ ] Generated tests expose their source case id in a machine-readable form
-- [ ] The id is selectable from the test run (e.g. a `pytest` marker, or visible in `pytest -v`)
-- [ ] The requirement lives in the agent's `INSTRUCTIONS` and the `page-object-model` skill
-- [ ] Unit-tested at the agent seam
+**Blocked by:** None.
+
+**Status:** ready-for-agent
+
+- [ ] Every generated test function has exactly one `@pytest.mark.case("<file-id>", <n>)`
+- [ ] The marker is registered in `pyproject.toml`
+- [ ] The rule is in `INSTRUCTIONS` and the `page-object-model` skill
+- [ ] Every `## Case N` in the case file has at least one generated test with that marker
+- [ ] Unit-tested at the agent seam (instructions/skill contain the rule; the marker is parseable)
 
 ## Comments
 
@@ -37,3 +49,8 @@ select by marker argument, `pytest -v` does not print marker arguments, the auto
 file per PRD (so the same id would repeat on every test from that run), and this ticket does not
 unblock tickets 10, 22b, or 09. Revisit when ticket 10's run report (or another concrete query)
 needs the test→case mapping; the marker-vs-name-vs-docstring decision is deferred.
+
+**2026-10-24 — unparked and re-scoped.** Consumer: the quality gate in ticket 10a. The marker
+shape is decided: `@pytest.mark.case("<file-id>", <case-number>)`, one test per case. The earlier
+park was because no consumer existed; the quality gate now needs the test→case mapping to catch a
+missing case.
