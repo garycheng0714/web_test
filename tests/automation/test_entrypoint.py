@@ -11,7 +11,29 @@ from web_test.automation.entrypoint import (
     exit_code,
 )
 from web_test.automation.quality import QualityRule
+from web_test.automation.report import TestStatus
 from web_test.command import CommandResult
+
+JUNIT = """\
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="pytest tests">
+    <testcase classname="tests.test_home" name="test_home_page" file="tests/test_home.py" />
+    <testcase classname="tests.test_existing" name="test_old_fail" file="tests/test_existing.py">
+      <failure message="old failed" />
+    </testcase>
+  </testsuite>
+</testsuites>
+"""
+
+GREEN_JUNIT = """\
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="pytest tests">
+    <testcase classname="tests.test_home" name="test_home_page" file="tests/test_home.py" />
+  </testsuite>
+</testsuites>
+"""
 
 SAMPLE = """\
 ---
@@ -54,6 +76,12 @@ def _write_test(tmp_path: Path, text: str = GOOD_TEST) -> None:
     tests = tmp_path / "tests"
     tests.mkdir(exist_ok=True)
     (tests / "test_home.py").write_text(text, encoding="utf-8")
+
+
+def _write_junit(tmp_path: Path, text: str = JUNIT) -> None:
+    results = tmp_path / "test-results"
+    results.mkdir(exist_ok=True)
+    (results / "junit.xml").write_text(text, encoding="utf-8")
 
 
 def _deps(*, files: list[str], green: bool) -> tuple[MagicMock, MagicMock, MagicMock]:
@@ -103,6 +131,7 @@ def test_automate_keeps_agent_red_before_the_quality_gate(tmp_path: Path) -> Non
     assert outcome.status is AutomationStatus.AGENT_RED
     assert outcome.evidence is not None
     assert outcome.evidence.quality == ()
+    assert outcome.evidence.report is None
     suite.run.assert_not_called()
     pr.assert_not_called()
 
@@ -122,6 +151,62 @@ def test_automate_publishes_when_the_quality_gate_passes(tmp_path: Path) -> None
     pr.open_pull_request.assert_called_once()
 
 
+def test_automate_appends_the_run_report_to_the_pr_body(tmp_path: Path) -> None:
+    case = _write_case(tmp_path, CASE_WITH_HEADING)
+    _write_test(tmp_path)
+    _write_junit(tmp_path, GREEN_JUNIT)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/test_home.py"], green=True)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.PUBLISHED
+    assert outcome.evidence is not None
+    assert outcome.evidence.report is not None
+    assert [test.nodeid for test in outcome.evidence.report.generated] == [
+        "tests.test_home::test_home_page"
+    ]
+    assert outcome.evidence.report.generated[0].status is TestStatus.PASSED
+    body = pr.open_pull_request.call_args.args[0].body
+    assert "## Run report" in body
+    assert "- `PASSED` tests.test_home::test_home_page" in body
+    assert "### Failing existing tests" in body
+
+
+def test_automate_keeps_the_run_report_on_a_suite_red(tmp_path: Path) -> None:
+    case = _write_case(tmp_path, CASE_WITH_HEADING)
+    _write_test(tmp_path)
+    _write_junit(tmp_path)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/test_home.py"], green=False)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.SUITE_RED
+    assert outcome.evidence is not None
+    assert outcome.evidence.report is not None
+    assert [
+        test.nodeid for test in outcome.evidence.report.failing
+    ] == ["tests.test_existing::test_old_fail"]
+    pr.assert_not_called()
+
+
+def test_automate_does_not_fail_when_junit_is_missing(tmp_path: Path) -> None:
+    case = _write_case(tmp_path, CASE_WITH_HEADING)
+    _write_test(tmp_path)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/test_home.py"], green=True)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.PUBLISHED
+    assert outcome.evidence is not None
+    assert outcome.evidence.report is not None
+    assert not outcome.evidence.report.junit_available
+    body = pr.open_pull_request.call_args.args[0].body
+    assert "JUnit XML was unavailable" in body
+
+
 def test_automate_blocks_when_the_quality_gate_fails(tmp_path: Path) -> None:
     case = _write_case(tmp_path, CASE_WITH_HEADING)
     _write_test(tmp_path, GOOD_TEST.replace('@pytest.mark.case("test-case-0001", 1)\n', ""))
@@ -136,6 +221,7 @@ def test_automate_blocks_when_the_quality_gate_fails(tmp_path: Path) -> None:
         QualityRule.CASE_MARKER,
         QualityRule.CASE_COVERAGE,
     }
+    assert outcome.evidence.report is None
     suite.run.assert_not_called()
     pr.assert_not_called()
 

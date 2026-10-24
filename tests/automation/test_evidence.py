@@ -9,6 +9,7 @@ from web_test.automation.evidence import (
     write_evidence,
 )
 from web_test.automation.quality import QualityFinding, QualityRule
+from web_test.automation.report import RunReport, TestOutcome, TestStatus
 from web_test.command import CommandResult
 
 
@@ -62,6 +63,27 @@ def test_render_summary_includes_quality_findings() -> None:
 
     assert "### Quality gate" in summary
     assert "**case_marker**: tests/test_a.py:1: no marker" in summary
+
+
+def test_render_summary_includes_the_run_report() -> None:
+    evidence = AutomationEvidence(
+        report=RunReport(
+            generated=(
+                TestOutcome(
+                    nodeid="tests.test_home::test_home_page",
+                    file="tests/test_home.py",
+                    status=TestStatus.PASSED,
+                ),
+            ),
+            failing=(),
+        )
+    )
+
+    summary = render_summary("published", None, evidence)
+
+    assert "## Run report" in summary
+    assert "### Generated tests" in summary
+    assert "- `PASSED` tests.test_home::test_home_page" in summary
 
 
 def test_render_summary_without_evidence() -> None:
