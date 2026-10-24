@@ -38,3 +38,9 @@ the allowed-path rule must be widened deliberately, not by copying the whole wor
 - Not live-run: producing a trace needs `SUITE_RED` (the agent returns a body but the suite is red);
   the throwaway red fixture tends to end `AGENT_RED` with no suite run. The next real `SUITE_RED`
   will exercise it.
+
+**2026-10-24 — follow-up: traces for `AGENT_RED`.** The agent's own pytest run is the deciding run
+when it returns no PR body, so `LocalWorkspace` now sets
+`PYTEST_ADDOPTS=--tracing=retain-on-failure` for the agent's shell. The suite's run still uses
+`--output=test-results/suite`; the agent's traces land under the default `test-results/`, and
+`collect_traces` picks up both. Unit-tested in `test_coding_agent.py`.

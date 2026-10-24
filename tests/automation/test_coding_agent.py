@@ -1,7 +1,9 @@
 from collections.abc import AsyncIterator
 from pathlib import Path
+from typing import TypeVar
 
 from pydantic_ai import Agent, AgentRunResult
+from pydantic_ai.capabilities import LocalWorkspace
 from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import DeltaToolCall, FunctionModel
 from pydantic_ai.models.test import TestModel
@@ -17,10 +19,19 @@ from web_test.automation.coding_agent import (
 from web_test.automation.repair_guard import AutomationDeps
 
 
-def _browser_capability(agent: Agent[AutomationDeps, AutomationResult]) -> PlaywrightBrowser:
+T = TypeVar("T")
+
+
+def _capability(
+    agent: Agent[AutomationDeps, AutomationResult], kind: type[T]
+) -> T:
     found: list[object] = []
     agent.root_capability.apply(found.append)
-    return next(c for c in found if isinstance(c, PlaywrightBrowser))
+    return next(c for c in found if isinstance(c, kind))
+
+
+def _browser_capability(agent: Agent[AutomationDeps, AutomationResult]) -> PlaywrightBrowser:
+    return _capability(agent, PlaywrightBrowser)
 
 
 def _scripted(*responses: ModelResponse) -> FunctionModel:
@@ -56,6 +67,14 @@ def _tool_returns(result: AgentRunResult[AutomationResult]) -> dict[str, object]
         for part in message.parts
         if isinstance(part, ToolReturnPart)
     }
+
+
+def test_coding_agent_keeps_agent_pytest_traces(tmp_path: Path) -> None:
+    agent = build_automation_agent(TestModel(), workspace_dir=tmp_path)
+
+    workspace = _capability(agent, LocalWorkspace)
+
+    assert workspace.env == {"PYTEST_ADDOPTS": "--tracing=retain-on-failure"}
 
 
 def test_coding_agent_attaches_the_browser_capability(tmp_path: Path) -> None:
