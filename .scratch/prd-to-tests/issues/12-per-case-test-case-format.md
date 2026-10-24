@@ -4,9 +4,9 @@
 `test-case/test-case-<id>.md` per case — in the format of the existing sample
 (`test-case/test-case-0001.md`) — instead of a single qa-table document.
 
-**Blocked by:** None (can start immediately).
+**Blocked by:** None (superseded by 15).
 
-**Status:** ready-for-human
+**Status:** wontfix
 
 - [x] `Case.steps` is a list of `Step(action, expected_result)`; `QaReport` and its report-level fields are removed
 - [x] `design_test_cases` returns `list[Case]` and the designer agent's `output_type` is `list[Case]`
@@ -70,3 +70,5 @@ tracked separately (see ticket 06's/AI-CI notes).
 **Superseded by ticket 15 (ADR-0007):** the artifact is now one file per **PRD**
 (`test-case/<prd-stem>.md`) holding all of that PRD's cases as sections, not one file per case.
 `assign_ids` was removed; `render_case`/`render_document`/`CaseWriter` changed accordingly.
+
+**2026-10-24 — metadata.** The per-case `test-case/test-case-<id>.md` artifact was replaced by one file per PRD (ticket 15 / ADR-0007); this ticket will not be actioned further.

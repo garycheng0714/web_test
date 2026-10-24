@@ -3,7 +3,7 @@
 **What to build:** Every generated Automation Test carries the id of the `test-case/<id>.md` it came
 from, so a test (and its CI output) is traceable back to its source case.
 
-**Blocked by:** 05 Automation entrypoint and approval gate.
+**Blocked by:** None (05 complete).
 
 **Status:** needs-triage
 
@@ -29,3 +29,5 @@ This is the still-open "priority/type emitted as test markers" from
 `.scratch/prd-to-tests/issues/08-automate-command.md:16,28`. Whether to also carry `priority`,
 `test_type`, and `requirement_ids` is open. Who writes it: the agent (instructions/skill), or the
 entrypoint injecting the id deterministically.
+
+**2026-10-24 — metadata.** 05 is done, so this is unblocked. It still needs the marker-vs-name-vs-docstring decision before implementation.

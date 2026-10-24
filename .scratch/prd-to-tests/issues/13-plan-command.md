@@ -4,11 +4,11 @@
 `test-case-%04d` ids by scanning `test-case/`, writes one file per case (ticket 12's `render_case`),
 and opens one PR adding them — the human Gate.
 
-**Blocked by:** 12.
+**Blocked by:** None (superseded by 15).
 
 **Category:** enhancement
 
-**Status:** ready-for-human
+**Status:** wontfix
 
 - [x] `plan --prd <path>` is a required-argument command; a missing argument prints usage and exits
 - [x] Each case is written to `test-case/test-case-<id>.md`, ids assigned by scanning `test-case/` for the next free `%04d`
@@ -131,3 +131,5 @@ branch and open a PR).
 **Artifact superseded by ticket 15 (ADR-0007):** `plan` now writes one `test-case/<prd-stem>.md` per
 PRD (all cases in one file), not one `test-case/test-case-<id>.md` per case. `CaseWriter.write` and
 `PlanPublisher.publish` take a `prd_stem`; `assign_ids` was removed.
+
+**2026-10-24 — metadata.** The `plan` command itself landed and runs in CI; the remaining per-case artifact scope was replaced by ticket 15 / ADR-0007, so no further work here.
