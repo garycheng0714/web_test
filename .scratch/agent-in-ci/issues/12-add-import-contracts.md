@@ -1,18 +1,18 @@
 # 12: Enforce architecture contracts with import-linter
 
 **What to build:** Encode the dependency rules from `AGENTS.md` as import-linter contracts and run
-them in CI as a shadow check: shared schemas must not import review or automation, and review must
+them in CI as a required check: shared schemas must not import review or automation, and review must
 not import automation.
 
 **Blocked by:** None.
 
-**Status:** ready-for-human (done; required-check decision open)
+**Status:** ready-for-human (done; required check)
 
 - [x] Add `import-linter` as a dev dependency
 - [x] Define the contracts in `pyproject.toml`
 - [x] Add `uv run lint-imports` to `AGENTS.md` and `README.md`
 - [x] Add an independent `contracts` job to `.github/workflows/ci.yml`
-- [x] Keep the check shadow (visible, not required)
+- [x] Keep the check visible; it is required on `main` since 2026-10-24
 - [x] Record the baseline result
 - [x] `uv run pytest` stays green
 
@@ -41,3 +41,5 @@ not import automation.
 **2026-10-24 — bookkeeping: done.**
 
 `ci.yml` runs `uv run lint-imports`; both contracts are kept. The open item is whether to make the job required. Status → `ready-for-human (done; required-check decision open)`.
+
+**2026-10-24 — required.** `contracts` is a required status check on `main` (app id 15368), together with `test`, `typecheck`, and `verify-test-case`; `workflows` stays shadow. Status → `ready-for-human (done; required check)`.

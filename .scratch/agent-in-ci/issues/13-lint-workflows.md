@@ -5,7 +5,7 @@ known actionlint version, with one documented ignore for stale action metadata.
 
 **Blocked by:** None.
 
-**Status:** ready-for-human (done; required-check decision open)
+**Status:** ready-for-human (done; kept shadow)
 
 - [x] Run actionlint locally and record the baseline
 - [x] Pin the actionlint version used in CI
@@ -33,3 +33,5 @@ known actionlint version, with one documented ignore for stale action metadata.
 **2026-10-24 — bookkeeping: done.**
 
 `ci.yml` runs actionlint. The open item is whether to make the job required. Status → `ready-for-human (done; required-check decision open)`.
+
+**2026-10-24 — kept shadow.** `typecheck` and `contracts` are required on `main`; `workflows` stays shadow because it pulls `rhysd/actionlint:1.7.12` from Docker Hub on every run, so an image outage would block every merge. Status → `ready-for-human (done; kept shadow)`.
