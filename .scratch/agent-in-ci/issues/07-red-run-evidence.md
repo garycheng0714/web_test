@@ -34,7 +34,7 @@ change the gate (ADR-0006 still holds: red opens no branch and no PR).
 
 **Blocked by:** 05 Automation entrypoint and approval gate, 06 End-to-end workflow and docs.
 
-**Status:** ready-for-human
+**Status:** ready-for-human (done; verified live)
 
 - [x] The pytest output of the run that **decided** red is kept (not just a fresh re-run, which can
       pass on the flaky SUT and hide the failure)
@@ -116,3 +116,34 @@ Out of scope: changing the publisher or the merge gate, and dispatch-verifying t
 
 Not yet live-run: the workflow artifact/step-summary path is actionlint-verified only. The next
 merged Test Case PR will exercise it.
+
+**2026-10-24 — live-run verified (green and red).**
+
+- **Green run:** merged PR #13 (`test-case/live-evidence.md` + `prd/live-evidence.md`); `automate`
+  run `39986654910` was `published`. Artifact `automation-evidence-39986654910-1` contained
+  `summary.md`, `pytest-output.txt`, `suite-output.txt` (238 passed, 1 skipped), `trace.txt` (286
+  lines), and copies of `tests/` and `pages/`; no `.venv` or `.playwright-cli`. It opened
+  `automation/live-evidence-39986654910-1` (PR #15), kept open on request.
+- **Gap found and fixed:** `entrypoint.automate()` computed the allowed changed paths only after a
+  green suite, so `AGENT_RED`/`SUITE_RED` evidence had `files=()`. PR #16 "Keep generated-file
+  evidence on red outcomes" computes them best-effort right after the agent returns; a git failure
+  yields `()` and cannot change the gate. Unit tests cover the red path and the git failure.
+- **Red run:** merged PR #17 (`prd/live-evidence-red.md` + a deliberately wrong case) with
+  `WEB_TEST_REPAIR_ATTEMPTS=2`; `automate` run `40052527018` succeeded at the job level (as
+  designed) with status `agent_red`, `pytest_runs=2`, `suite=None`. Artifact
+  `automation-evidence-40052527018-1` kept the five generated files
+  (`components/header.py`, `pages/home_page.py`, `pages/login_page.py`, `tests/conftest.py`,
+  `tests/test_live_evidence_red.py`), the pytest output, the suite placeholder ("the suite was not
+  run"), and the trace; it excluded `.venv`/`.playwright-cli`. The run opened no automation branch
+  or PR.
+- **Nuance:** `pytest-output.txt` holds the agent's *last* pytest run (a passing UI subset); the
+  failing run of the new test is in `trace.txt` (bounded). The implemented `last_pytest_output`
+  Shape is satisfied; keeping the last *failing* run in its own file is not implemented.
+- **Cleanup:** PR #19 removed both fixtures. Deleting `prd/live-evidence-red.md` also triggered the
+  `plan` workflow, which required exactly one **added** PRD and would fail; PR #19 makes `plan`
+  skip when a merged PR only removes PRDs (run `40053017085` is a clean no-op).
+- **Ops note:** `2a1af64 Align the red fixture with its PRD` was accidentally pushed straight to
+  `main` and reverted in `9003dfe`; neither push ran the required checks (`ci.yml` is
+  `pull_request`-only). `WEB_TEST_REPAIR_ATTEMPTS=2` is set on the repository for the red run and
+  must be deleted or reset (it overrides the workflow default of 10).
+- Playwright traces (`--tracing=retain-on-failure`) remain unimplemented and are split to ticket 16.
