@@ -31,3 +31,9 @@ This is the still-open "priority/type emitted as test markers" from
 entrypoint injecting the id deterministically.
 
 **2026-10-24 — metadata.** 05 is done, so this is unblocked. It still needs the marker-vs-name-vs-docstring decision before implementation.
+
+**2026-10-24 — parked.** No concrete consumer yet. The grill found that `pytest -m case` cannot
+select by marker argument, `pytest -v` does not print marker arguments, the automation unit is one
+file per PRD (so the same id would repeat on every test from that run), and this ticket does not
+unblock tickets 10, 22b, or 09. Revisit when ticket 10's run report (or another concrete query)
+needs the test→case mapping; the marker-vs-name-vs-docstring decision is deferred.
