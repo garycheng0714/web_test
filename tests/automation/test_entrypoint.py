@@ -10,6 +10,7 @@ from web_test.automation.entrypoint import (
     automate,
     exit_code,
 )
+from web_test.automation.quality import QualityRule
 from web_test.command import CommandResult
 
 SAMPLE = """\
@@ -25,12 +26,34 @@ test_type: Functional
 """
 
 
-def _write_case(tmp_path: Path) -> Path:
+CASE_WITH_HEADING = SAMPLE + "\n## Case 1: Account / Register\n"
+
+GOOD_TEST = """\
+import pytest
+from playwright.sync_api import expect
+
+from pages.home_page import HomePage
+
+
+@pytest.mark.case("test-case-0001", 1)
+def test_home_page(home_page: HomePage) -> None:
+    home_page.open()
+    expect(home_page.title()).to_have_text("Home")
+"""
+
+
+def _write_case(tmp_path: Path, text: str = SAMPLE) -> Path:
     case_dir = tmp_path / "test-case"
     case_dir.mkdir()
     case = case_dir / "test-case-0001.md"
-    case.write_text(SAMPLE, encoding="utf-8")
+    case.write_text(text, encoding="utf-8")
     return case
+
+
+def _write_test(tmp_path: Path, text: str = GOOD_TEST) -> None:
+    tests = tmp_path / "tests"
+    tests.mkdir(exist_ok=True)
+    (tests / "test_home.py").write_text(text, encoding="utf-8")
 
 
 def _deps(*, files: list[str], green: bool) -> tuple[MagicMock, MagicMock, MagicMock]:
@@ -65,6 +88,54 @@ def test_automate_skips_publish_when_the_agent_reports_red(tmp_path: Path) -> No
     outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
 
     assert outcome == AutomationOutcome(AutomationStatus.AGENT_RED)
+    suite.run.assert_not_called()
+    pr.assert_not_called()
+
+
+def test_automate_keeps_agent_red_before_the_quality_gate(tmp_path: Path) -> None:
+    case = _write_case(tmp_path, CASE_WITH_HEADING)
+    _write_test(tmp_path, GOOD_TEST.replace('@pytest.mark.case("test-case-0001", 1)\n', ""))
+    agent = MagicMock(return_value=AutomationResult(pr_body=None))
+    git, pr, suite = _deps(files=["tests/test_home.py"], green=True)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.AGENT_RED
+    assert outcome.evidence is not None
+    assert outcome.evidence.quality == ()
+    suite.run.assert_not_called()
+    pr.assert_not_called()
+
+
+def test_automate_publishes_when_the_quality_gate_passes(tmp_path: Path) -> None:
+    case = _write_case(tmp_path, CASE_WITH_HEADING)
+    _write_test(tmp_path)
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/test_home.py"], green=True)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.PUBLISHED
+    assert outcome.evidence is not None
+    assert outcome.evidence.quality == ()
+    suite.run.assert_called_once()
+    pr.open_pull_request.assert_called_once()
+
+
+def test_automate_blocks_when_the_quality_gate_fails(tmp_path: Path) -> None:
+    case = _write_case(tmp_path, CASE_WITH_HEADING)
+    _write_test(tmp_path, GOOD_TEST.replace('@pytest.mark.case("test-case-0001", 1)\n', ""))
+    agent = MagicMock(return_value=AutomationResult(pr_body="body"))
+    git, pr, suite = _deps(files=["tests/test_home.py"], green=True)
+
+    outcome = automate(case, workspace=tmp_path, agent=agent, git=git, pr=pr, suite=suite)
+
+    assert outcome.status is AutomationStatus.QUALITY_RED
+    assert outcome.evidence is not None
+    assert {finding.rule for finding in outcome.evidence.quality} == {
+        QualityRule.CASE_MARKER,
+        QualityRule.CASE_COVERAGE,
+    }
     suite.run.assert_not_called()
     pr.assert_not_called()
 
@@ -220,6 +291,7 @@ def test_automate_keeps_red_evidence_when_git_fails(tmp_path: Path) -> None:
         (AutomationStatus.PUBLISHED, 0),
         (AutomationStatus.NO_CHANGES, 0),
         (AutomationStatus.AGENT_RED, 1),
+        (AutomationStatus.QUALITY_RED, 1),
         (AutomationStatus.SUITE_RED, 1),
         (AutomationStatus.FAILED, 1),
     ],

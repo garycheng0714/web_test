@@ -14,6 +14,7 @@ from web_test.automation.evidence import (
     render_summary,
     write_evidence,
 )
+from web_test.automation.quality import QualityFinding, quality_findings
 from web_test.automation.repair_guard import AutomationDeps
 from web_test.command import CommandResult, subprocess_runner
 from web_test.naming import run_token
@@ -28,6 +29,7 @@ from web_test.write_guard import allowed_paths
 class AutomationStatus(StrEnum):
     PUBLISHED = "published"
     AGENT_RED = "agent_red"
+    QUALITY_RED = "quality_red"
     SUITE_RED = "suite_red"
     NO_CHANGES = "no_changes"
     FAILED = "failed"
@@ -63,6 +65,7 @@ def _outcome(
     workspace: Path,
     *,
     error: str | None = None,
+    quality: tuple[QualityFinding, ...] = (),
 ) -> AutomationOutcome:
     traces, traces_skipped = collect_traces(workspace)
     return AutomationOutcome(
@@ -73,6 +76,7 @@ def _outcome(
             pytest_runs=deps.pytest_runs,
             suite=suite,
             files=tuple(files),
+            quality=quality,
             trace=tuple(deps.tool_trace),
             traces=traces,
             traces_skipped=traces_skipped,
@@ -102,6 +106,17 @@ def automate(
 
         if result.pr_body is None:
             return _outcome(AutomationStatus.AGENT_RED, deps, suite_result, files, workspace)
+
+        quality = quality_findings(case.id, text, files, workspace)
+        if quality:
+            return _outcome(
+                AutomationStatus.QUALITY_RED,
+                deps,
+                suite_result,
+                files,
+                workspace,
+                quality=quality,
+            )
 
         suite_result = suite.run()
         if suite_result.returncode != 0:

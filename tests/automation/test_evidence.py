@@ -8,6 +8,7 @@ from web_test.automation.evidence import (
     render_summary,
     write_evidence,
 )
+from web_test.automation.quality import QualityFinding, QualityRule
 from web_test.command import CommandResult
 
 
@@ -48,6 +49,19 @@ def test_write_evidence_keeps_outputs_and_allowed_files(tmp_path: Path) -> None:
     assert (directory / "files" / "tests" / "test_a.py").is_file()
     assert not (directory / "files" / ".venv" / "secret.py").exists()
     assert not (directory / "files" / "escape.py").exists()
+
+
+def test_render_summary_includes_quality_findings() -> None:
+    evidence = AutomationEvidence(
+        quality=(
+            QualityFinding(QualityRule.CASE_MARKER, "tests/test_a.py:1: no marker"),
+        )
+    )
+
+    summary = render_summary("quality_red", None, evidence)
+
+    assert "### Quality gate" in summary
+    assert "**case_marker**: tests/test_a.py:1: no marker" in summary
 
 
 def test_render_summary_without_evidence() -> None:

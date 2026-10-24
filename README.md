@@ -44,9 +44,9 @@ for now. The pipeline itself is two merge-triggered workflows that mirror each o
   the Jev verification record, and opens a test-case PR.
 - `automate.yml` runs when a pull request adding a `test-case/**` file is **merged**: it has the coding
   agent implement its tests, and opens a PR when the suite is green. A red run (`AGENT_RED`,
-  `SUITE_RED`) fails the job and keeps the deciding pytest output, suite output, tool trace,
-  Playwright traces of the failing tests, and generated files in a job summary and an
-  `automation-evidence-<run>-<attempt>` artifact.
+  `QUALITY_RED`, `SUITE_RED`) fails the job and keeps the deciding pytest output, suite output,
+  generated-test quality findings, tool trace, Playwright traces of the failing tests, and generated
+  files in a job summary and an `automation-evidence-<run>-<attempt>` artifact.
 
 Both act on exactly one added file, mint a short-lived token for the `web-test-qa-flow` GitHub App
 (so the PRs they open get real CI runs), and name their branch
