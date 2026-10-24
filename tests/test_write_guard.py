@@ -8,7 +8,12 @@ from pydantic_ai.models.function import FunctionModel
 from pydantic_ai_harness.filesystem import FileSystem
 
 from web_test._run import run_sync
-from web_test.write_guard import allowed_paths, check_write_permission, write_guard
+from web_test.write_guard import (
+    allowed_paths,
+    check_write_permission,
+    resolve_workspace_path,
+    write_guard,
+)
 
 
 @pytest.mark.parametrize(
@@ -31,6 +36,54 @@ def test_allowed_paths_keeps_only_permitted() -> None:
     paths = ["tests/a.py", "web_test/x.py", "README.md", "pages/p.py", "tests/n.txt"]
 
     assert allowed_paths(paths) == ["tests/a.py", "pages/p.py"]
+
+
+def test_resolve_workspace_path_returns_an_existing_python_file(tmp_path: Path) -> None:
+    target = tmp_path / "tests" / "test_a.py"
+    target.parent.mkdir()
+    target.write_text("x = 1\n", encoding="utf-8")
+
+    assert resolve_workspace_path(tmp_path, "tests/test_a.py", suffix=".py") == target
+
+
+def test_resolve_workspace_path_allows_nested_paths(tmp_path: Path) -> None:
+    target = tmp_path / "tests" / "sub" / "test_a.py"
+    target.parent.mkdir(parents=True)
+    target.write_text("x = 1\n", encoding="utf-8")
+
+    assert (
+        resolve_workspace_path(tmp_path, "tests/sub/test_a.py", suffix=".py")
+        == target
+    )
+
+
+@pytest.mark.parametrize(
+    "relative",
+    ["/etc/passwd", "../escape.py", "", "tests/../escape.py", "tests/missing.py"],
+)
+def test_resolve_workspace_path_rejects_unsafe_or_missing(
+    tmp_path: Path, relative: str
+) -> None:
+    assert resolve_workspace_path(tmp_path, relative, suffix=".py") is None
+
+
+def test_resolve_workspace_path_rejects_the_wrong_suffix(tmp_path: Path) -> None:
+    target = tmp_path / "tests" / "notes.txt"
+    target.parent.mkdir()
+    target.write_text("x = 1\n", encoding="utf-8")
+
+    assert resolve_workspace_path(tmp_path, "tests/notes.txt", suffix=".py") is None
+
+
+def test_resolve_workspace_path_rejects_a_symlink_outside(tmp_path: Path) -> None:
+    workspace = tmp_path / "repo"
+    outside = tmp_path / "outside.py"
+    outside.write_text("x = 1\n", encoding="utf-8")
+    link = workspace / "tests" / "link.py"
+    link.parent.mkdir(parents=True)
+    link.symlink_to(outside)
+
+    assert resolve_workspace_path(workspace, "tests/link.py", suffix=".py") is None
 
 
 def _write_call(path: str) -> ModelResponse:

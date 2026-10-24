@@ -1,4 +1,4 @@
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 from pydantic import BaseModel, ConfigDict
 from pydantic_ai import ModelRetry, RunContext, ToolDefinition
@@ -33,6 +33,28 @@ def is_generated_test_path(relative: str) -> bool:
     """Whether a changed path is a generated test file under `tests/`."""
     candidate = PurePosixPath(relative)
     return candidate.suffix == ".py" and candidate.parts[:1] == ("tests",)
+
+
+def resolve_workspace_path(
+    workspace: Path, relative: str, *, suffix: str
+) -> Path | None:
+    """Resolve a relative path to an existing file inside the workspace, or None."""
+    candidate = PurePosixPath(relative)
+    if (
+        candidate.is_absolute()         # 拒絕絕對路徑（如 /etc/passwd）
+        or not candidate.parts          # 空路徑（""）
+        or ".." in candidate.parts      # 拒絕目錄穿越（../）
+        or candidate.suffix != suffix   # 只收指定副檔名
+    ):
+        return None
+    path = workspace / Path(*candidate.parts)
+    try:
+        resolved = path.resolve()
+    except OSError:
+        return None
+    if not resolved.is_relative_to(workspace.resolve()) or not resolved.is_file():
+        return None
+    return path
 
 
 def _rejection_reason(path: str) -> str | None:

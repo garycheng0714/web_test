@@ -3,9 +3,9 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
-from web_test.write_guard import is_generated_test_path
+from web_test.write_guard import is_generated_test_path, resolve_workspace_path
 
 _CASE_HEADING = re.compile(r"(?m)^## Case (\d+):")
 _PAGE_OBJECT_PACKAGES = {"pages", "components"}
@@ -47,25 +47,6 @@ class QualityFinding:
 
 def _case_numbers(text: str) -> set[int]:
     return {int(match.group(1)) for match in _CASE_HEADING.finditer(text)}
-
-
-def _source_path(relative: str, workspace: Path) -> Path | None:
-    candidate = PurePosixPath(relative)
-    if (
-        candidate.is_absolute()         # 拒絕絕對路徑（如 /etc/passwd）
-        or not candidate.parts          # 空路徑（""）
-        or ".." in candidate.parts      # 拒絕目錄穿越（../）
-        or candidate.suffix != ".py"    # 只收 Python 檔
-    ):
-        return None
-    path = workspace / Path(*candidate.parts)
-    try:
-        resolved = path.resolve()
-    except OSError:
-        return None
-    if not resolved.is_relative_to(workspace.resolve()) or not resolved.is_file():
-        return None
-    return path
 
 
 def _test_functions(tree: ast.Module) -> list[ast.FunctionDef]:
@@ -157,7 +138,7 @@ def quality_findings(
     findings: list[QualityFinding] = []
 
     for relative in sorted(dict.fromkeys(files)):
-        path = _source_path(relative, workspace)
+        path = resolve_workspace_path(workspace, relative, suffix=".py")
         if path is None:
             continue
         try:
