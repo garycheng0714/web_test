@@ -5,6 +5,8 @@ from playwright.sync_api import BrowserContext, Page
 
 from components.header import Header
 from pages.home_page import HomePage
+from pages.login_page import LoginPage
+from pages.signup_page import SignupPage
 from pages.test_cases_page import TestCasesPage
 
 AD_URL_PATTERN = re.compile(
@@ -31,4 +33,14 @@ def home_page(page: Page, header: Header) -> HomePage:
 @pytest.fixture
 def test_cases_page(page: Page, header: Header) -> TestCasesPage:
     return TestCasesPage(page, header)
+
+
+@pytest.fixture
+def login_page(page: Page, header: Header) -> LoginPage:
+    return LoginPage(page, header)
+
+
+@pytest.fixture
+def signup_page(page: Page, header: Header) -> SignupPage:
+    return SignupPage(page, header)
 
