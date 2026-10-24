@@ -11,4 +11,14 @@ class Suite:
 
     def run(self) -> CommandResult:
         """Run the suite and keep the deciding output for the caller."""
-        return self.runner(["uv", "run", "pytest", "-q"], cwd=self.workspace)
+        return self.runner(
+            [
+                "uv",
+                "run",
+                "pytest",
+                "-q",
+                "--tracing=retain-on-failure",
+                "--output=test-results/suite",
+            ],
+            cwd=self.workspace,
+        )

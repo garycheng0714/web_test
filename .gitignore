@@ -15,6 +15,9 @@ wheels/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
 
+# pytest-playwright artifacts (traces, videos, screenshots)
+test-results/
+
 # Coverage data
 .coverage
 
