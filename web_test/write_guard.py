@@ -29,6 +29,12 @@ def allowed_paths(paths: list[str]) -> list[str]:
     return [path for path in paths if check_write_permission(path).allow]
 
 
+def is_generated_test_path(relative: str) -> bool:
+    """Whether a changed path is a generated test file under `tests/`."""
+    candidate = PurePosixPath(relative)
+    return candidate.suffix == ".py" and candidate.parts[:1] == ("tests",)
+
+
 def _rejection_reason(path: str) -> str | None:
     candidate = PurePosixPath(path)
     if candidate.is_absolute():

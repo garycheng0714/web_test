@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from web_test.command import CommandResult
-from web_test.publishing.suite import Suite
+from web_test.publishing.suite import JUNIT_XML, Suite
 
 
 def test_suite_keeps_the_failing_output(tmp_path: Path) -> None:
@@ -19,3 +19,4 @@ def test_suite_retains_traces_for_failures(tmp_path: Path) -> None:
 
     assert "--tracing=retain-on-failure" in captured[0]
     assert "--output=test-results/suite" in captured[0]
+    assert f"--junitxml={JUNIT_XML}" in captured[0]

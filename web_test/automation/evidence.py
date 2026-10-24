@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 from web_test.automation.quality import QualityFinding
+from web_test.automation.report import RunReport, render_run_report
 from web_test.command import CommandResult
 from web_test.write_guard import ALLOWED_DIRS
 
@@ -20,6 +21,7 @@ class AutomationEvidence:
     suite: CommandResult | None = None
     files: tuple[str, ...] = ()
     quality: tuple[QualityFinding, ...] = ()
+    report: RunReport | None = None
     trace: tuple[str, ...] = ()
     traces: tuple[str, ...] = ()
     traces_skipped: int = 0
@@ -98,6 +100,8 @@ def render_summary(
             f"- **{finding.rule}**: {finding.detail}"
             for finding in evidence.quality
         ]
+    if evidence.report is not None:
+        lines += ["", render_run_report(evidence.report)]
     lines += [
         "",
         "### Pytest output",

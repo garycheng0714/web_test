@@ -3,6 +3,8 @@ from pathlib import Path
 
 from web_test.command import CommandResult, Runner
 
+JUNIT_XML = "test-results/junit.xml"
+
 
 @dataclass(frozen=True)
 class Suite:
@@ -19,6 +21,7 @@ class Suite:
                 "-q",
                 "--tracing=retain-on-failure",
                 "--output=test-results/suite",
+                f"--junitxml={JUNIT_XML}",
             ],
             cwd=self.workspace,
         )

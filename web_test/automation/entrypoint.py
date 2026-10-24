@@ -16,13 +16,19 @@ from web_test.automation.evidence import (
 )
 from web_test.automation.quality import QualityFinding, quality_findings
 from web_test.automation.repair_guard import AutomationDeps
+from web_test.automation.report import (
+    RunReport,
+    build_run_report,
+    read_junit,
+    render_run_report,
+)
 from web_test.command import CommandResult, subprocess_runner
 from web_test.naming import run_token
 from web_test.observability import configure_observability
 from web_test.publishing.git import Git
 from web_test.publishing.github import GitHubAdapter
 from web_test.publishing.publish import Publisher
-from web_test.publishing.suite import Suite
+from web_test.publishing.suite import JUNIT_XML, Suite
 from web_test.write_guard import allowed_paths
 
 
@@ -66,6 +72,7 @@ def _outcome(
     *,
     error: str | None = None,
     quality: tuple[QualityFinding, ...] = (),
+    report: RunReport | None = None,
 ) -> AutomationOutcome:
     traces, traces_skipped = collect_traces(workspace)
     return AutomationOutcome(
@@ -77,6 +84,7 @@ def _outcome(
             suite=suite,
             files=tuple(files),
             quality=quality,
+            report=report,
             trace=tuple(deps.tool_trace),
             traces=traces,
             traces_skipped=traces_skipped,
@@ -99,12 +107,14 @@ def automate(
     deps = AutomationDeps()
     suite_result: CommandResult | None = None
     files: list[str] = []
+    report: RunReport | None = None
     try:
         case, text = CaseFile.from_path(case_path)
         result = agent(text, workspace_dir=workspace, deps=deps)
         files = _generated_files(git)
+        pr_body = result.pr_body
 
-        if result.pr_body is None:
+        if pr_body is None:
             return _outcome(AutomationStatus.AGENT_RED, deps, suite_result, files, workspace)
 
         quality = quality_findings(case.id, text, files, workspace)
@@ -119,14 +129,32 @@ def automate(
             )
 
         suite_result = suite.run()
+        report = build_run_report(read_junit(workspace / JUNIT_XML), files)
         if suite_result.returncode != 0:
-            return _outcome(AutomationStatus.SUITE_RED, deps, suite_result, files, workspace)
+            return _outcome(
+                AutomationStatus.SUITE_RED,
+                deps,
+                suite_result,
+                files,
+                workspace,
+                report=report,
+            )
 
         if not files:
-            return _outcome(AutomationStatus.NO_CHANGES, deps, suite_result, files, workspace)
+            return _outcome(
+                AutomationStatus.NO_CHANGES,
+                deps,
+                suite_result,
+                files,
+                workspace,
+                report=report,
+            )
 
         Publisher(git=git, pr=pr).publish(
-            case_id=case.id, body=result.pr_body, files=files, token=token or run_token()
+            case_id=case.id,
+            body=f"{pr_body}\n\n{render_run_report(report)}",
+            files=files,
+            token=token or run_token(),
         )
     except (RuntimeError, ValueError, OSError) as error:
         return _outcome(
@@ -136,9 +164,17 @@ def automate(
             files,
             workspace,
             error=str(error),
+            report=report,
         )
 
-    return _outcome(AutomationStatus.PUBLISHED, deps, suite_result, files, workspace)
+    return _outcome(
+        AutomationStatus.PUBLISHED,
+        deps,
+        suite_result,
+        files,
+        workspace,
+        report=report,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

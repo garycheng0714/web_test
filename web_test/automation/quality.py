@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
 
+from web_test.write_guard import is_generated_test_path
+
 _CASE_HEADING = re.compile(r"(?m)^## Case (\d+):")
 _PAGE_OBJECT_PACKAGES = {"pages", "components"}
 _DIRECT_PAGE_METHODS = frozenset(
@@ -175,7 +177,7 @@ def quality_findings(
         if not tests:
             continue
 
-        if PurePosixPath(relative).parts[0] != "tests":
+        if not is_generated_test_path(relative):
             findings.append(
                 QualityFinding(
                     QualityRule.TESTS_LOCATION,
