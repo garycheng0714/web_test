@@ -63,10 +63,12 @@ calls the same shared workflow with the review reason. The shared workflow resol
 with no Test Case file reports success explicitly; more than one fails with the file list.
 
 `verify-test-case` is required on `main` (app `web-test-qa-flow`). An approving review with a reason
-re-runs `NEEDS_REVIEW` or `BLOCKED` as success for the reviewed head; `FAIL` is not overridable. A
-repository admin can bypass the check as break-glass, but the reason must be recorded and the check
-re-run after the fix. Both verify workflows mint the app token with `checks: write` and need
-`TYPESAFE_API_KEY`.
+re-runs `NEEDS_REVIEW` or `BLOCKED` as success for the reviewed head; `FAIL` is not overridable.
+`main` also requires a pull request with zero approvals and the `test`, `typecheck`, and `contracts`
+checks, with `enforce_admins` on, so direct pushes (including admins) are rejected. Break-glass is to
+temporarily disable `enforce_admins` or the pull-request requirement in Settings → Branches, make the
+push, then restore it and record the reason in the ticket or PR. Both verify workflows mint the app
+token with `checks: write` and need `TYPESAFE_API_KEY`.
 
 Tests live in `tests/` and run under pytest with Playwright's Python bindings. The
 `pytest-playwright` plugin provides the `page` fixture and defaults to chromium; pass `--headed`

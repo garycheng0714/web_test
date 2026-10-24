@@ -61,3 +61,9 @@ missing case.
 `@pytest.mark.case("<file-id>", <n>)` on every generated test (one marker per test; a case may have
 more than one test). Tests cover the instruction/skill text and an `ast` parse of the marker. Not
 live-run: the next automate run will produce the first marked test.
+
+**2026-10-24 — break-glass.** `7bcf15a` (the ticket re-scope) and `7264563` (the marker
+implementation) were pushed directly to `main` before protection required pull requests. `ci.yml` is
+`pull_request`-only, so no CI ran on those commits; the local suite, basedpyright, ruff,
+lint-imports, and actionlint were green. `main` now requires a PR with `test`, `typecheck`,
+`contracts`, and `verify-test-case`, with `enforce_admins` on; the next PR exercises CI on the tree.
