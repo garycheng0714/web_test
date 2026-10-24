@@ -39,6 +39,10 @@ jobs:
           # The merged PR's own changes: the last commit on the base branch. Covers merge and squash
           # merges (GitHub's default); a multi-commit rebase merge would show only its last commit.
           mapfile -t files < <(git diff --name-only --diff-filter=A HEAD^ HEAD -- 'test-case/*.md')
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "no test case added; nothing to automate"
+            exit 0
+          fi
           if [ "${#files[@]}" -ne 1 ]; then
             echo "expected exactly one added test-case file, got ${#files[@]}"
             printf '%s\n' "${files[@]}"
@@ -47,6 +51,7 @@ jobs:
           echo "path=${files[0]}" >> "$GITHUB_OUTPUT"
 
       - name: Implement the tests and open a PR
+        if: steps.case.outputs.path != ''
         env:
           WEB_TEST_MODEL: ${{ vars.WEB_TEST_MODEL || 'openai-chat:kimi-k2.7-code' }}
           WEB_TEST_REPAIR_ATTEMPTS: ${{ vars.WEB_TEST_REPAIR_ATTEMPTS || '10' }}
