@@ -5,7 +5,7 @@ base_url: https://automationexercise.com
 
 # Live Evidence Red
 
-## Case 1: Account / Register (Signup Step 1): Verify that submitting a new, unregistered Name and Email on New User Signup! logs the user in.
+## Case 1: Account / Register (Signup Step 1): Verify that submitting a new, unregistered Name and Email on New User Signup! returns to the home page and logs the user in.
 
 ```yaml
 requirement_ids: [FR-LIVE-01]
@@ -25,8 +25,9 @@ test_type: Functional
 
 | Step | Action | Expected Result |
 | --- | --- | --- |
-| 1 | Open /login and enter the Name 'OC QA' and an unregistered Email Address in the 'New User Signup!' block. | The entered values are shown in the Name and Email Address fields. |
-| 2 | Click 'Signup'. | The site returns to the home page and the header shows 'Logged in as OC QA'. |
+| 1 | Open /login and locate the 'New User Signup!' block. | The 'New User Signup!' block is displayed with a Name field, an Email Address field and a 'Signup' button. |
+| 2 | Enter a Name (e.g. 'OC QA') and an unregistered Email Address (e.g. ocqa.<timestamp>@test.com). | The entered values are shown in the Name and Email Address fields. |
+| 3 | Click 'Signup'. | The site returns to the home page and the header shows 'Logged in as OC QA'. |
 
 ### Notes
 
