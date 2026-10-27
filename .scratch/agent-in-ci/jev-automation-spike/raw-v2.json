@@ -1,0 +1,182 @@
+[
+  {
+    "variant": "good",
+    "run": 1,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.87,
+      "expected_results_asserted": 0.91,
+      "no_invented_behavior": 0.91,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2099,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "good",
+    "run": 2,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.86,
+      "expected_results_asserted": 0.91,
+      "no_invented_behavior": 0.89,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2099,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "good",
+    "run": 3,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.86,
+      "expected_results_asserted": 0.9,
+      "no_invented_behavior": 0.9,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2099,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "skip",
+    "run": 1,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.61,
+      "expected_results_asserted": 0.07,
+      "no_invented_behavior": 0.74,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2010,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "skip",
+    "run": 2,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.62,
+      "expected_results_asserted": 0.08,
+      "no_invented_behavior": 0.73,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2010,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "skip",
+    "run": 3,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.58,
+      "expected_results_asserted": 0.07,
+      "no_invented_behavior": 0.7,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2010,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "substitute",
+    "run": 1,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.04,
+      "expected_results_asserted": 0.53,
+      "no_invented_behavior": 0.08,
+      "preconditions_setup": 0.96
+    },
+    "usage": {
+      "input_tokens": 2066,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "substitute",
+    "run": 2,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.04,
+      "expected_results_asserted": 0.66,
+      "no_invented_behavior": 0.09,
+      "preconditions_setup": 0.96
+    },
+    "usage": {
+      "input_tokens": 2066,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "substitute",
+    "run": 3,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.04,
+      "expected_results_asserted": 0.58,
+      "no_invented_behavior": 0.08,
+      "preconditions_setup": 0.96
+    },
+    "usage": {
+      "input_tokens": 2066,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "wrong_expected",
+    "run": 1,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.75,
+      "expected_results_asserted": 0.09,
+      "no_invented_behavior": 0.63,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2109,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "wrong_expected",
+    "run": 2,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.79,
+      "expected_results_asserted": 0.1,
+      "no_invented_behavior": 0.66,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2109,
+      "output_tokens": 82
+    }
+  },
+  {
+    "variant": "wrong_expected",
+    "run": 3,
+    "model": "jev-1.13.0",
+    "answers": {
+      "steps_in_order": 0.71,
+      "expected_results_asserted": 0.09,
+      "no_invented_behavior": 0.64,
+      "preconditions_setup": 0.97
+    },
+    "usage": {
+      "input_tokens": 2109,
+      "output_tokens": 82
+    }
+  }
+]
