@@ -6,6 +6,7 @@ from playwright.sync_api import BrowserContext, Page
 from components.header import Header
 from pages.home_page import HomePage
 from pages.test_cases_page import TestCasesPage
+from pages.contact_us_page import ContactUsPage
 
 AD_URL_PATTERN = re.compile(
     r"googlesyndication\.com|doubleclick\.net|googleadservices\.com|"
@@ -31,4 +32,9 @@ def home_page(page: Page, header: Header) -> HomePage:
 @pytest.fixture
 def test_cases_page(page: Page, header: Header) -> TestCasesPage:
     return TestCasesPage(page, header)
+
+
+@pytest.fixture
+def contact_us_page(page: Page, header: Header) -> ContactUsPage:
+    return ContactUsPage(page, header)
 
