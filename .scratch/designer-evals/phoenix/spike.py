@@ -4,8 +4,7 @@ Run Phoenix separately:
     uvx arize-phoenix serve
 
 Then:
-    OPENCODE_API_KEY=... uv run --with openinference-instrumentation-pydantic-ai \
-        --with arize-phoenix-client \
+    OPENCODE_API_KEY=... PYTHONPATH=. uv run --group eval \
         python .scratch/designer-evals/phoenix/spike.py
 """
 

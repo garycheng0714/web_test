@@ -3,8 +3,7 @@
 Uses the existing designer trace and adds one `late-child-check` span under its agent span.
 Run Phoenix separately, then:
 
-    uv run --with arize-phoenix-client \
-        --with openinference-instrumentation-pydantic-ai \
+    uv run --group eval \
         python .scratch/designer-evals/phoenix/late_child_probe.py
 """
 

@@ -127,7 +127,7 @@ log_evaluation() → 自訂 annotation
 
 - 本機 `uvx arize-phoenix serve` 可啟動；UI 與 OTLP HTTP 都在 `:6006`。
 - Python 3.13 可安裝 `openinference-instrumentation-pydantic-ai==0.1.30` 與
-  `pydantic-ai==2.54.0`；用 `uv run --with` 不會改 `uv.lock`。
+  `pydantic-ai==2.54.0`；Phoenix 工具放在 `eval` dependency group，版本由 `uv.lock` 固定。
 - 用 `Agent.instrument_all(InstrumentationSettings(version=5, tracer_provider=...))`
   搭配 `OpenInferenceSpanProcessor` + OTLP exporter，designer run 會變成：
   `invoke_agent test_case_designer` → `chat ...` → `execute_tool load_capability` → `chat ...`。
@@ -142,7 +142,7 @@ log_evaluation() → 自訂 annotation
   `arize-phoenix-client==3.5.0` 讀回；這個版本的 `get_spans` 沒有 `sort`／`order`，
   要自己挑最新 span。
 - 在 agent span 結束後補建 child span（`EVALUATOR`）仍會落在同一條 trace，`parent_id`
-  也正確；因此 requirement／case eval spans 可以直接掛回原 trace，不必另開 trace。
+  也正確；因此 claim／missing requirement eval spans 可以直接掛回原 trace，不必另開 trace。
 - Runbook 與本 repo 專屬細節：`.scratch/designer-evals/phoenix/README.md`。
 
 ## 尚未驗證

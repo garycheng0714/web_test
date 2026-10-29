@@ -54,7 +54,7 @@ def test_parse_requirements_requires_an_fr_heading():
         run_eval.parse_requirements("# PRD\n\n## 1. Scope\n- nothing")
 
 
-def test_plan_units_maps_requirements_to_cases_and_flags_invented_ids():
+def test_plan_units_creates_one_claim_per_pair_and_flags_invented_ids():
     requirements = [
         run_eval.Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
         run_eval.Requirement(id="FR-2", title="Two", text="### FR-2 Two\n- detail"),
@@ -73,14 +73,36 @@ def test_plan_units_maps_requirements_to_cases_and_flags_invented_ids():
         run_id="run-1",
     )
 
-    assert [unit.kind for unit in units] == ["requirement", "requirement", "case", "case"]
-    assert units[0].target_id == "FR-1"
-    assert units[0].attributes["requirement.claimed_by"] == '["case-1"]'
-    assert units[1].attributes["requirement.claimed_by"] == '["case-2"]'
-    assert units[2].target_id == "case-1"
-    assert units[3].target_id == "case-2"
-    assert units[3].attributes["case.requirement_ids"] == '["FR-2", "FR-9"]'
-    assert units[3].attributes["case.invented_requirement_ids"] == '["FR-9"]'
-    assert "FR-2" in units[3].attributes["output.value"]
-    assert "FR-9" not in units[3].attributes["output.value"]
+    assert [unit.kind for unit in units] == ["claim", "claim", "claim"]
+    assert [unit.target_id for unit in units] == [
+        "FR-1<-case-1",
+        "FR-2<-case-2",
+        "FR-9<-case-2",
+    ]
+    assert units[0].attributes["claim.requirement_exists"] == "true"
+    assert units[0].attributes["input.value"] == requirements[0].text
+    assert units[2].name.endswith("(invented)")
+    assert units[2].attributes["claim.requirement_exists"] == "false"
+    assert units[2].attributes["input.value"] == "missing requirement id: FR-9"
     assert all(unit.attributes["designer.run.id"] == "run-1" for unit in units)
+
+
+def test_plan_units_adds_a_span_for_a_missing_requirement():
+    requirements = [
+        run_eval.Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
+        run_eval.Requirement(id="FR-2", title="Two", text="### FR-2 Two\n- detail"),
+    ]
+    design = DesignOutput(cases=[_case(["FR-1"], "Register")])
+
+    units = run_eval.plan_units(
+        prd_name="register-login.md",
+        design=design,
+        requirements=requirements,
+        run_id="run-1",
+    )
+
+    assert [unit.kind for unit in units] == ["claim", "requirement"]
+    assert units[1].target_id == "FR-2"
+    assert units[1].name == "requirement FR-2 (missing)"
+    assert units[1].attributes["requirement.missing"] == "true"
+    assert units[1].attributes["requirement.claimed_by"] == "[]"

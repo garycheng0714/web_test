@@ -43,13 +43,13 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - 每次 run 存到 `.scratch/designer-evals/runs/<run_id>/`：
   `design.json`、`run.json`、`units.json`、rendered markdown。
 - Phoenix project：`web-test-designer-eval`。每次 run 是一條 designer trace，底下有
-  requirement 與 case 的 `EVALUATOR` spans。
+  claim 與 missing requirement 的 `EVALUATOR` spans。
 
 ## Labels
 
-- Requirement level：`covered` / `not_covered`，記在被 cover 的 requirement span。
-- Case level：`pass` / `fail`，記在 case span。
-- Code annotation：`requirement_claimed`、`case_requirement_ids`、`case_duplicate`。
+- Claim level：`claim_alignment` = `pass` / `fail`，記在 claim span（requirement × case）。
+- Missing requirement：`requirement_covered` = `not_covered`，記在 requirement span。
+- Code annotation：`requirement_exists`、`case_duplicate`；coverage 由 claim 結果推導。
 - 人類標註在 Phoenix UI 進行；`labels.jsonl` 是 metrics 的 source of truth。
 - 現在只有一位 annotator；identifier 先預留 annotator，之後可加第二人。
 - 每次 export 產生一份 snapshot，避免 Phoenix annotation 變動讓舊報告不可重現。
@@ -64,7 +64,9 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 ## Validation
 
 - Coverage rate + Wilson 95% CI；per PRD。
-- 比較 `requirement_ids` 的 claimed coverage 與 human `covered`，報告 false tags。
+- Coverage：requirement 有任一 claim pass 即 `covered`；全部 claim fail 即 `not_covered`；
+  沒有 claim 即 `missing`。
+- 比較 claimed coverage 與 human `claim_alignment`，報告 false tags。
 - Semantic judge：TPR/TNR + CI；split **by PRD**，避免同一個 PRD 的 cases 同時進 dev 與 test。
 - 樣本小時 report-only，不宣稱統計顯著。
 
@@ -74,6 +76,8 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - 工作檔案放 `.scratch/designer-evals/`；驗證後再考慮 productionize 成
   `web_test/planning/eval/`。
 - Phoenix 只在本機跑；late child `EVALUATOR` spans 已驗證可掛回原 designer trace。
+- Phoenix/eval 工具在 `eval` dependency group；用 `uv run --group eval` 執行，版本由
+  `uv.lock` 固定。
 - CI 先不做；ticket 05 保留給未來的 report-only CI，目前不開票。
 - 遵守 import contracts；eval 是 composition root，不讓 schema 反向依賴它。
 
@@ -92,13 +96,14 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - 單一 annotator；需要 delayed self-review 或第二人。
 - `requirement_ids` 可以被亂填；human labels 才是 ground truth。
 - Phoenix annotations 與 `labels.jsonl` 可能漂移；用 export snapshot 固定。
-- Phoenix 的 annotation UI 是 span-centric；若 requirement/case 標註太難用，再考慮自訂 UI。
+- Claim-centric 會讓 many-to-many 產生多個 claim spans；labels 必須用 claim id join。
+- Missing requirement 只有一個 requirement span；不要用它取代 claim 標註。
 - 每次 designer run 有模型成本。
 - 不要用 Jev verifier 當 evaluator，否則量到的是 gate 的自己。
 
 ## Ticket map
 
-- [01](issues/01-eval-trace-and-units.md) — eval trace 與 requirement／case 單位（unblocked）
+- [01](issues/01-eval-trace-and-units.md) — eval trace 與 claim／missing requirement 單位（unblocked）
 - [02](issues/02-labels-and-coverage-report.md) — labels export 與 coverage report（blocked by 01）
 - [03](issues/03-semantic-case-quality-judge.md) — semantic judge（blocked by 02）
 - [04](issues/04-phoenix-experiments.md) — Phoenix experiments 比較多次 run（blocked by 01；02 可選）
@@ -113,4 +118,5 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - Phoenix project：`web-test-designer-eval`
 - Late child spans 驗證成功（2026-10-29），可直接掛回 designer trace
 - CI 先不做；ticket 05 deferred
+- Claim-centric：每個 requirement × case 一個 claim span；missing requirement 另開 span
 - 第一版不改 production gate

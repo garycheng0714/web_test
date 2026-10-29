@@ -14,13 +14,14 @@ the Phoenix experiments UI. The experiment is a review aid; it does not gate mer
 - Boundary: Phoenix dataset and experiment records; run metadata includes model, prompt
   version, and `designer.run.id`.
 - Invariants: dataset examples are pinned to the PRD set; experiment names include model/run
-  identity; evaluator names stay stable across runs; no required check or gate.
+  identity; evaluator names stay stable across runs; claim labels remain the human ground
+  truth; no required check or gate.
 
 ## Tasks
 
 - [ ] Create or reuse a Phoenix dataset with one example per pinned PRD.
 - [ ] Wrap `design_test_cases` as the experiment task; persist model and run metadata.
-- [ ] Add code evaluators: requirement coverage, invented IDs, empty IDs, duplicate cases.
+- [ ] Add code evaluators: claim coverage, invented IDs, empty IDs, duplicate cases.
 - [ ] Run two experiments with a controlled change (model or prompt) and compare them in the
       UI.
 - [ ] Keep human labels in the annotation/export path; do not let experiment evaluators

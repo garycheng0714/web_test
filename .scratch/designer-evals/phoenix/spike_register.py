@@ -8,8 +8,7 @@ Run Phoenix separately:
     uvx arize-phoenix serve
 
 Then:
-    PYTHONPATH=. uv run --with openinference-instrumentation-pydantic-ai \
-        --with arize-phoenix-otel \
+    PYTHONPATH=. uv run --group eval \
         python .scratch/designer-evals/phoenix/spike_register.py
 """
 

@@ -1,7 +1,8 @@
 """Run one designer eval and build Phoenix eval units.
 
-This is ticket 01: parse the PRD, run the designer, attach one EVALUATOR span per
-requirement and per case under the designer agent trace, and save the run artifacts.
+This is ticket 01: parse the PRD, run the designer, attach one EVALUATOR claim span per
+(requirement, case) pair plus missing-requirement spans under the designer agent trace, and
+save the run artifacts.
 
 Phoenix must be running:
 
@@ -9,8 +10,7 @@ Phoenix must be running:
 
 Then:
 
-    PYTHONPATH=. uv run --with openinference-instrumentation-pydantic-ai \
-        --with arize-phoenix-client \
+    PYTHONPATH=. uv run --group eval \
         python .scratch/designer-evals/run_eval.py
 
 Code annotations and the coverage report belong to ticket 02.
@@ -107,13 +107,6 @@ def case_id(index: int) -> str:
     return f"case-{index}"
 
 
-def _case_name(index: int, scenario: str) -> str:
-    short = " ".join(scenario.split())
-    if len(short) > 60:
-        short = f"{short[:57]}..."
-    return f"case {index}: {short}"
-
-
 def plan_units(
     *,
     prd_name: str,
@@ -121,73 +114,56 @@ def plan_units(
     requirements: list[Requirement],
     run_id: str,
 ) -> list[UnitSpec]:
+    """One claim per (requirement, case) pair, plus a span for each missing requirement."""
     by_id = {requirement.id: requirement for requirement in requirements}
+    claimed_by: dict[str, list[str]] = {requirement.id: [] for requirement in requirements}
     units: list[UnitSpec] = []
 
+    for index, case in enumerate(design.cases, start=1):
+        cid = case_id(index)
+        for requirement_id in case.requirement_ids:
+            requirement = by_id.get(requirement_id)
+            if requirement is not None:
+                claimed_by[requirement.id].append(cid)
+            units.append(
+                UnitSpec(
+                    kind="claim",
+                    target_id=f"{requirement_id}<-{cid}",
+                    name=f"claim {requirement_id} <- {cid}"
+                    if requirement is not None
+                    else f"claim {requirement_id} <- {cid} (invented)",
+                    attributes={
+                        "openinference.span.kind": "EVALUATOR",
+                        "claim.requirement_id": requirement_id,
+                        "claim.case_id": cid,
+                        "claim.requirement_exists": "true" if requirement else "false",
+                        "requirement.id": requirement_id,
+                        "case.id": cid,
+                        "input.value": requirement.text
+                        if requirement is not None
+                        else f"missing requirement id: {requirement_id}",
+                        "output.value": case.model_dump_json(),
+                        "designer.run.id": run_id,
+                        "designer.prd": prd_name,
+                    },
+                )
+            )
+
     for requirement in requirements:
-        claimed = [
-            (index, case)
-            for index, case in enumerate(design.cases, start=1)
-            if requirement.id in case.requirement_ids
-        ]
+        if claimed_by[requirement.id]:
+            continue
         units.append(
             UnitSpec(
                 kind="requirement",
                 target_id=requirement.id,
-                name=f"requirement {requirement.id}",
+                name=f"requirement {requirement.id} (missing)",
                 attributes={
                     "openinference.span.kind": "EVALUATOR",
                     "requirement.id": requirement.id,
+                    "requirement.missing": "true",
+                    "requirement.claimed_by": "[]",
                     "input.value": requirement.text,
-                    "output.value": json.dumps(
-                        [
-                            {
-                                "case_id": case_id(index),
-                                "test_scenario": case.test_scenario,
-                            }
-                            for index, case in claimed
-                        ],
-                        ensure_ascii=False,
-                    ),
-                    "requirement.claimed_by": json.dumps(
-                        [case_id(index) for index, _ in claimed],
-                        ensure_ascii=False,
-                    ),
-                    "designer.run.id": run_id,
-                    "designer.prd": prd_name,
-                },
-            )
-        )
-
-    for index, case in enumerate(design.cases, start=1):
-        invented = [
-            requirement_id
-            for requirement_id in case.requirement_ids
-            if requirement_id not in by_id
-        ]
-        units.append(
-            UnitSpec(
-                kind="case",
-                target_id=case_id(index),
-                name=_case_name(index, case.test_scenario),
-                attributes={
-                    "openinference.span.kind": "EVALUATOR",
-                    "case.id": case_id(index),
-                    "input.value": case.model_dump_json(),
-                    "output.value": json.dumps(
-                        {
-                            requirement_id: by_id[requirement_id].text
-                            for requirement_id in case.requirement_ids
-                            if requirement_id in by_id
-                        },
-                        ensure_ascii=False,
-                    ),
-                    "case.requirement_ids": json.dumps(
-                        case.requirement_ids, ensure_ascii=False
-                    ),
-                    "case.invented_requirement_ids": json.dumps(
-                        invented, ensure_ascii=False
-                    ),
+                    "output.value": "[]",
                     "designer.run.id": run_id,
                     "designer.prd": prd_name,
                 },
@@ -358,15 +334,18 @@ def main() -> int:
         )
     )
 
+    print(f"running designer for {prd.name}...", file=sys.stderr)
     run_start = datetime.now(timezone.utc)
     design = design_test_cases(prd_text)
     provider.force_flush()
+    print(f"designer finished: {len(design.cases)} cases", file=sys.stderr)
 
     client = Client(base_url=_base_url())
     agent_span = _agent_span(client, args.project, run_start)
     if agent_span is None:
         print("failed: designer agent span not found", file=sys.stderr)
         return 1
+    print("designer agent span found", file=sys.stderr)
 
     requirements = parse_requirements(prd_text)
     specs = plan_units(
@@ -375,7 +354,9 @@ def main() -> int:
         requirements=requirements,
         run_id=run_id,
     )
+    print(f"creating {len(specs)} eval units...", file=sys.stderr)
     units = _create_units(provider, agent_span, specs)
+    print("eval units created", file=sys.stderr)
     rendered = render_document(
         design.cases,
         id=prd.stem,

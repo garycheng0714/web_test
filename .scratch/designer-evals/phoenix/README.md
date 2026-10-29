@@ -17,8 +17,7 @@ Terminal B:
 
 ```bash
 cd /Users/garycheng/PycharmProjects/web_test
-PYTHONPATH=. uv run --with openinference-instrumentation-pydantic-ai \
-  --with arize-phoenix-client \
+PYTHONPATH=. uv run --group eval \
   python .scratch/designer-evals/phoenix/spike.py
 ```
 
@@ -27,8 +26,8 @@ Open `http://127.0.0.1:6006` -> project `web-test-designer`.
 Options:
 
 ```bash
-python .scratch/designer-evals/phoenix/spike.py --prd prd/login-smoke.md
-python .scratch/designer-evals/phoenix/spike.py --instrumentation-version 2
+uv run --group eval python .scratch/designer-evals/phoenix/spike.py --prd prd/login-smoke.md
+uv run --group eval python .scratch/designer-evals/phoenix/spike.py --instrumentation-version 2
 ```
 
 ## What to expect
@@ -58,7 +57,7 @@ This is a probe for the annotation pipeline, not the ticket 02 coverage evaluato
 Verify in the Phoenix UI (agent span -> annotations) or:
 
 ```bash
-uv run --with arize-phoenix-client python - <<'PY'
+uv run --group eval python - <<'PY'
 from phoenix.client import Client
 
 client = Client(base_url="http://127.0.0.1:6006")
@@ -75,12 +74,11 @@ PY
 ## Late child span probe
 
 `late_child_probe.py` adds a new `EVALUATOR` span under an existing designer agent span *after*
-that span has ended. This checks whether Phase 1 can attach requirement/case eval spans to the
+that span has ended. This checks whether Phase 1 can attach claim / missing-requirement eval spans to the
 original trace instead of starting a new one.
 
 ```bash
-uv run --with arize-phoenix-client \
-  --with openinference-instrumentation-pydantic-ai \
+uv run --group eval \
   python .scratch/designer-evals/phoenix/late_child_probe.py
 ```
 
@@ -92,7 +90,7 @@ trace: 4ae60dda7197906d0e8d069a9797f8ef same=True
 parent: 0d78c9b5ac90496a correct=True
 ```
 
-So the late-child approach works: Phase 1 can create requirement/case `EVALUATOR` spans after
+So the late-child approach works: Phase 1 can create claim / missing-requirement `EVALUATOR` spans after
 the designer run and keep them in the same Phoenix trace.
 
 ## Manual vs `register()`
@@ -101,8 +99,7 @@ the designer run and keep them in the same Phoenix trace.
 `spike_register.py` uses `phoenix.otel.register()` but still adds the Pydantic AI translator:
 
 ```bash
-PYTHONPATH=. uv run --with openinference-instrumentation-pydantic-ai \
-  --with arize-phoenix-otel \
+PYTHONPATH=. uv run --group eval \
   python .scratch/designer-evals/phoenix/spike_register.py
 ```
 
@@ -122,7 +119,8 @@ exporter after it; otherwise export runs before translation.
   `execute_tool`.
 - `version=2` also mapped, but Pydantic AI deprecates versions 2–4. Use 5.
 - `Agent.instrument_all(...)` is enough; no designer API change and no Logfire config.
-- `uv run --with` leaves `pyproject.toml` and `uv.lock` untouched.
+- Phoenix tools live in the `eval` dependency group; `uv.lock` pins exact versions. Use
+  `uv run --group eval ...` so production and default CI stay light.
 - `arize-phoenix-otel==0.17.2` plus `openinference-instrumentation-pydantic-ai==0.1.30`
   with the translator before the exporter produced the same four spans and attributes as
   the manual setup.
