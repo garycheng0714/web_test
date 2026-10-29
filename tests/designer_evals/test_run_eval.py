@@ -106,3 +106,60 @@ def test_plan_units_adds_a_span_for_a_missing_requirement():
     assert units[1].name == "requirement FR-2 (missing)"
     assert units[1].attributes["requirement.missing"] == "true"
     assert units[1].attributes["requirement.claimed_by"] == "[]"
+
+
+def test_plan_units_deduplicates_requirement_ids():
+    requirements = [
+        run_eval.Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
+    ]
+    design = DesignOutput(cases=[_case(["FR-1", "FR-1"], "Register")])
+
+    units = run_eval.plan_units(
+        prd_name="register-login.md",
+        design=design,
+        requirements=requirements,
+        run_id="run-1",
+    )
+
+    assert [unit.target_id for unit in units] == ["FR-1<-case-1"]
+
+
+def test_duplicate_groups_detects_identical_cases():
+    design = DesignOutput(
+        cases=[
+            _case(["FR-1"], "Register"),
+            _case(["FR-2"], "Register"),
+            _case(["FR-3"], "Login"),
+        ]
+    )
+
+    groups = run_eval.duplicate_groups(design)
+
+    assert list(groups.values()) == [["case-1", "case-2"]]
+
+
+def test_sum_usage_adds_llm_token_counts():
+    spans = [
+        {
+            "attributes": {
+                "llm.token_count.prompt": 10,
+                "llm.token_count.completion": 2,
+                "llm.token_count.total": 12,
+                "llm.token_count.prompt_details.cache_read": 7,
+            }
+        },
+        {
+            "attributes": {
+                "llm.token_count.prompt": 20,
+                "llm.token_count.completion": 3,
+                "llm.token_count.total": 23,
+            }
+        },
+    ]
+
+    assert run_eval._sum_usage(spans) == {
+        "prompt": 30,
+        "completion": 5,
+        "total": 35,
+        "cache_read": 7,
+    }

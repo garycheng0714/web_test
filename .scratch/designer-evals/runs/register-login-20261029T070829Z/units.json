@@ -1,0 +1,128 @@
+[
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-01<-case-1",
+    "span_id": "401a65908681a1a6",
+    "name": "claim FR-ACC-01 <- case-1",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-01",
+      "claim.case_id": "case-1",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-01",
+      "case.id": "case-1",
+      "input.value": "### FR-ACC-01 註冊 Step 1：Name + Email\n- `/login` 的 `New User Signup!` 區塊含 Name、Email Address 欄位與 `Signup` 按鈕。\n- **AC**\n  1. 輸入 Name 與**未註冊**的 Email，點 `Signup` → 進入 `Enter Account Information` 頁。(TCr1-S4~S7)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-01\"],\"module_feature\":\"會員 ACC - 註冊 Step 1（Name + Email）\",\"test_scenario\":\"Verify that a guest who submits an unregistered Name and Email in the `New User Signup!` block is taken to the `Enter Account Information` page\",\"preconditions\":[\"使用者為訪客（未登入）\",\"已備妥一組系統中不存在的 Email（送出路徑前確認該 Email 尚無對應帳號）\"],\"steps\":[{\"action\":\"開啟 http://automationexercise.com\",\"expected_result\":\"首頁載入，全站 Header 顯示 `Signup / Login` 連結（訪客狀態，無 `Logged in as`／`Logout`／`Delete Account`）\"},{\"action\":\"點擊 Header 的 `Signup / Login`\",\"expected_result\":\"進入 `/login`，頁面依序顯示 `Login to your account` 區塊、`OR`、`New User Signup!` 區塊\"},{\"action\":\"在 `New User Signup!` 的 Name 欄輸入 `OC QA`，Email Address 欄輸入一組未註冊的 Email\",\"expected_result\":\"兩個欄位接受輸入並顯示所輸入內容\"},{\"action\":\"點擊 `Signup` 按鈕\",\"expected_result\":\"離開 `/login` 並進入帳號資訊頁，頁面顯示 `Enter Account Information` 與 `Address Information` 兩個區塊，以及 `Create Account` 按鈕\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Functional\",\"notes\":\"來源 TCr1-S4~S7。此步驟的 Email 後續供 FR-ACC-02 案例沿用（可於同一輪執行串接）。\"}",
+      "designer.run.id": "register-login-20261029T070829Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-02<-case-2",
+    "span_id": "42fcaf80f2bdcd21",
+    "name": "claim FR-ACC-02 <- case-2",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-02",
+      "claim.case_id": "case-2",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-02",
+      "case.id": "case-2",
+      "input.value": "### FR-ACC-02 註冊 Step 2：帳號資訊 + 地址資訊\n- **帳號資訊**：Title（`Mr.` / `Mrs.` radio）、Name、Email、Password、Date of Birth（Day / Month / Year 三個下拉）。\n  - Email 由 Step 1 帶入且**唯讀（disabled）**。\n  - Mail opt-in checkbox：`Sign up for our newsletter!`、`Receive special offers from our partners!`。\n- **地址資訊**：First name、Last name、Company、Address、Address 2、Country（下拉）、State、City、Zipcode、Mobile Number。\n- **AC**\n  1. 點 `Create Account` → 顯示 `Account Created!` 頁（含 `Congratulations! Your new account has been successfully created!`）。(TCr1-S9~S14)\n  2. 點 `Continue` → 回到已登入狀態，Header 顯示 `Logged in as <name>`。(TCr1-S15~S16)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-02\"],\"module_feature\":\"會員 ACC - 註冊 Step 2（帳號資訊 + 地址資訊）\",\"test_scenario\":\"Verify that completing the account and address information and clicking `Create Account` creates the account, shows the `Account Created!` page, and that `Continue` returns the user in a logged-in state\",\"preconditions\":[\"已於 `New User Signup!` 以未註冊的 Name / Email 送出，目前停在 `Enter Account Information` 頁\",\"準備一組符合系統接受的 Password（實測 `Password123!` 可通過，密碼規則未定義，見 open questions）\"],\"steps\":[{\"action\":\"選取 Title 為 `Mr.`（或 `Mrs.`），檢視 Name 與 Email 欄位\",\"expected_result\":\"Title radio 呈已選取狀態；Name 與 Email 為 Step 1 送出的值，且 Email 欄位不可編輯（disabled）\"},{\"action\":\"輸入 Password，並由 Day / Month / Year 下拉選取 Date of Birth\",\"expected_result\":\"Password 顯示為遮蔽輸入；Date of Birth 三個下拉選定後顯示所選日／月／年\"},{\"action\":\"填寫 Address Information 全部欄位：First name、Last name、Company、Address、Address 2、Country（下拉選一值）、State、City、Zipcode、Mobile Number\",\"expected_result\":\"各文字欄位接受並保留輸入值；Country 顯示所選國家\"},{\"action\":\"點擊 `Create Account` 按鈕\",\"expected_result\":\"顯示 `Account Created!` 頁面，包含文字 `Congratulations! Your new account has been successfully created!`，並有 `Continue` 連結\"},{\"action\":\"點擊 `Continue` 連結\",\"expected_result\":\"進入網站頁面且為已登入狀態：Header 顯示 `Logged in as OC QA`，並出現 `Logout` 與 `Delete Account` 連結，不再顯示 `Signup / Login`\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Workflow\",\"notes\":\"來源 TCr1-S9~S16。Address 為單行／多行欄位不影響驗證；`Sign up for our newsletter!` 與 `Receive special offers from our partners!` 勾選後的可觀察效果 PRD 未定義（見 open questions），故不列入預期結果。\"}",
+      "designer.run.id": "register-login-20261029T070829Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-03<-case-3",
+    "span_id": "c842935b22c1e185",
+    "name": "claim FR-ACC-03 <- case-3",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-03",
+      "claim.case_id": "case-3",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-03",
+      "case.id": "case-3",
+      "input.value": "### FR-ACC-03 重複 Email 防護\n- **AC**：以已註冊 Email 於 `New User Signup!` 點 `Signup` → 顯示錯誤 `Email Address already exist!`，且**不**進入帳號資訊頁。(TCr5-S4~S8)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-03\"],\"module_feature\":\"會員 ACC - 註冊重複 Email 防護\",\"test_scenario\":\"Verify that submitting an already-registered Email in the `New User Signup!` block shows `Email Address already exist!` and does not open the account information page\",\"preconditions\":[\"使用者為訪客（未登入）\",\"系統中已存在一個帳號，且已知其註冊 Email\"],\"steps\":[{\"action\":\"前往 `/login`\",\"expected_result\":\"頁面顯示 `New User Signup!` 區塊（含 Name、Email Address 欄位與 `Signup` 按鈕）\"},{\"action\":\"在 `New User Signup!` 的 Name 欄輸入任意名稱，Email Address 欄輸入已註冊的 Email，並點擊 `Signup`\",\"expected_result\":\"頁面顯示錯誤訊息 `Email Address already exist!`；使用者停留在 `/login`，未顯示 `Enter Account Information` 頁，亦未被登入（Header 仍顯示 `Signup / Login`）\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Negative\",\"notes\":\"來源 TCr5-S4~S8。對照 FR-ACC-01 未註冊 Email 應成功進入下一頁，兩者互為對照組。\"}",
+      "designer.run.id": "register-login-20261029T070829Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-4",
+    "span_id": "6ecdb44e33fc2b9f",
+    "name": "claim FR-ACC-04 <- case-4",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-4",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-4",
+      "input.value": "### FR-ACC-04 登入\n- `/login` 的 `Login to your account` 區塊含 Email Address、Password 與 `Login` 按鈕。\n- **AC**\n  1. 正確帳密 → Header 顯示 `Logged in as <name>`。(TCr2-S4~S8、TCr4-S4~S8)\n  2. 錯誤帳密 → 顯示錯誤 `Your email or password is incorrect!`，停留在 `/login`。(TCr3-S4~S8)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\"],\"module_feature\":\"會員 ACC - 登入\",\"test_scenario\":\"Verify that logging in with valid credentials puts the user in a logged-in state\",\"preconditions\":[\"使用者為訪客（未登入），位於任一頁面\",\"系統中存在一筆已註冊帳號（Name = `OC QA`），且已知其 Email 與 Password\"],\"steps\":[{\"action\":\"前往 `/login`\",\"expected_result\":\"頁面顯示 `Login to your account` 區塊，含 Email Address、Password 欄位與 `Login` 按鈕\"},{\"action\":\"於 Email Address 輸入該帳號 Email、Password 輸入正確密碼\",\"expected_result\":\"兩個欄位接受輸入；Password 顯示為遮蔽輸入\"},{\"action\":\"點擊 `Login` 按鈕\",\"expected_result\":\"登入成功：Header 顯示 `Logged in as OC QA`，並顯示 `Logout` 與 `Delete Account` 連結，不再顯示 `Signup / Login`\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Functional\",\"notes\":\"來源 TCr2-S4~S8、TCr4-S4~S8。既有帳號可由 FR-ACC-02 案例建立後沿用。\"}",
+      "designer.run.id": "register-login-20261029T070829Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-5",
+    "span_id": "810d2331dc5e5ee2",
+    "name": "claim FR-ACC-04 <- case-5",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-5",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-5",
+      "input.value": "### FR-ACC-04 登入\n- `/login` 的 `Login to your account` 區塊含 Email Address、Password 與 `Login` 按鈕。\n- **AC**\n  1. 正確帳密 → Header 顯示 `Logged in as <name>`。(TCr2-S4~S8、TCr4-S4~S8)\n  2. 錯誤帳密 → 顯示錯誤 `Your email or password is incorrect!`，停留在 `/login`。(TCr3-S4~S8)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\"],\"module_feature\":\"會員 ACC - 登入\",\"test_scenario\":\"Verify that logging in with an incorrect password shows the error and keeps the user on the login page as a guest\",\"preconditions\":[\"使用者為訪客（未登入）\",\"系統中存在一筆已註冊帳號，且已知其 Email\"],\"steps\":[{\"action\":\"前往 `/login`\",\"expected_result\":\"頁面顯示 `Login to your account` 區塊（Email Address、Password、`Login`）\"},{\"action\":\"於 Email Address 輸入該已註冊 Email，Password 輸入錯誤的密碼\",\"expected_result\":\"欄位接受輸入，Password 以遮蔽顯示\"},{\"action\":\"點擊 `Login` 按鈕\",\"expected_result\":\"顯示錯誤訊息 `Your email or password is incorrect!`；使用者停留在 `/login`（仍可見 `Login to your account` 與 `New User Signup!`），Header 仍為 `Signup / Login`，未出現 `Logged in as`\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Negative\",\"notes\":\"來源 TCr3-S4~S8。PRD 僅定義「錯誤帳密」單一情境與單一文案，故不細分密碼錯誤與帳號不存在。\"}",
+      "designer.run.id": "register-login-20261029T070829Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-05<-case-6",
+    "span_id": "f2456b64000d4fd8",
+    "name": "claim FR-ACC-05 <- case-6",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-05",
+      "claim.case_id": "case-6",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-05",
+      "case.id": "case-6",
+      "input.value": "### FR-ACC-05 登出\n- **AC**：點 Header 的 `Logout` → 回到 `/login`（可見 `Login to your account` / `New User Signup!`），狀態為訪客。(TCr4-S9~S10)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-05\"],\"module_feature\":\"會員 ACC - 登出\",\"test_scenario\":\"Verify that a logged-in member clicking `Logout` in the header returns to `/login` in guest state\",\"preconditions\":[\"使用者已以有效帳密登入，Header 顯示 `Logged in as OC QA`\"],\"steps\":[{\"action\":\"點擊 Header 的 `Logout` 連結\",\"expected_result\":\"導向 `/login`，頁面可見 `Login to your account` 與 `New User Signup!` 兩個區塊\"},{\"action\":\"檢視 Header 狀態\",\"expected_result\":\"Header 顯示 `Signup / Login`，不再顯示 `Logged in as OC QA`、`Logout`、`Delete Account`\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Functional\",\"notes\":\"來源 TCr4-S9~S10。登出後 session 是否於重整／新分頁維持未定義（見 open questions）。\"}",
+      "designer.run.id": "register-login-20261029T070829Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-06<-case-7",
+    "span_id": "bc0ddbcdace6befe",
+    "name": "claim FR-ACC-06 <- case-7",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-06",
+      "claim.case_id": "case-7",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-06",
+      "case.id": "case-7",
+      "input.value": "### FR-ACC-06 刪除帳號\n- 會員可於 Header 點 `Delete Account`。\n- **AC**：顯示 `Account Deleted!` 頁（含 `Your account has been permanently deleted!`），點 `Continue` 後離開已登入狀態（Header 再現 `Signup / Login`）。(TCr1-S17~S18、TCr2-S9~S10)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-06\"],\"module_feature\":\"會員 ACC - 刪除帳號\",\"test_scenario\":\"Verify that a logged-in member deleting the account sees the `Account Deleted!` page and is returned to guest state after `Continue`\",\"preconditions\":[\"使用者已以即將刪除的帳號登入，Header 顯示 `Logged in as OC QA`\"],\"steps\":[{\"action\":\"點擊 Header 的 `Delete Account` 連結\",\"expected_result\":\"顯示 `Account Deleted!` 頁面，包含文字 `Your account has been permanently deleted!`，並有 `Continue` 連結\"},{\"action\":\"點擊 `Continue` 連結\",\"expected_result\":\"離開已登入狀態：Header 顯示 `Signup / Login`，不再顯示 `Logged in as OC QA`、`Logout`、`Delete Account`\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Workflow\",\"notes\":\"來源 TCr1-S17~S18、TCr2-S9~S10。Delete Account 同時為測試資料清理手段（PRD §11.2#10）。刪除後該 Email 是否可立即重新註冊未定義（見 open questions）。\"}",
+      "designer.run.id": "register-login-20261029T070829Z",
+      "designer.prd": "register-login.md"
+    }
+  }
+]

@@ -8,7 +8,7 @@ annotate; it is not the coverage report yet.
 
 **Blocked by:** None.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 **Shape:**
 - Types: `EvalUnit` (kind `claim`/`requirement`, target_id, span_id, attributes), `EvalRun`
@@ -25,16 +25,16 @@ annotate; it is not the coverage report yet.
 
 - [x] Pin the PRD set and `WEB_TEST_DESIGN_MODEL`; record the model in `run.json`.
 - [x] Add the pinned `eval` dependency group for Phoenix client/instrumentation.
-- [ ] Record usage; `design_test_cases` currently returns only `DesignOutput`.
+- [x] Record usage by summing the trace's LLM spans into `run.json`.
 - [x] Parse requirements from `### FR-*` headings, stopping at the next `##` or `###` heading.
 - [x] Run the designer; save `design.json`, `run.json`, and rendered markdown.
 - [x] Fetch the designer agent span and create late-child `EVALUATOR` claim spans:
       one per (requirement, case) pair, plus one missing-requirement span.
 - [x] Put the requirement text, case JSON, requirement/case IDs, `run_id`, and PRD name on
       the claim spans.
-- [ ] Write `CODE` annotations: `requirement_exists`, `case_duplicate`.
+- [x] Write `CODE` annotations: `requirement_exists`, `case_duplicate`.
 - [x] Save `units.json` mapping `span_id` to claim or missing requirement.
-- [x] Add tests for requirement parsing and unit mapping.
+- [x] Add tests for requirement parsing, unit mapping, duplicates, and usage.
 - [x] Verify the trace structure in Phoenix (REST); 7 claim spans under the agent for the
       register-login run.
 - [x] Run `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`,
@@ -81,7 +81,7 @@ Created 2026-10-29 from `.scratch/designer-evals/spec.md`. Replaces the code-onl
 old coverage ticket; the report moves to ticket 02.
 
 2026-10-29: parser + claim units implemented in `.scratch/designer-evals/run_eval.py`.
-Claim-centric run `register-login-20261029T063052Z` produced 7 `claim` spans (11 total
-spans) in project `web-test-designer-eval`. Artifacts are under
-`.scratch/designer-evals/runs/register-login-20261029T063052Z/`. Code annotations and usage
-capture remain.
+Claim-centric run `register-login-20261029T070829Z` produced 7 `claim` spans, 14 CODE
+annotations, and usage `{prompt: 8992, completion: 6023, total: 15015, cache_read: 3840}`
+in project `web-test-designer-eval`. Artifacts are under
+`.scratch/designer-evals/runs/register-login-20261029T070829Z/`.

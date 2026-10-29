@@ -9,12 +9,13 @@ be reproducible from the saved run artifacts, even if Phoenix annotations change
 
 **Blocked by:** 01.
 
-**Status:** needs-triage
+**Status:** ready-for-human
 
 **Shape:**
 - Types: `LabelRecord` (run_id, prd, target_kind `claim`/`requirement`, target_id,
-  annotation, label, score, annotator, explanation, span_id), `RequirementCoverage`
-  (requirement_id, claimed, covered, claim_ids, case_ids), `CoverageReport`.
+  annotation, annotator_kind, label, score, annotator, explanation, span_id, annotation_id,
+  source, metadata), `RequirementCoverage` (requirement_id, claimed, covered, status,
+  claim_ids, case_ids), `CoverageReport`.
 - Boundary: `units.json` + Phoenix annotations -> `labels.jsonl` -> `report.md` under
   `.scratch/designer-evals/runs/<run_id>/`; eval types are dataclasses, file records are
   Pydantic.
@@ -26,18 +27,18 @@ be reproducible from the saved run artifacts, even if Phoenix annotations change
 
 ## Tasks
 
-- [ ] Export `claim_alignment` and `requirement_covered` annotations by joining `units.json`
-      with Phoenix `get_span_annotations`.
-- [ ] Include annotator identity in the export and annotation identifier; support one
-      annotator now without blocking a second later.
-- [ ] Write a reproducible `labels.jsonl` snapshot with run id, PRD, target, label, score,
+- [x] Export `claim_alignment`, `requirement_covered`, and CODE annotations by joining
+      `units.json` with Phoenix `get_span_annotations`.
+- [x] Record HUMAN annotations as `local`; keep `annotator_kind` and `annotation_id` in the
+      snapshot.
+- [x] Write a reproducible `labels.jsonl` snapshot with run id, PRD, target, label, score,
       explanation, and span id.
-- [ ] Compute per-PRD coverage rate + Wilson 95% CI from claim labels.
-- [ ] Report false tags: claimed by `requirement_ids` but no claim passes.
-- [ ] Report missing requirements, invented IDs, empty IDs, and duplicate cases.
-- [ ] Reuse `web_test/planning/review/structure.py` for structural checks.
-- [ ] Add tests for Wilson CI and the labels/units join.
-- [ ] Run `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`,
+- [x] Compute per-PRD coverage rate + Wilson 95% CI from claim labels.
+- [x] Report false tags: claimed by `requirement_ids` but no claim passes.
+- [x] Report missing requirements, invented IDs, empty IDs, and duplicate cases.
+- [x] Reuse `web_test/planning/review/structure.py` for structural checks.
+- [x] Add tests for Wilson CI, label export, coverage, false tags, and a synthetic fake fail.
+- [x] Run `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`,
       `uv run ruff check --select F401`.
 
 ## Out of scope
@@ -74,3 +75,8 @@ report.md
 
 Created 2026-10-29 from `.scratch/designer-evals/spec.md`. The coverage/report half of the old
 ticket 01.
+
+2026-10-29: `export_labels.py` and `report.py` implemented. Run
+`register-login-20261029T070829Z` exported 7 HUMAN + 14 CODE labels; report shows 6/6
+requirements covered, Wilson 95% CI [0.61, 1.00], no false tags or code failures.
+The test suite includes a synthetic fake-fail claim to exercise the false-tag path.

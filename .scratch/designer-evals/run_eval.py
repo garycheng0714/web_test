@@ -13,10 +13,11 @@ Then:
     PYTHONPATH=. uv run --group eval \
         python .scratch/designer-evals/run_eval.py
 
-Code annotations and the coverage report belong to ticket 02.
+Code annotations are written here; the coverage report belongs to ticket 02.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -107,6 +108,30 @@ def case_id(index: int) -> str:
     return f"case-{index}"
 
 
+def _case_fingerprint(case) -> str:
+    data = {
+        "module_feature": case.module_feature,
+        "test_scenario": case.test_scenario,
+        "preconditions": [" ".join(item.split()) for item in case.preconditions],
+        "steps": [
+            {
+                "action": " ".join(step.action.split()),
+                "expected_result": " ".join(step.expected_result.split()),
+            }
+            for step in case.steps
+        ],
+    }
+    encoded = json.dumps(data, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def duplicate_groups(design: DesignOutput) -> dict[str, list[str]]:
+    groups: dict[str, list[str]] = {}
+    for index, case in enumerate(design.cases, start=1):
+        groups.setdefault(_case_fingerprint(case), []).append(case_id(index))
+    return {fingerprint: ids for fingerprint, ids in groups.items() if len(ids) > 1}
+
+
 def plan_units(
     *,
     prd_name: str,
@@ -121,7 +146,7 @@ def plan_units(
 
     for index, case in enumerate(design.cases, start=1):
         cid = case_id(index)
-        for requirement_id in case.requirement_ids:
+        for requirement_id in dict.fromkeys(case.requirement_ids):
             requirement = by_id.get(requirement_id)
             if requirement is not None:
                 claimed_by[requirement.id].append(cid)
@@ -220,6 +245,85 @@ def _agent_span(client, project: str, run_start: datetime) -> dict | None:
     return None
 
 
+_USAGE_ATTRIBUTES = {
+    "llm.token_count.prompt": "prompt",
+    "llm.token_count.completion": "completion",
+    "llm.token_count.total": "total",
+    "llm.token_count.prompt_details.cache_read": "cache_read",
+}
+
+
+def _sum_usage(spans: list[dict]) -> dict[str, int]:
+    totals = {"prompt": 0, "completion": 0, "total": 0, "cache_read": 0}
+    for span in spans:
+        attributes = span.get("attributes", {})
+        for attribute, key in _USAGE_ATTRIBUTES.items():
+            value = attributes.get(attribute)
+            if isinstance(value, (int, float)):
+                totals[key] += int(value)
+    return totals
+
+
+def _usage(client, project: str, trace_id: str) -> dict[str, int]:
+    spans = client.spans.get_spans(
+        project_identifier=project,
+        trace_ids=[trace_id],
+        limit=100,
+    )
+    return _sum_usage(spans)
+
+
+def _code_annotations(units: list[EvalUnit], design: DesignOutput) -> list:
+    from phoenix.client.resources.spans import SpanAnnotationData
+
+    duplicate_by_case: dict[str, list[str]] = {}
+    for ids in duplicate_groups(design).values():
+        for cid in ids:
+            duplicate_by_case[cid] = [other for other in ids if other != cid]
+
+    annotations = []
+    for unit in units:
+        if unit.kind != "claim":
+            continue
+        requirement_id = unit.attributes["claim.requirement_id"]
+        cid = unit.attributes["claim.case_id"]
+        exists = unit.attributes["claim.requirement_exists"] == "true"
+        annotations.append(
+            SpanAnnotationData(
+                name="requirement_exists",
+                annotator_kind="CODE",
+                span_id=unit.span_id,
+                result={
+                    "label": "valid" if exists else "invented",
+                    "score": 1.0 if exists else 0.0,
+                },
+                metadata={
+                    "claim_id": unit.target_id,
+                    "requirement_id": requirement_id,
+                    "case_id": cid,
+                },
+            )
+        )
+        duplicates = duplicate_by_case.get(cid, [])
+        annotations.append(
+            SpanAnnotationData(
+                name="case_duplicate",
+                annotator_kind="CODE",
+                span_id=unit.span_id,
+                result={
+                    "label": "duplicate" if duplicates else "unique",
+                    "score": 0.0 if duplicates else 1.0,
+                },
+                metadata={
+                    "claim_id": unit.target_id,
+                    "case_id": cid,
+                    "duplicate_with": duplicates,
+                },
+            )
+        )
+    return annotations
+
+
 def _create_units(provider, agent_span: dict, specs: list[UnitSpec]) -> list[EvalUnit]:
     from opentelemetry import trace
     from opentelemetry.trace import (
@@ -263,7 +367,13 @@ def _create_units(provider, agent_span: dict, specs: list[UnitSpec]) -> list[Eva
     return units
 
 
-def _write_run(
+def _write_design(run_dir: Path, design: DesignOutput, rendered: str) -> None:
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "design.json").write_text(design.model_dump_json(indent=2), encoding="utf-8")
+    (run_dir / "test-case.md").write_text(rendered, encoding="utf-8")
+
+
+def _write_results(
     run_dir: Path,
     *,
     run_id: str,
@@ -273,11 +383,8 @@ def _write_run(
     design: DesignOutput,
     requirements: list[Requirement],
     units: list[EvalUnit],
-    rendered: str,
+    usage: dict[str, int],
 ) -> None:
-    run_dir.mkdir(parents=True, exist_ok=True)
-    (run_dir / "design.json").write_text(design.model_dump_json(indent=2), encoding="utf-8")
-    (run_dir / "test-case.md").write_text(rendered, encoding="utf-8")
     (run_dir / "units.json").write_text(
         json.dumps([asdict(unit) for unit in units], indent=2, ensure_ascii=False),
         encoding="utf-8",
@@ -293,6 +400,7 @@ def _write_run(
                 "requirements": len(requirements),
                 "cases": len(design.cases),
                 "units": len(units),
+                "usage": usage,
             },
             indent=2,
             ensure_ascii=False,
@@ -340,6 +448,16 @@ def main() -> int:
     provider.force_flush()
     print(f"designer finished: {len(design.cases)} cases", file=sys.stderr)
 
+    rendered = render_document(
+        design.cases,
+        id=prd.stem,
+        base_url=args.base_url,
+        title=title_from_stem(prd.stem),
+        open_questions=design.open_questions,
+    )
+    _write_design(run_dir, design, rendered)
+    print(f"design artifacts written: {run_dir.relative_to(REPO_ROOT)}", file=sys.stderr)
+
     client = Client(base_url=_base_url())
     agent_span = _agent_span(client, args.project, run_start)
     if agent_span is None:
@@ -347,6 +465,7 @@ def main() -> int:
         return 1
     print("designer agent span found", file=sys.stderr)
 
+    trace_id = agent_span["context"]["trace_id"]
     requirements = parse_requirements(prd_text)
     specs = plan_units(
         prd_name=prd.name,
@@ -357,14 +476,9 @@ def main() -> int:
     print(f"creating {len(specs)} eval units...", file=sys.stderr)
     units = _create_units(provider, agent_span, specs)
     print("eval units created", file=sys.stderr)
-    rendered = render_document(
-        design.cases,
-        id=prd.stem,
-        base_url=args.base_url,
-        title=title_from_stem(prd.stem),
-        open_questions=design.open_questions,
-    )
-    _write_run(
+
+    usage = _usage(client, args.project, trace_id)
+    _write_results(
         run_dir,
         run_id=run_id,
         prd=prd,
@@ -373,8 +487,17 @@ def main() -> int:
         design=design,
         requirements=requirements,
         units=units,
-        rendered=rendered,
+        usage=usage,
     )
+
+    annotations = _code_annotations(units, design)
+    try:
+        if annotations:
+            client.spans.log_span_annotations(span_annotations=annotations, sync=True)
+    except Exception as error:
+        print(f"failed to write code annotations: {error}", file=sys.stderr)
+        return 1
+    print(f"code annotations written: {len(annotations)}", file=sys.stderr)
 
     print(f"run: {run_id}")
     print(f"prd: {prd.relative_to(REPO_ROOT)}")
@@ -382,6 +505,8 @@ def main() -> int:
     print(f"requirements: {len(requirements)}")
     print(f"cases: {len(design.cases)}")
     print(f"units: {len(units)}")
+    print(f"annotations: {len(annotations)}")
+    print(f"usage: {usage}")
     print(f"artifacts: {run_dir.relative_to(REPO_ROOT)}")
     print(f"phoenix: http://127.0.0.1:6006 -> project {args.project}")
     return 0
