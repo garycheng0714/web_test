@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0003 · Error discovery</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0003 · Evals 基礎 · 約 35 分鐘</p>
+<h1>先命名錯誤，再談量測</h1>
+<p class="subtitle">Error discovery 的產出不是分數，是一份 failure mode 清單。</p>
+
+<h2>三個詞，先定義</h2>
+
+<p><strong>Error analysis</strong>：人看 traces、替錯誤命名，產出 failure mode 清單。</p>
+<p><strong>Failure mode</strong>：一種可命名的錯，附一個可觀察的例子。</p>
+<p><strong>Taxonomy</strong>：把相似的錯收斂成同一個名字的清單。</p>
+
+<h2>為什麼先求多樣性，不是頻率</h2>
+
+<p>這一步的目標是「發現未知的失敗類型」，不是「估計發生率」。所以你會刻意抽 cluster 代表 + 隨機樣本，而不是只看最常出現的 happy path。</p>
+
+<p>44 筆不多，先標 20–25 筆，涵蓋不同 intent、party size、clarity。不要只讀前 20 筆。</p>
+
+<h2>開始之前</h2>
+
+<p>把你 Lesson 0001 的 5 個猜測貼到 <code>NOTES.md</code> 的「Lesson 0001 guesses」。標完再回來對照，不要現在看答案。</p>
+
+<h2>跑 review app</h2>
+
+<pre><code>python3 learn/evals/toy/review.py</code></pre>
+
+<p>打開 <a href="http://localhost:8765">http://localhost:8765</a>。左邊是 trace，右邊是 failure modes 與進度。每改一次就自動存到 <code>toy/annotations.json</code>。</p>
+
+<p>若 8765 被占用，加一個埠號：<code>python3 learn/evals/toy/review.py 8766</code>。</p>
+
+<h2>怎麼標</h2>
+
+<ol>
+  <li>先讀 user message，記住 party、day、time、special。</li>
+  <li>再讀 assistant reply，逐項對照：數字、日期、時段、特殊需求、語氣。</li>
+  <li>同一個 tuple 的 a／b 兩筆要一起看；<a href="../reference/paired-diff.html">paired diff</a> 的差異通常就是缺陷。</li>
+  <li>有錯就寫 note，引用原文；給它一個短 mode 名稱。</li>
+  <li>一筆有兩個錯，用「、」分隔 mode（例：<code>人數錯置、缺少確認</code>）。</li>
+  <li>不確定是不是錯，先寫下來。Lesson 0004 才決定要不要把它變成 evaluator。</li>
+</ol>
+
+<div class="callout">
+<h3>不要做的事</h3>
+<p>不要用 1–5 分、不要用「好／不好」、不要先想 evaluator。你現在只做一件事：把錯命名。</p>
+</div>
+
+<h2>標完之後</h2>
+
+<p>看右邊的 failure modes：</p>
+
+<ul>
+  <li>合併同義詞（「人數錯」與「人數錯置」算同一個）。</li>
+  <li>挑 3–5 個最重要的 mode，在 <code>NOTES.md</code> 寫定義。</li>
+  <li>定義要可觀察，例如：「使用者說 N 人，回覆保留 M 人（M≠N）」。</li>
+  <li>每個 mode 留一個代表 trace id。</li>
+</ul>
+
+<p>格式可以照這個：</p>
+
+<pre><code>## Lesson 0003 failure modes
+**人數錯置**: 使用者說 N 人，回覆保留 M 人（M≠N）。
+- 例子：t-004-a
+- 為什麼重要：人數錯會導致現場無法入座。</code></pre>
+
+<h2>對照你的猜測</h2>
+
+<p>回到 Lesson 0001 的 5 個猜測：</p>
+
+<ul>
+  <li>你猜中幾個？</li>
+  <li>哪些是你沒猜到、但 traces 裡真的出現的？</li>
+  <li>哪些你猜了、但 traces 裡沒有？</li>
+</ul>
+
+<p>這個落差就是 error analysis 的價值：它把「你以為的品質」換成「實際的失敗」。</p>
+
+<div class="callout">
+<h3>Spoiler：對答案</h3>
+<p>寫完 3–5 個定義後，再打開 <code>toy/answer-key.json</code>。它記錄了植入的 defect。只做兩件事：</p>
+<ul>
+  <li>哪些植入的 mode 你抓到、哪些漏了？</li>
+  <li>你命名的 mode 有沒有比答案更好的？答案不是聖經。</li>
+</ul>
+</div>
+
+<h2>什麼時候算飽和</h2>
+
+<p>新 traces 不再帶出新的 failure mode。44 筆的玩具資料很容易飽和；真實系統通常要 ~100 筆。</p>
+
+<p>飽和不是「每個 mode 都出現 50 次」，而是「新模式不再出現」。</p>
+
+<h2>小測驗</h2>
+
+<fieldset class="quiz" data-quiz data-answer="diverse"
+  data-why="Error discovery 的目標是發現未知的失敗類型。先估計頻率會讓你只看常見的錯，漏掉長尾但嚴重的失敗。">
+  <legend class="q">1. Error discovery 先求什麼？</legend>
+  <ul>
+    <li><label><input type="radio" name="q1" value="diverse"> 多樣性，先發現未知的失敗類型</label></li>
+    <li><label><input type="radio" name="q1" value="frequency"> 頻率，先估計每種錯的發生率</label></li>
+    <li><label><input type="radio" name="q1" value="severity"> 嚴重度，先修最危險的 bug</label></li>
+    <li><label><input type="radio" name="q1" value="coverage"> 覆蓋率，先讓每個 mode 都有 50 筆</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="saturated"
+  data-why="飽和看的是「新模式是否還會出現」，不是標註數量或每個 mode 的樣本數。">
+  <legend class="q">2. 什麼時候算飽和？</legend>
+  <ul>
+    <li><label><input type="radio" name="q2" value="ten"> 標註滿 10 筆 traces</label></li>
+    <li><label><input type="radio" name="q2" value="saturated"> 新 traces 不再帶出新的 failure mode</label></li>
+    <li><label><input type="radio" name="q2" value="fifty"> 每個 failure mode 都有 50 筆</label></li>
+    <li><label><input type="radio" name="q2" value="metrics"> TPR 與 TNR 都超過 90%</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="split"
+  data-why="每個 failure mode 之後會變成獨立的 evaluator；合併成一個「多個錯誤」會讓訊號消失，也無法分開量測。">
+  <legend class="q">3. 一筆 trace 同時有兩個錯，應該怎麼記？</legend>
+  <ul>
+    <li><label><input type="radio" name="q3" value="severe"> 只記比較嚴重的那一個</label></li>
+    <li><label><input type="radio" name="q3" value="split"> 分開記成兩個 mode</label></li>
+    <li><label><input type="radio" name="q3" value="merged"> 記成一個「多個錯誤」mode</label></li>
+    <li><label><input type="radio" name="q3" value="skip"> 跳過，等下一筆</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<h2>主要來源</h2>
+
+<div class="callout">
+<h3>讀這一份再上下一課</h3>
+<p><a href="../../../.agents/skills/error-discovery/SKILL.md">error-discovery skill</a></p>
+<p>重點看 Phase 1–4 與 Phase 5 的 review loop。我們的 app 是它的簡化版：沒有 map view、沒有 agent suggestions，只留 trace 與標註。</p>
+</div>
+
+<h2>下一課</h2>
+
+<p>Lesson 0004：把 failure mode 變成 evaluator——先判斷 code 能做，還是需要 judge。</p>
+
+<footer>
+<p>標完 20–25 筆就告訴我，我會幫你收斂 taxonomy。卡住隨時問。</p>
+<nav>
+<a href="../reference/evals-loop.html">迴圈備忘</a>
+<a href="../reference/paired-diff.html">Paired diff</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+<script src="../assets/interactions.js"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0002 · 合成測試資料</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0002 · Evals 基礎 · 約 25 分鐘</p>
+<h1>沒有 traces，就先合成</h1>
+<p class="subtitle">你不是在造資料；你在覆蓋失敗空間。</p>
+
+<h2>三個詞，先定義</h2>
+
+<p><strong>Synthetic data</strong>：不是真人輸入，而是為了覆蓋失敗空間而造的測試輸入。</p>
+<p><strong>Dimension</strong>：一個會影響行為的變化軸，例如 intent、party size、clarity。</p>
+<p><strong>Tuple</strong>：一組 dimension 值的組合，定義一個測試情境。</p>
+
+<p>合成資料只解決「輸入從哪來」。它不產生人類標籤，也不取代真實 traces。</p>
+
+<h2>為什麼不要直接說「給我 20 個測試 query」</h2>
+
+<p>兩個原因，都會讓你測不到東西：</p>
+
+<ul>
+  <li><strong>沒有結構</strong>：模型會給你 happy path 與相似句型，覆蓋不到你預期會壞的地方。</li>
+  <li><strong>一步生成</strong>：tuple 和 query 一起寫，句型會更單調。分兩步，先想情境，再寫人話。</li>
+</ul>
+
+<h2>流程</h2>
+
+<pre class="flow">dimensions
+  │
+  ▼
+20 tuples (human-reviewed)
+  │
+  ▼
+natural-language query  (separate step)
+  │
+  ▼
+pipeline + full trace
+  │
+  ▼
+quality filter</pre>
+
+<ol>
+  <li><strong>選 3 個維度</strong>，對準你預期會壞的地方，不是隨便的變化。</li>
+  <li><strong>手寫 20 個 tuples</strong>，讓懂 domain 的人驗證真實性。</li>
+  <li><strong>用 LLM 擴充 tuples</strong>，避免重複、讓值跨維度變化。</li>
+  <li><strong>一次一個 tuple 寫成 query</strong>，這是獨立的一步。</li>
+  <li><strong>過濾</strong>：不自然、對不上 tuple、彼此太像的就丟。</li>
+  <li><strong>跑完整 pipeline</strong>，抓完整 traces；目標約 100 筆。</li>
+</ol>
+
+<p>目標是 <strong>飽和</strong>：新 traces 不再帶出新的 failure mode。100 是粗略 heuristic，取決於系統複雜度。</p>
+
+<h2>玩具版：餐廳訂位助理</h2>
+
+<p>我們用三個維度：</p>
+
+<table>
+  <thead><tr><th>Dimension</th><th>值</th><th>為什麼放進來</th></tr></thead>
+  <tbody>
+    <tr><td>Intent</td><td>booking, modify, cancel, question, out_of_scope</td><td>不同流程有不同的確認步驟</td></tr>
+    <tr><td>Party size</td><td>2, 4, 7, 12</td><td>小桌、大桌、需要特殊安排</td></tr>
+    <tr><td>Clarity</td><td>clear, ambiguous, special_request</td><td>缺資訊與特殊需求最容易壞</td></tr>
+  </tbody>
+</table>
+
+<p>22 個 tuples 在 <code>toy/tuples.json</code>。玩具版用模板代替 LLM 生成 query，讓你離線跑；方法不變。</p>
+
+<h2>練習 1：先分清「真實」與「覆蓋」</h2>
+
+<p>這 22 個 tuple 沒有一個明顯是假的。它們是我刻意寫成 plausible 的；問題不是真假，而是「這個請求會不會真的進到這個 bot」。</p>
+
+<p>但這個問題不能只看 tuple 回答。你需要三個 artifact：</p>
+
+<table>
+  <thead><tr><th>Artifact</th><th>回答什麼</th><th>不要拿來</th></tr></thead>
+  <tbody>
+    <tr><td>policy</td><td>bot 應該怎麼處理？</td><td>推測實際行為</td></tr>
+    <tr><td>tuples</td><td>要測哪些情境？</td><td>判斷 bot 做得對不對</td></tr>
+    <tr><td>traces</td><td>bot 實際做了什麼？</td><td>判斷輸入真不真實</td></tr>
+  </tbody>
+</table>
+
+<p>下表是會引出 routing 問題的組合。沒有 policy 時，任何答案都是猜的：</p>
+
+<table>
+  <thead><tr><th>Tuple</th><th>要問的問題</th></tr></thead>
+  <tbody>
+    <tr><td>t-020 12 人包場</td><td>包場通常有最低消費或人數門檻，會走業務而不是訂位 bot 嗎？</td></tr>
+    <tr><td>t-004 / t-012 12 人</td><td>大桌常要訂金或專人確認，bot 直接保留合理嗎？</td></tr>
+    <tr><td>t-018 無障礙</td><td>真人會直接要求安排，還是只問「有沒有位子」？</td></tr>
+    <tr><td>t-006 生日</td><td>只寫「生日」太模糊；真人會說「慶生」或「要蛋糕」嗎？</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+<h3>plausible ≠ 有覆蓋</h3>
+<p>句型自然，不代表測試有覆蓋。tuples 的價值在缺口，不在真假。</p>
+</div>
+
+<p>所以練習不是「標 2 個 routing tuple」，而是寫下你缺的資訊。在 <code>NOTES.md</code> 寫 2 條你需要的 policy 規則，再挑 2 個目前沒覆蓋的缺口：</p>
+
+<ul>
+  <li>缺資訊的取消／改期（沒給姓名、電話、原訂位）</li>
+  <li>情緒或客訴（「上次等很久」）</li>
+  <li>錯字、注音、中英混雜</li>
+  <li>矛盾限制（7 人，但 4 人桌也可以）</li>
+  <li>超出範圍（寵物、停車、外送）</li>
+</ul>
+
+<div class="callout">
+<h3>玩具 generator 的邊界</h3>
+<p><code>pipeline.py</code> 目前只支援 intent / party / clarity 三軸；客訴、錯字、矛盾限制還沒有 schema。先把缺口記下來，不要硬塞進 tuple。</p>
+</div>
+
+<p>輸入設計先到這裡；Lesson 0003 才看 traces。之後真的要做 routing 時，再一起定 policy 與 generator 行為。</p>
+
+<h2>練習 2：產生 traces</h2>
+
+<p>在 repo 根目錄執行：</p>
+
+<pre><code>python3 learn/evals/toy/pipeline.py</code></pre>
+
+<p>它會讀 <code>tuples.json</code>，寫出 <code>toy/traces.jsonl</code>。每一筆長這樣：</p>
+
+<pre><code>{
+  "id": "t-001-a",
+  "tuple_id": "t-001",
+  "turns": [
+    {"role": "user", "content": "你好，我想訂週五 19:00，2 位。"},
+    {"role": "assistant", "content": "好的，已為您保留週五 19:15 的 2 人桌。..."}
+  ],
+  "meta": {"intent": "booking", "clarity": "clear", "party": 2, ...}
+}</code></pre>
+
+<p>檢查點：</p>
+
+<ul>
+  <li><code>wc -l learn/evals/toy/traces.jsonl</code> 是 44（你加了 tuple 就會更多）。</li>
+  <li>每筆都有 <code>id</code>、<code>tuple_id</code>、<code>turns</code>、<code>meta</code>。</li>
+  <li>你還沒有開始標註，也還沒有下結論。</li>
+</ul>
+
+<div class="callout">
+<h3>先不要分析 failure</h3>
+<p>打開 traces 你會立刻看到幾個明顯的錯。先忍住。Lesson 0003 才做 error discovery；現在只要確認資料形狀與覆蓋範圍。</p>
+</div>
+
+<div class="callout">
+<h3>Spoiler 警告</h3>
+<p><code>toy/answer-key.json</code> 與 <code>pipeline.py</code> 的 <code>SPOILER</code> 段是植入錯誤的答案。Lesson 0003 結束前不要打開，否則 error discovery 會變成對答案。</p>
+</div>
+
+<h2>小測驗</h2>
+
+<fieldset class="quiz" data-quiz data-answer="diverse"
+  data-why="先想情境再寫人話，能讓句型與組合更多樣。一步生成容易得到重複的 happy path，覆蓋不到失敗區域。">
+  <legend class="q">1. 為什麼先寫 tuples，再生成 query？</legend>
+  <ul>
+    <li><label><input type="radio" name="q1" value="diverse"> 避免句型重複與 happy path</label></li>
+    <li><label><input type="radio" name="q1" value="readable"> 因為 tuple 比較容易閱讀</label></li>
+    <li><label><input type="radio" name="q1" value="structured"> 因為 LLM 只能處理結構化資料</label></li>
+    <li><label><input type="radio" name="q1" value="required"> 因為 pipeline 需要 tuple 才能執行</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="failure"
+  data-why="維度要對準你預期會壞的區域；任意變化會浪費測試預算。真實性由懂 domain 的人驗證，不是由模型決定。">
+  <legend class="q">2. 哪個 dimension 最該優先放進測試？</legend>
+  <ul>
+    <li><label><input type="radio" name="q2" value="popular"> 使用者最常點的按鈕</label></li>
+    <li><label><input type="radio" name="q2" value="failure"> 你最預期會壞的區域</label></li>
+    <li><label><input type="radio" name="q2" value="easy"> 最容易自動化的欄位</label></li>
+    <li><label><input type="radio" name="q2" value="competitor"> 競爭對手也有的功能</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="gaps"
+  data-why="合成資料補的是輸入的多樣性與覆蓋缺口；它不產生人類標籤，也不能取代真實 traces 的雜訊。">
+  <legend class="q">3. 合成資料的角色是什麼？</legend>
+  <ul>
+    <li><label><input type="radio" name="q3" value="replace"> 取代人類標註與真實 traces</label></li>
+    <li><label><input type="radio" name="q3" value="gaps"> 補足真實資料稀少或覆蓋不足</label></li>
+    <li><label><input type="radio" name="q3" value="speed"> 只用來測試模型的速度</label></li>
+    <li><label><input type="radio" name="q3" value="monitor"> 只用來產生 production 監控</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<h2>主要來源</h2>
+
+<div class="callout">
+<h3>讀這一份再上下一課</h3>
+<p><a href="../../../.agents/skills/generate-synthetic-data/SKILL.md">generate-synthetic-data skill</a></p>
+<p>重點看 Step 1–6 與 Anti-Patterns。這門課的流程就是從這裡壓縮來的。</p>
+</div>
+
+<h2>下一課</h2>
+
+<p>Lesson 0003：Error discovery——抽樣、標註、把錯誤收斂成 3–5 個 failure modes。</p>
+
+<footer>
+<p>卡住或有疑問，直接問 agent。做完練習告訴我你改了哪些 tuple。</p>
+<nav>
+<a href="../reference/evals-loop.html">迴圈備忘</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+<script src="../assets/interactions.js"></script>
+</body>
+</html>

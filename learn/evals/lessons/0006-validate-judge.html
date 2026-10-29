@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0006 · 校準 judge</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0006 · Evals 基礎 · 約 35 分鐘</p>
+<h1>寫完不算數：校準 judge</h1>
+<p class="subtitle">TPR／TNR、splits、Rogan-Gladen、CI。</p>
+
+<h2>為什麼 raw accuracy 會騙人</h2>
+
+<p>假設 90% 的 traces 是 Pass。一個永遠說 Pass 的 judge 有 90% accuracy，但 TNR = 0：它抓不到任何 failure。</p>
+
+<p>所以我們看兩個數字：</p>
+
+<ul>
+  <li><strong>TPR</strong>：人類說 Pass 時，judge 也說 Pass 的比率。</li>
+  <li><strong>TNR</strong>：人類說 Fail 時，judge 也說 Fail 的比率。</li>
+</ul>
+
+<table>
+  <thead><tr><th></th><th>Human Pass</th><th>Human Fail</th></tr></thead>
+  <tbody>
+    <tr><th>Judge Pass</th><td>TP</td><td>FP</td></tr>
+    <tr><th>Judge Fail</th><td>FN</td><td>TN</td></tr>
+  </tbody>
+</table>
+
+<pre><code>TPR = TP / (TP + FN)
+TNR = TN / (TN + FP)</code></pre>
+
+<h2>資料切分</h2>
+
+<table>
+  <thead><tr><th>Split</th><th>大小</th><th>用途</th><th>規則</th></tr></thead>
+  <tbody>
+    <tr><td>Train</td><td>10–20%</td><td>few-shot 範例來源</td><td>只用清楚 Pass／Fail；不能再進 dev／test</td></tr>
+    <tr><td>Dev</td><td>40–45%</td><td>反覆迭代 prompt</td><td>可以一直看、一直改</td></tr>
+    <tr><td>Test</td><td>40–45%</td><td>最終量測</td><td>只跑一次；看過就不能再調</td></tr>
+  </tbody>
+</table>
+
+<p>把 dev／test 的例子放進 judge prompt 就是 data leakage，分數會虛高。</p>
+
+<h2>校準迴圈</h2>
+
+<pre class="flow">split train / dev / test
+  │
+  ▼
+run on dev ──&gt; confusion matrix
+  │
+  ▼
+inspect disagreements
+  │
+  ▼
+revise prompt or few-shot
+  │
+  ▼
+repeat until stable
+  │
+  ▼
+run test once
+  │
+  ▼
+correct production rate + CI</pre>
+
+<p>目標：TPR 與 TNR 都 &gt; 90%；最低可接受 &gt; 80%。</p>
+
+<h2>為什麼要修正通過率</h2>
+
+<p>Judge 不是完美的檢驗。它會漏抓（false negative），也會誤放（false positive）。所以它在未標註資料上數出來的 Pass 比率，不是產品真正的好壞，而是被 judge 自身偏誤扭曲過的數字。</p>
+
+<h3>Raw pass rate 不是 accuracy</h3>
+
+<pre class="flow">raw pass rate = (TP + FP) / N
+accuracy      = (TP + TN) / N</pre>
+
+<p>例：10,000 筆，judge 說 8,000 筆 Pass。假設其中 7,000 真 Pass、1,000 真 Fail（FP）；另外 2,000 真 Fail 正確判 Fail、1,000 真 Pass 誤判 Fail（FN）：</p>
+
+<table>
+  <thead><tr><th></th><th>真的 Pass</th><th>真的 Fail</th></tr></thead>
+  <tbody>
+    <tr><th>Judge Pass</th><td>7,000</td><td>1,000</td></tr>
+    <tr><th>Judge Fail</th><td>1,000</td><td>2,000</td></tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>raw pass rate = 8,000 / 10,000 = 80%</li>
+  <li>accuracy = (7,000 + 2,000) / 10,000 = 90%</li>
+</ul>
+
+<p>所以「80%」不是 accuracy，是 pass rate。Rogan-Gladen 修正的是 true pass rate／success rate，不是「corrected accuracy」。</p>
+
+<div class="callout">
+<h3>偏差可能往上，也可能往下</h3>
+<p>容易心軟的 judge（高 TPR、低 TNR）會把不合格的答案判成 Pass，讓 raw pass 偏高；漏抓多（低 TPR）則讓 raw pass 偏低。淨效果取決於 TPR／TNR 與真實通過率。我們的模擬就是低估：FN 多於 FP，所以 raw 0.73 &lt; true 0.77。</p>
+</div>
+
+<p>Rogan-Gladen 是流行病學用來修正「不完美檢驗試劑」的經典方法：從有偏的觀測值反推真實比率。</p>
+
+<pre><code>theta_hat = (p_obs + TNR - 1) / (TPR + TNR - 1)</code></pre>
+
+<p>其中 <code>p_obs</code> 是 judge 在未標註資料上說 Pass 的比率；TPR／TNR 是你在 test set 上量到的。</p>
+
+<p>例：TPR = 0.92、TNR = 0.88、p_obs = 0.80 → (0.80 + 0.88 − 1) / (0.92 + 0.88 − 1) = 0.68 / 0.80 = <strong>0.85</strong>。</p>
+
+<p>分母 <code>TPR + TNR − 1</code> 有一個名字：<strong>Youden index</strong>，記作 J。它衡量 judge 的鑑別力，不是只看 TPR 或 TNR 單邊。</p>
+
+<h2>為什麼 J 越小，CI 越寬</h2>
+
+<table>
+  <thead><tr><th>J</th><th>例子</th><th>意義</th></tr></thead>
+  <tbody>
+    <tr><td>1.0</td><td>TPR=1.0, TNR=1.0</td><td>完美；corrected = p_obs</td></tr>
+    <tr><td>0.7</td><td>TPR=0.9, TNR=0.8</td><td>可用，但雜訊被放大</td></tr>
+    <tr><td>0.0</td><td>TPR=0.5, TNR=0.5</td><td>沒有資訊；估計未定義</td></tr>
+    <tr><td>&lt; 0</td><td>TPR=0.5, TNR=0.4</td><td>比亂猜還糟；不要用</td></tr>
+  </tbody>
+</table>
+
+<p>反例：TPR=0.99、TNR=0.02 → J=0.01。TPR 很高，但幾乎沒有鑑別力；所以不能只看單邊。</p>
+
+<p>修正後的估計是線性的：</p>
+
+<pre class="flow">theta_hat = (p_obs + TNR - 1) / J</pre>
+
+<p>固定 TPR／TNR 時，變異數被 1/J² 放大：</p>
+
+<pre class="flow">Var(theta_hat) ≈ Var(p_obs) / J^2</pre>
+
+<p>而 <code>Var(p_obs) = p(1-p)/n</code>，所以 CI 寬度大約正比於：</p>
+
+<pre class="flow">1 / (J * sqrt(n))</pre>
+
+<p>這就是「訊號被稀釋」：J 越小，同樣的觀測波動被放大 1/J² 倍。J=0 時估計不存在，CI 無限寬；J&lt;0 表示 judge 比亂猜還糟，修正公式會失真，不要用。</p>
+
+<p>Bootstrap 另外還會把 TPR／TNR 本身的估計誤差算進去；所以 test set 太小，CI 也會寬。</p>
+
+<h2>CI 是什麼，以及寬度為什麼重要</h2>
+
+<p><strong>CI</strong>（Confidence Interval，信賴區間）是根據樣本算出的數值範圍，用來表示估計值有多精準。</p>
+
+<p>公式與方法查表：<a href="../reference/ci-methods.html">CI methods 備忘</a>。</p>
+
+<p>95% CI 的正確讀法是：<strong>如果重複抽樣與估計很多次，約 95% 的區間會涵蓋真值。</strong>不是「真值有 95% 的機率落在這個區間」；真值是固定的，隨機的是區間。</p>
+
+<div class="callout">
+<h3>常見誤讀</h3>
+<p>「我們有 95% 的信心，真值落在 5% 到 95%」是簡寫。精確說法是：這個估計程序在重複抽樣下，約 95% 的區間會涵蓋真值。</p>
+</div>
+
+<p>同樣是 50% 的估計，CI 寬度決定它能不能拿來做決策：</p>
+
+<table>
+  <thead><tr><th>95% CI</th><th>寬度</th><th>實務解讀</th><th>決策價值</th></tr></thead>
+  <tbody>
+    <tr><td>[5%, 95%]</td><td>90 個百分點</td><td>J 太低或樣本太少，幾乎全是雜訊</td><td>不能拍板</td></tr>
+    <tr><td>[49%, 51%]</td><td>2 個百分點</td><td>judge 可靠、樣本充足</td><td>可以報告</td></tr>
+    <tr><td>[65%, 89%]</td><td>24 個百分點</td><td>本課模擬的結果；方向有了，但還不夠精準</td><td>僅供參考</td></tr>
+  </tbody>
+</table>
+
+<p>寬度主要來自三個地方：</p>
+
+<table>
+  <thead><tr><th>來源</th><th>影響</th></tr></thead>
+  <tbody>
+    <tr><td>J = TPR + TNR − 1</td><td>J 越小，誤差被 1/J² 放大</td></tr>
+    <tr><td>Test set 大小</td><td>TPR／TNR 本身估計不穩，CI 變寬</td></tr>
+    <tr><td>Production 樣本數 n</td><td>p_obs 的抽樣誤差，CI 變寬</td></tr>
+  </tbody>
+</table>
+
+<p>所以 CI 寬度大致正比於 <code>1 / (J * sqrt(n))</code>。寬到像 [5%, 95%] 時，它不是「保守」，是「沒有資訊」。</p>
+
+<h2>動手跑</h2>
+
+<pre><code>python3 learn/evals/toy/validate.py</code></pre>
+
+<p>它模擬一個已知 TPR／TNR 的 judge，切分資料，量 dev／test，然後修正 production 通過率。預設輸出：</p>
+
+<pre class="flow">simulated judge: TPR=0.90 TNR=0.85
+splits: train=30 dev=90 test=80
+dev: n=90 TP=42 FN=3 TN=39 FP=6 TPR=0.93 TNR=0.87
+test: n=80 TP=36 FN=4 TN=32 FP=8 TPR=0.90 TNR=0.80
+
+production: n=500 raw pass=0.73
+corrected=0.76  95% CI=[0.65, 0.89]
+true rate (simulation only)=0.77</pre>
+
+<p>（上面是原始 0.90／0.85、200 筆的輸出；你若改過常數，數字會不同。）</p>
+
+<p>怎麼讀：</p>
+
+<ul>
+  <li>Test TNR 0.80 比目標 0.85 低；80 筆還是有抽樣雜訊。</li>
+  <li>Raw pass 0.73 低估了真實的 0.77；修正後 0.76，比較接近。</li>
+  <li>CI [0.65, 0.89] 很寬，因為分母 <code>0.90 + 0.80 − 1 = 0.70</code>，誤差被放大。</li>
+</ul>
+
+<h3>500 筆拆解</h3>
+
+<p>模擬的 500 筆裡，真實通過率是 0.77（約 385 Pass、115 Fail）。Judge 的 TPR=0.90、TNR=0.85，大約會得到：</p>
+
+<table>
+  <thead><tr><th></th><th>真的 Pass（約 385）</th><th>真的 Fail（約 115）</th></tr></thead>
+  <tbody>
+    <tr><th>Judge Pass</th><td>TP ≈ 347</td><td>FP ≈ 17</td></tr>
+    <tr><th>Judge Fail</th><td>FN ≈ 38</td><td>TN ≈ 98</td></tr>
+  </tbody>
+</table>
+
+<p><code>raw pass = (TP + FP) / 500 ≈ 364 / 500 ≈ 0.73</code>。它比真實的 0.77 低，因為 FN（約 38）多於 FP（約 17）。</p>
+
+<p>用 test set 的 TPR=0.90、TNR=0.80 修正：</p>
+
+<pre class="flow">corrected = (0.73 + 0.80 - 1) / (0.90 + 0.80 - 1)
+          = 0.53 / 0.70
+          = 0.76</pre>
+
+<p>0.76 是估計的真實通過率；0.73 是 judge 的原始輸出；0.77 是模擬才知道的答案。</p>
+
+<div class="callout">
+<h3>不要從單次 run 推論</h3>
+<p>CI 本身是隨機的。改了 TPR／TNR 或 N 之後，單次 run 的 CI 變窄或變寬，可能只是抽樣波動。要判斷 N 的影響，請跑多個 seed，比較平均寬度；expected width 約正比於 <code>1 / (J * sqrt(n))</code>。</p>
+</div>
+
+<div class="callout">
+<h3>多 seed 的結果</h3>
+<p><code>python3 learn/evals/toy/validate_many.py</code> 會跑 20 個 seed，比較 200 筆與 100 筆（目前 TPR=0.95／TNR=0.80）：</p>
+<pre class="flow">200 labels: CI width 0.144 ± 0.049, coverage 0.80
+100 labels: CI width 0.174 ± 0.109, coverage 0.50</pre>
+<p>100 筆的 CI 平均更寬、變異也更大，符合 <code>1/(J*sqrt(n))</code>。Coverage 低於 95% 不是矛盾，是提醒：CI 是近似，test set 太小或 bootstrap 忽略 production 抽樣時，它會低估不確定性。</p>
+</div>
+
+<div class="callout">
+<h3>你的 tone judge</h3>
+<p>5／5、TPR = TNR = 1.00，但 n = 5。那不是驗證，是 spot check。這一課的 80 筆 test 都還會晃，5 筆不能宣稱對齊。</p>
+<p>要真的驗證，用 <code>toy/tone_labels.json</code> 對 44 筆標 binary Pass／Fail；空白代表未標。這個 toy 的 Fail 太少，還達不到 50／50，先把它當 labeled-data 缺口。</p>
+</div>
+
+<h2>練習</h2>
+
+<ol>
+  <li>先跑一次預設值，記下 test TPR／TNR、corrected、CI。</li>
+  <li>把檔案上方的 <code>TPR</code> 改成 0.95、<code>TNR</code> 改成 0.80，重跑。觀察 corrected 與 CI 怎麼變。</li>
+  <li>把 <code>N_PASS</code>／<code>N_FAIL</code> 改成 50／50，重跑。觀察 CI 變寬多少。</li>
+  <li>跑 <code>python3 learn/evals/toy/validate_many.py</code>，看 20 個 seed 下 200 筆與 100 筆的 CI 寬度分布。</li>
+  <li>在 <code>NOTES.md</code> 寫三行：raw vs corrected、CI、你覺得這個 judge 夠不夠好。</li>
+</ol>
+
+<p>格式可以照這個：</p>
+
+<pre><code>## Lesson 0006 calibration
+- simulated judge: TPR 0.90, TNR 0.85
+- test: TPR 0.90, TNR 0.80
+- production raw 0.73 -&gt; corrected 0.76, 95% CI [0.65, 0.89]
+- reading: raw 低估；CI 很寬，因為 TPR+TNR-1 = 0.70</code></pre>
+
+<h2>實務提醒</h2>
+
+<ul>
+  <li>Pin judge 的模型版本（dated snapshot），不要用浮動 alias。</li>
+  <li>換模型、改 prompt、改 few-shot 後要重新驗證。</li>
+  <li>標籤找一位可信的 domain expert；不要外包給不懂 domain 的人。</li>
+  <li>TPR 對 CI 的影響比 TNR 大：分母變大，誤差被縮小。</li>
+  <li>只有 point estimate 不夠；一定要報 CI。</li>
+</ul>
+
+<h2>小測驗</h2>
+
+<fieldset class="quiz" data-quiz data-answer="imbalance"
+  data-why="類別不平衡時，永遠說 Pass 也能拿到高 accuracy，但 TNR = 0。TPR／TNR 才能分別看 Pass 與 Fail 的召回。">
+  <legend class="q">1. 為什麼不用 raw accuracy？</legend>
+  <ul>
+    <li><label><input type="radio" name="q1" value="imbalance"> 類別不平衡時，永遠說 Pass 也很高分</label></li>
+    <li><label><input type="radio" name="q1" value="hard"> 因為 accuracy 太難計算</label></li>
+    <li><label><input type="radio" name="q1" value="easy"> 因為 TPR 比較容易計算</label></li>
+    <li><label><input type="radio" name="q1" value="binary"> 因為 judge 只輸出 Pass／Fail</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="split"
+  data-why="Dev 可以反覆迭代；test 是最終的無偏量測，只能跑一次。看過 test 再調 prompt 就是洩漏。">
+  <legend class="q">2. Dev 與 test 的分工是什麼？</legend>
+  <ul>
+    <li><label><input type="radio" name="q2" value="split"> Dev 反覆迭代，test 只跑一次</label></li>
+    <li><label><input type="radio" name="q2" value="reverse"> Dev 只跑一次，test 反覆迭代</label></li>
+    <li><label><input type="radio" name="q2" value="both"> 兩者都可以反覆迭代</label></li>
+    <li><label><input type="radio" name="q2" value="train"> Train 用來量 TPR／TNR</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="correct"
+  data-why="Rogan-Gladen 用已知的 TPR／TNR 把 judge 在未標註資料上的觀察通過率修正成真實通過率的估計；它不提高 TPR，也不取代標籤。">
+  <legend class="q">3. Rogan-Gladen 修正的用途是什麼？</legend>
+  <ul>
+    <li><label><input type="radio" name="q3" value="correct"> 把觀察通過率修正成真實通過率估計</label></li>
+    <li><label><input type="radio" name="q3" value="boost"> 提高 judge 的 TPR</label></li>
+    <li><label><input type="radio" name="q3" value="replace"> 取代 human labels</label></li>
+    <li><label><input type="radio" name="q3" value="latency"> 計算 judge 的 latency</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<h2>主要來源</h2>
+
+<div class="callout">
+<h3>讀這一份再上下一課</h3>
+<p><a href="../../../.agents/skills/validate-evaluator/SKILL.md">validate-evaluator skill</a></p>
+<p>重點看 Step 1–8：splits、TPR／TNR、disagreements、test once、Rogan-Gladen、bootstrap CI。</p>
+</div>
+
+<h2>下一課</h2>
+
+<p>Lesson 0007：Capstone——拿 audit 清單審一份 eval pipeline，依 impact 排出修正順序。</p>
+
+<footer>
+<p>跑完練習把三行寫進 <code>NOTES.md</code>，或直接貼給我。卡住隨時問。</p>
+<nav>
+<a href="../reference/evals-loop.html">迴圈備忘</a>
+<a href="../reference/paired-diff.html">Paired diff</a>
+<a href="../reference/ci-methods.html">CI methods</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+<script src="../assets/interactions.js"></script>
+</body>
+</html>

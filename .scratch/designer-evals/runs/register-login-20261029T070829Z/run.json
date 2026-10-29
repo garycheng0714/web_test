@@ -1,0 +1,16 @@
+{
+  "run_id": "register-login-20261029T070829Z",
+  "prd": "register-login.md",
+  "model": "openai-chat:deepseek-v4.1-flash",
+  "project": "web-test-designer-eval",
+  "created_at": "2026-10-29T07:09:04.070268+00:00",
+  "requirements": 6,
+  "cases": 7,
+  "units": 7,
+  "usage": {
+    "prompt": 8992,
+    "completion": 6023,
+    "total": 15015,
+    "cache_read": 3840
+  }
+}

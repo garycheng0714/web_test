@@ -1,0 +1,178 @@
+{
+  "t-001-a": {
+    "mode": "時間錯置",
+    "note": "訂位時間錯了 - 19:15 的 2 人桌"
+  },
+  "t-003-a": {
+    "mode": "日期錯置",
+    "note": "日期錯誤 - 保留下週二 12:00"
+  },
+  "t-004-a": {
+    "mode": "人數錯置",
+    "note": "user - 10 人桌"
+  },
+  "t-004-b": {
+    "mode": "語氣不符、缺少與客戶再次確認",
+    "note": "收到，已處理。"
+  },
+  "t-005-a": {
+    "mode": "特殊需求遺漏",
+    "note": "已為您保留週五 19:00 的 4 人桌，未處理窗邊需求"
+  },
+  "t-006-b": {
+    "mode": "日期錯置",
+    "note": "週日 20:00 已經客滿"
+  },
+  "t-007-b": {
+    "mode": "人數錯置",
+    "note": "8 人桌"
+  },
+  "t-008-a": {
+    "mode": "時間錯置",
+    "note": "下週二 19:00"
+  },
+  "t-009-a": {
+    "mode": "未確認就自行假設時間",
+    "note": "週五晚上，未確認實際時間點"
+  },
+  "t-009-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-011-a": {
+    "mode": "人數錯置",
+    "note": "8 人的位子"
+  },
+  "t-011-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-012-b": {
+    "mode": "缺少與客戶再次確認、語氣不符",
+    "note": "未跟用戶確認時間、回覆語氣冷淡"
+  },
+  "t-013-a": {
+    "mode": "時間錯置",
+    "note": "想改成 20:00，但改到 20:30"
+  },
+  "t-014-b": {
+    "mode": "日期錯置",
+    "note": "週日改到下週二"
+  },
+  "t-015-a": {
+    "mode": "人數錯置",
+    "note": "2 人訂位變3 人訂位"
+  },
+  "t-017-a": {
+    "mode": "人數錯置",
+    "note": "還有 3 人"
+  },
+  "t-018-a": {
+    "mode": "特殊需求遺漏",
+    "note": "需要無障礙座位"
+  },
+  "t-020-a": {
+    "mode": "包場未轉業務",
+    "note": "包場未轉業務"
+  },
+  "t-021-a": {
+    "mode": "客滿仍接單",
+    "note": "t-021-b 已回答客滿，t-021-a 卻接單"
+  },
+  "t-021-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-022-a": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-022-b": {
+    "mode": "特殊需求遺漏",
+    "note": "沒有處理到慶生"
+  },
+  "t-001-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-002-a": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-002-b": {
+    "mode": "客滿仍接單",
+    "note": "t-002-a 回覆客滿，t-002-b 卻仍接單"
+  },
+  "t-003-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-005-b": {
+    "mode": "語氣不符",
+    "note": "記得準時到嘿"
+  },
+  "t-006-a": {
+    "mode": "客滿仍接單",
+    "note": "t-006-b 已客滿但 t-006-a 卻接單"
+  },
+  "t-007-a": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-008-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-010-a": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-012-a": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-013-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-014-a": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-015-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-016-a": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-016-b": {
+    "mode": "語氣不符",
+    "note": "好喔，取消囉"
+  },
+  "t-017-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-018-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-019-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-019-a": {
+    "mode": "提供外送服務",
+    "note": "我們有外送服務，滿 500 元免運"
+  },
+  "t-020-b": {
+    "mode": "",
+    "note": "reviewed: clean"
+  },
+  "t-010-b": {
+    "mode": "未確認就自行假設時間",
+    "note": "時間都可以，沒有反問客戶就自行假設 19:00"
+  }
+}

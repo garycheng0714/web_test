@@ -1,0 +1,92 @@
+[
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-1",
+    "span_id": "386c97262350bb96",
+    "name": "claim FR-ACC-04 <- case-1",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-1",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-1",
+      "input.value": "### FR-ACC-04 登入\n\n- `/login` 頁面的 `Login to your account` 區塊含 Email Address、Password 欄位與 `Login` 按鈕。\n\n**AC**\n\n1. 輸入正確的 Email 與 Password，點 `Login` → Header 顯示 `Logged in as <name>`。\n2. 輸入錯誤的 Email 或 Password，點 `Login` → 顯示錯誤訊息 `Your email or password is incorrect!`，並停留在 `/login`。",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\",\"FR-ACC-04-AC1\"],\"module_feature\":\"Account - Login (/login)\",\"test_scenario\":\"Verify that a guest can log in with an existing account and that the header then shows the logged-in state\",\"preconditions\":[\"A registered account already exists with a known Email Address and Password\",\"The tester is a guest: the header shows `Signup / Login`\"],\"steps\":[{\"action\":\"Open http://automationexercise.com/login\",\"expected_result\":\"The `Login to your account` section is displayed with Email Address, Password fields and a `Login` button; the header still shows `Signup / Login`\"},{\"action\":\"Enter the existing account's Email Address in the Email Address field and its Password in the Password field\",\"expected_result\":\"The entered values are accepted by the two fields\"},{\"action\":\"Click the `Login` button\",\"expected_result\":\"The header displays `Logged in as <name>` for the logged-in account and no longer shows `Signup / Login`\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Functional\",\"notes\":\"Source: FR-ACC-04 AC 1 and the role table in section 2. The exact value substituted for <name> (e.g. registration name vs full name) is not defined by the PRD - see open questions.\"}",
+      "designer.run.id": "login-smoke-20261029T064911Z",
+      "designer.prd": "login-smoke.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04-AC1<-case-1",
+    "span_id": "8576911d96016a00",
+    "name": "claim FR-ACC-04-AC1 <- case-1 (invented)",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04-AC1",
+      "claim.case_id": "case-1",
+      "claim.requirement_exists": "false",
+      "requirement.id": "FR-ACC-04-AC1",
+      "case.id": "case-1",
+      "input.value": "missing requirement id: FR-ACC-04-AC1",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\",\"FR-ACC-04-AC1\"],\"module_feature\":\"Account - Login (/login)\",\"test_scenario\":\"Verify that a guest can log in with an existing account and that the header then shows the logged-in state\",\"preconditions\":[\"A registered account already exists with a known Email Address and Password\",\"The tester is a guest: the header shows `Signup / Login`\"],\"steps\":[{\"action\":\"Open http://automationexercise.com/login\",\"expected_result\":\"The `Login to your account` section is displayed with Email Address, Password fields and a `Login` button; the header still shows `Signup / Login`\"},{\"action\":\"Enter the existing account's Email Address in the Email Address field and its Password in the Password field\",\"expected_result\":\"The entered values are accepted by the two fields\"},{\"action\":\"Click the `Login` button\",\"expected_result\":\"The header displays `Logged in as <name>` for the logged-in account and no longer shows `Signup / Login`\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Functional\",\"notes\":\"Source: FR-ACC-04 AC 1 and the role table in section 2. The exact value substituted for <name> (e.g. registration name vs full name) is not defined by the PRD - see open questions.\"}",
+      "designer.run.id": "login-smoke-20261029T064911Z",
+      "designer.prd": "login-smoke.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-2",
+    "span_id": "8ef2ec4716129cc4",
+    "name": "claim FR-ACC-04 <- case-2",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-2",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-2",
+      "input.value": "### FR-ACC-04 登入\n\n- `/login` 頁面的 `Login to your account` 區塊含 Email Address、Password 欄位與 `Login` 按鈕。\n\n**AC**\n\n1. 輸入正確的 Email 與 Password，點 `Login` → Header 顯示 `Logged in as <name>`。\n2. 輸入錯誤的 Email 或 Password，點 `Login` → 顯示錯誤訊息 `Your email or password is incorrect!`，並停留在 `/login`。",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\",\"FR-ACC-04-AC2\"],\"module_feature\":\"Account - Login (/login)\",\"test_scenario\":\"Verify that login is rejected with the specified error message when the Email Address or the Password is incorrect\",\"preconditions\":[\"A registered account exists: Email Address = <valid registered email>, Password = <its correct password>\",\"The tester is a guest: the header shows `Signup / Login`\"],\"steps\":[{\"action\":\"Open http://automationexercise.com/login\",\"expected_result\":\"The `Login to your account` section is displayed\"},{\"action\":\"Enter the incorrect credential combination in the Email Address and Password fields and click `Login`, using representative values: (a) <valid registered email> with a wrong password, (b) <unregistered email> with any password\",\"expected_result\":\"The message `Your email or password is incorrect!` is displayed verbatim for each combination\"},{\"action\":\"Observe the current page and header after each rejected attempt\",\"expected_result\":\"The user stays on /login and the header still shows `Signup / Login` (no `Logged in as <name>` state)\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Negative\",\"notes\":\"Source: FR-ACC-04 AC 2. The two combinations (wrong password, unregistered email) share the same action and expected result, so they are merged into one case as representative values. Where on the page the error text is rendered is not specified - see open questions.\"}",
+      "designer.run.id": "login-smoke-20261029T064911Z",
+      "designer.prd": "login-smoke.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04-AC2<-case-2",
+    "span_id": "5279b0c05facbb7f",
+    "name": "claim FR-ACC-04-AC2 <- case-2 (invented)",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04-AC2",
+      "claim.case_id": "case-2",
+      "claim.requirement_exists": "false",
+      "requirement.id": "FR-ACC-04-AC2",
+      "case.id": "case-2",
+      "input.value": "missing requirement id: FR-ACC-04-AC2",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\",\"FR-ACC-04-AC2\"],\"module_feature\":\"Account - Login (/login)\",\"test_scenario\":\"Verify that login is rejected with the specified error message when the Email Address or the Password is incorrect\",\"preconditions\":[\"A registered account exists: Email Address = <valid registered email>, Password = <its correct password>\",\"The tester is a guest: the header shows `Signup / Login`\"],\"steps\":[{\"action\":\"Open http://automationexercise.com/login\",\"expected_result\":\"The `Login to your account` section is displayed\"},{\"action\":\"Enter the incorrect credential combination in the Email Address and Password fields and click `Login`, using representative values: (a) <valid registered email> with a wrong password, (b) <unregistered email> with any password\",\"expected_result\":\"The message `Your email or password is incorrect!` is displayed verbatim for each combination\"},{\"action\":\"Observe the current page and header after each rejected attempt\",\"expected_result\":\"The user stays on /login and the header still shows `Signup / Login` (no `Logged in as <name>` state)\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Negative\",\"notes\":\"Source: FR-ACC-04 AC 2. The two combinations (wrong password, unregistered email) share the same action and expected result, so they are merged into one case as representative values. Where on the page the error text is rendered is not specified - see open questions.\"}",
+      "designer.run.id": "login-smoke-20261029T064911Z",
+      "designer.prd": "login-smoke.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-3",
+    "span_id": "f1dbae3ae3e36cd5",
+    "name": "claim FR-ACC-04 <- case-3",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-3",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-3",
+      "input.value": "### FR-ACC-04 登入\n\n- `/login` 頁面的 `Login to your account` 區塊含 Email Address、Password 欄位與 `Login` 按鈕。\n\n**AC**\n\n1. 輸入正確的 Email 與 Password，點 `Login` → Header 顯示 `Logged in as <name>`。\n2. 輸入錯誤的 Email 或 Password，點 `Login` → 顯示錯誤訊息 `Your email or password is incorrect!`，並停留在 `/login`。",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\"],\"module_feature\":\"Account - Login (/login)\",\"test_scenario\":\"Verify that the `Login to your account` block exposes its title, both input fields and the Login button\",\"preconditions\":[\"The tester is a guest: the header shows `Signup / Login`\"],\"steps\":[{\"action\":\"Open http://automationexercise.com/login and locate the login block\",\"expected_result\":\"The heading text `Login to your account` is displayed verbatim as the title of the login block\"},{\"action\":\"Inspect the controls of the login block\",\"expected_result\":\"An editable `Email Address` input, an editable `Password` input and a button labelled `Login` are present in the block\"}],\"priority\":\"Medium\",\"severity\":\"Minor\",\"test_type\":\"UI\",\"notes\":\"Source: FR-ACC-04 (block composition) and the verbatim copy list in section 4. This is the only case that asserts the `Login to your account` title text; field behaviour on entry is covered by the functional and negative cases.\"}",
+      "designer.run.id": "login-smoke-20261029T064911Z",
+      "designer.prd": "login-smoke.md"
+    }
+  }
+]

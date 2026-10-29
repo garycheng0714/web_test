@@ -1,0 +1,99 @@
+{
+  "cases": [
+    {
+      "requirement_ids": [
+        "FR-ACC-04",
+        "FR-ACC-04-AC1"
+      ],
+      "module_feature": "Account - Login (/login)",
+      "test_scenario": "Verify that a guest can log in with an existing account and that the header then shows the logged-in state",
+      "preconditions": [
+        "A registered account already exists with a known Email Address and Password",
+        "The tester is a guest: the header shows `Signup / Login`"
+      ],
+      "steps": [
+        {
+          "action": "Open http://automationexercise.com/login",
+          "expected_result": "The `Login to your account` section is displayed with Email Address, Password fields and a `Login` button; the header still shows `Signup / Login`"
+        },
+        {
+          "action": "Enter the existing account's Email Address in the Email Address field and its Password in the Password field",
+          "expected_result": "The entered values are accepted by the two fields"
+        },
+        {
+          "action": "Click the `Login` button",
+          "expected_result": "The header displays `Logged in as <name>` for the logged-in account and no longer shows `Signup / Login`"
+        }
+      ],
+      "priority": "High",
+      "severity": "Critical",
+      "test_type": "Functional",
+      "notes": "Source: FR-ACC-04 AC 1 and the role table in section 2. The exact value substituted for <name> (e.g. registration name vs full name) is not defined by the PRD - see open questions."
+    },
+    {
+      "requirement_ids": [
+        "FR-ACC-04",
+        "FR-ACC-04-AC2"
+      ],
+      "module_feature": "Account - Login (/login)",
+      "test_scenario": "Verify that login is rejected with the specified error message when the Email Address or the Password is incorrect",
+      "preconditions": [
+        "A registered account exists: Email Address = <valid registered email>, Password = <its correct password>",
+        "The tester is a guest: the header shows `Signup / Login`"
+      ],
+      "steps": [
+        {
+          "action": "Open http://automationexercise.com/login",
+          "expected_result": "The `Login to your account` section is displayed"
+        },
+        {
+          "action": "Enter the incorrect credential combination in the Email Address and Password fields and click `Login`, using representative values: (a) <valid registered email> with a wrong password, (b) <unregistered email> with any password",
+          "expected_result": "The message `Your email or password is incorrect!` is displayed verbatim for each combination"
+        },
+        {
+          "action": "Observe the current page and header after each rejected attempt",
+          "expected_result": "The user stays on /login and the header still shows `Signup / Login` (no `Logged in as <name>` state)"
+        }
+      ],
+      "priority": "High",
+      "severity": "Major",
+      "test_type": "Negative",
+      "notes": "Source: FR-ACC-04 AC 2. The two combinations (wrong password, unregistered email) share the same action and expected result, so they are merged into one case as representative values. Where on the page the error text is rendered is not specified - see open questions."
+    },
+    {
+      "requirement_ids": [
+        "FR-ACC-04"
+      ],
+      "module_feature": "Account - Login (/login)",
+      "test_scenario": "Verify that the `Login to your account` block exposes its title, both input fields and the Login button",
+      "preconditions": [
+        "The tester is a guest: the header shows `Signup / Login`"
+      ],
+      "steps": [
+        {
+          "action": "Open http://automationexercise.com/login and locate the login block",
+          "expected_result": "The heading text `Login to your account` is displayed verbatim as the title of the login block"
+        },
+        {
+          "action": "Inspect the controls of the login block",
+          "expected_result": "An editable `Email Address` input, an editable `Password` input and a button labelled `Login` are present in the block"
+        }
+      ],
+      "priority": "Medium",
+      "severity": "Minor",
+      "test_type": "UI",
+      "notes": "Source: FR-ACC-04 (block composition) and the verbatim copy list in section 4. This is the only case that asserts the `Login to your account` title text; field behaviour on entry is covered by the functional and negative cases."
+    }
+  ],
+  "open_questions": [
+    "FR-ACC-04 lists Email Address and Password without any required/format rule: what validation applies when either field is submitted empty or when the Email Address is not a valid email format, and what exact message is shown for each?",
+    "Are the Email Address and Password values compared case-sensitively, and are leading/trailing spaces trimmed before the comparison?",
+    "The verbatim template `Logged in as <name>` does not say which value replaces `<name>` - should it be the name entered at registration, the first name only, or the email address?",
+    "After a successful login, what page should the user land on (stay on /login, go to the home page, or return to the previously requested page)?",
+    "After a failed login attempt, is the Password field cleared and the Email Address retained, and does the error message disappear on the next attempt?",
+    "Where is the `Your email or password is incorrect!` message rendered (above the form, inside the block, as a toast), and how long does it stay visible?",
+    "Does a logged-in session persist across a page refresh or a new tab, and what should happen if a logged-in member navigates to /login directly?",
+    "Is there any lockout, rate limit or CAPTCHA after repeated failed login attempts, and if so what message and waiting period apply?",
+    "Is the Password input masked on screen, and is there a show/hide toggle or any maximum length for either field?"
+  ]
+}

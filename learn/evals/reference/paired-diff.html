@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paired diff / Metamorphic relation</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Reference · Evals 基礎</p>
+<h1>Paired diff / Metamorphic relation</h1>
+<p class="subtitle">沒有標準答案時，用「相關輸入」製造便宜的 oracle。</p>
+
+<h2>一句話</h2>
+
+<p>固定情境，只動一個變因，宣告一條不變式；違反就是 failure。</p>
+
+<h2>三種 pair</h2>
+
+<table>
+  <thead>
+    <tr><th>Pair</th><th>改什麼</th><th>不變式</th><th>違反長怎樣</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Paraphrase</td><td>措辭</td><td>事實不變</td><td>矛盾</td></tr>
+    <tr><td>Counterfactual</td><td>一個欄位</td><td>只有該欄位變</td><td>drift</td></tr>
+    <tr><td>Additive</td><td>加一個需求</td><td>該需求被處理</td><td>遺漏</td></tr>
+  </tbody>
+</table>
+
+<h2>四種症狀</h2>
+
+<ul>
+  <li><strong>Contradiction</strong>：兩筆對同一事實給不同答案。</li>
+  <li><strong>Drift</strong>：改了 A，B 也跟著變。</li>
+  <li><strong>Omission</strong>：該出現的資訊消失。</li>
+  <li><strong>Hallucination</strong>：多出沒人要求的事實。</li>
+</ul>
+
+<h2>餐廳訂位的例子</h2>
+
+<table>
+  <thead>
+    <tr><th>Pair</th><th>不變式</th><th>觀察到什麼</th><th>背後的 failure</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>t-021-a / t-021-b</td>
+      <td>同一時段的可訂狀態要一致</td>
+      <td>一個說訂到，一個說客滿</td>
+      <td>客滿仍接單（false availability）</td>
+    </tr>
+    <tr>
+      <td>t-022-a / t-022-b</td>
+      <td>有生日需求就要有備註</td>
+      <td>一邊有慶生備註，一邊沒有</td>
+      <td>特殊需求遺漏</td>
+    </tr>
+    <tr>
+      <td>t-020-a / t-020-b</td>
+      <td>包場要轉業務</td>
+      <td>一邊當普通訂位，一邊轉業務</td>
+      <td>routing failure</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>抓到什麼、抓不到什麼</h2>
+
+<table>
+  <thead><tr><th>抓到</th><th>抓不到</th></tr></thead>
+  <tbody>
+    <tr><td>矛盾（一邊有位、一邊客滿）</td><td>兩邊都錯在同一件事</td></tr>
+    <tr><td>遺漏（備註消失）</td><td>兩邊都漏同一個需求</td></tr>
+    <tr><td>Drift（改人數，日期也變）</td><td>需要外部 ground truth 的錯</td></tr>
+    <tr><td>Hallucination（多承諾窗邊）</td><td>措辭差異但兩邊都合理</td></tr>
+  </tbody>
+</table>
+
+<p>Diff 告訴你「去哪裡看」，不告訴你「哪一邊對」。你還是要讀 user message 或 policy 才能裁決。</p>
+
+<h2>對 taxonomy 的意義</h2>
+
+<p>不是每個 failure mode 都能用同一種 evaluator 檢查：</p>
+
+<table>
+  <thead><tr><th>範圍</th><th>例子</th><th>Lesson 0004 的選擇</th></tr></thead>
+  <tbody>
+    <tr><td>Single trace</td><td>時間／日期／人數錯置、特殊需求遺漏</td><td>Code evaluator 可直接比對欄位</td></tr>
+    <tr><td>Pairwise</td><td>自相矛盾（a/b diff）</td><td>需要成對資料，或多筆回覆的檢查</td></tr>
+    <tr><td>Policy-dependent</td><td>routing failure、false availability</td><td>需要 policy 或 availability data</td></tr>
+  </tbody>
+</table>
+
+<p><strong>「自相矛盾」是偵測手法，不是 failure mode 本身。</strong>背後的 behavior 是「客滿仍接單」；命名時要寫 behavior，不是寫症狀。</p>
+
+<h2>推廣到真實資料</h2>
+
+<ul>
+  <li><strong>Paraphrase pair</strong>：同一個請求換句話說，事實應該不變。</li>
+  <li><strong>Counterfactual pair</strong>：只改一個欄位（7 人→8 人），預期只有該欄位改變。</li>
+  <li><strong>Same input, different seed/temperature</strong>：測模型變異。</li>
+</ul>
+
+<h2>來源</h2>
+
+<p>
+<a href="../../../.agents/skills/error-discovery/SKILL.md">error-discovery skill</a> ·
+<a href="../lessons/0003-error-discovery.html">Lesson 0003</a>
+</p>
+
+<footer>
+<nav>
+<a href="../lessons/0003-error-discovery.html">Lesson 0003</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+</body>
+</html>

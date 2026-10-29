@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Error discovery · 餐廳訂位助理</title>
+<link rel="stylesheet" href="review.css">
+</head>
+<body>
+
+<header class="app">
+  <div>
+    <h1>Error discovery</h1>
+    <p class="sub">餐廳訂位助理 · <a href="../lessons/0003-error-discovery.html">Lesson 0003</a></p>
+  </div>
+  <div class="progress">
+    <span id="progress-text">0 / 0</span>
+    <div class="bar"><span id="progress-bar"></span></div>
+  </div>
+</header>
+
+<main>
+  <section id="traces"></section>
+
+  <aside>
+    <h2>Failure modes</h2>
+    <ul id="modes"></ul>
+    <p class="hint">多個 mode 用「、」分隔；同一個錯用同一個名字。</p>
+    <h2>進度</h2>
+    <p id="status">載入中…</p>
+    <button id="next" type="button">下一筆未標註</button>
+  </aside>
+</main>
+
+<template id="trace-template">
+  <article class="trace">
+    <header class="trace-head">
+      <span class="tid"></span>
+      <span class="meta"></span>
+    </header>
+    <div class="turn user">
+      <span class="role">User</span>
+      <p class="content"></p>
+    </div>
+    <div class="turn assistant">
+      <span class="role">Assistant</span>
+      <p class="content"></p>
+    </div>
+    <div class="annotate">
+      <label>Failure mode
+        <input class="mode" list="mode-list" placeholder="例：人數錯置、缺少確認">
+      </label>
+      <label>Note
+        <textarea class="note" rows="2" placeholder="哪裡錯？引用原文。"></textarea>
+      </label>
+      <span class="saved" aria-live="polite"></span>
+    </div>
+  </article>
+</template>
+
+<datalist id="mode-list"></datalist>
+<script src="review.js"></script>
+</body>
+</html>

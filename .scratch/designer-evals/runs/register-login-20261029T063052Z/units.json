@@ -1,0 +1,128 @@
+[
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-01<-case-1",
+    "span_id": "0e5c6187a0b68256",
+    "name": "claim FR-ACC-01 <- case-1",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-01",
+      "claim.case_id": "case-1",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-01",
+      "case.id": "case-1",
+      "input.value": "### FR-ACC-01 註冊 Step 1：Name + Email\n- `/login` 的 `New User Signup!` 區塊含 Name、Email Address 欄位與 `Signup` 按鈕。\n- **AC**\n  1. 輸入 Name 與**未註冊**的 Email，點 `Signup` → 進入 `Enter Account Information` 頁。(TCr1-S4~S7)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-01\"],\"module_feature\":\"Account / Registration – Step 1 (Name + Email)\",\"test_scenario\":\"Verify that a guest submitting a name and an unregistered email in New User Signup! is taken to the Enter Account Information page\",\"preconditions\":[\"User is not logged in (header shows Signup / Login).\",\"The email address to be used is not registered on the site.\"],\"steps\":[{\"action\":\"Open http://automationexercise.com\",\"expected_result\":\"Home page is displayed and the header shows the Signup / Login link.\"},{\"action\":\"Click the Signup / Login link in the header\",\"expected_result\":\"The /login page is displayed with a Login to your account section and a New User Signup! section.\"},{\"action\":\"In the New User Signup! section enter a Name and an unregistered Email Address\",\"expected_result\":\"Both fields accept the entered values.\"},{\"action\":\"Click the Signup button\",\"expected_result\":\"The Enter Account Information page is displayed, containing the Address Information section and the Create Account button; the URL is no longer /login.\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Functional\",\"notes\":\"Source: TCr1-S4~S7 (Register User) / prd.md FR-ACC-01. Header assertion for the guest role is folded into step 1 of this case.\"}",
+      "designer.run.id": "register-login-20261029T063052Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-02<-case-2",
+    "span_id": "1acd145d36f3c30c",
+    "name": "claim FR-ACC-02 <- case-2",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-02",
+      "claim.case_id": "case-2",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-02",
+      "case.id": "case-2",
+      "input.value": "### FR-ACC-02 註冊 Step 2：帳號資訊 + 地址資訊\n- **帳號資訊**：Title（`Mr.` / `Mrs.` radio）、Name、Email、Password、Date of Birth（Day / Month / Year 三個下拉）。\n  - Email 由 Step 1 帶入且**唯讀（disabled）**。\n  - Mail opt-in checkbox：`Sign up for our newsletter!`、`Receive special offers from our partners!`。\n- **地址資訊**：First name、Last name、Company、Address、Address 2、Country（下拉）、State、City、Zipcode、Mobile Number。\n- **AC**\n  1. 點 `Create Account` → 顯示 `Account Created!` 頁（含 `Congratulations! Your new account has been successfully created!`）。(TCr1-S9~S14)\n  2. 點 `Continue` → 回到已登入狀態，Header 顯示 `Logged in as <name>`。(TCr1-S15~S16)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-02\"],\"module_feature\":\"Account / Registration – Step 2 (Account + Address information)\",\"test_scenario\":\"Verify that completing the account and address information and clicking Create Account produces the Account Created! confirmation and leaves the user logged in after Continue\",\"preconditions\":[\"The Enter Account Information page is open for a new, unregistered email (result of FR-ACC-01).\",\"The email carried over from step 1 is unique.\"],\"steps\":[{\"action\":\"On the Enter Account Information page fill the account information: Title, Name, Password, Date of Birth, and leave/keep the newsletter and partner-offer opt-ins as desired\",\"expected_result\":\"All entered values are accepted and displayed in their controls.\"},{\"action\":\"Fill the Address Information section: First name, Last name, Company, Address, Address 2, Country, State, City, Zipcode, Mobile Number\",\"expected_result\":\"All entered values are accepted and displayed in their controls.\"},{\"action\":\"Click the Create Account button\",\"expected_result\":\"The Account Created! page is displayed with the text 'Congratulations! Your new account has been successfully created!' and a Continue link.\"},{\"action\":\"Click the Continue link\",\"expected_result\":\"The user is returned to the site in a logged-in state: the header shows 'Logged in as <name>' together with the Logout and Delete Account links.\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Functional\",\"notes\":\"Source: TCr1-S9~S16 (Register User) / prd.md FR-ACC-02. Which fields are actually mandatory and any format rules are undefined in the PRD (see open_questions), so the case fills every documented field.\"}",
+      "designer.run.id": "register-login-20261029T063052Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-03<-case-3",
+    "span_id": "5f4726c825f574ce",
+    "name": "claim FR-ACC-03 <- case-3",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-03",
+      "claim.case_id": "case-3",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-03",
+      "case.id": "case-3",
+      "input.value": "### FR-ACC-03 重複 Email 防護\n- **AC**：以已註冊 Email 於 `New User Signup!` 點 `Signup` → 顯示錯誤 `Email Address already exist!`，且**不**進入帳號資訊頁。(TCr5-S4~S8)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-03\"],\"module_feature\":\"Account / Registration – Duplicate email protection\",\"test_scenario\":\"Verify that signing up with an already registered email shows the duplicate-email error and does not open the account information page\",\"preconditions\":[\"User is not logged in.\",\"An account already exists for a known email address (e.g. created via FR-ACC-01/FR-ACC-02).\"],\"steps\":[{\"action\":\"Open /login and, in the New User Signup! section, enter any Name together with the email address of the already registered account\",\"expected_result\":\"Both fields accept the entered values.\"},{\"action\":\"Click the Signup button\",\"expected_result\":\"The error message 'Email Address already exist!' is displayed.\"},{\"action\":\"Observe the page after the error is displayed\",\"expected_result\":\"The user remains on the /login page; the Enter Account Information page is not displayed.\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Negative\",\"notes\":\"Source: TCr5-S4~S8 (Register existing email) / prd.md FR-ACC-03.\"}",
+      "designer.run.id": "register-login-20261029T063052Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-4",
+    "span_id": "fe577ebd4dd891cd",
+    "name": "claim FR-ACC-04 <- case-4",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-4",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-4",
+      "input.value": "### FR-ACC-04 登入\n- `/login` 的 `Login to your account` 區塊含 Email Address、Password 與 `Login` 按鈕。\n- **AC**\n  1. 正確帳密 → Header 顯示 `Logged in as <name>`。(TCr2-S4~S8、TCr4-S4~S8)\n  2. 錯誤帳密 → 顯示錯誤 `Your email or password is incorrect!`，停留在 `/login`。(TCr3-S4~S8)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\"],\"module_feature\":\"Account / Login – Valid credentials\",\"test_scenario\":\"Verify that logging in with correct credentials logs the user in and the header shows Logged in as <name>\",\"preconditions\":[\"A registered account exists with known email and password.\",\"User is not logged in.\"],\"steps\":[{\"action\":\"Open /login\",\"expected_result\":\"The Login to your account section with Email Address, Password and the Login button is displayed.\"},{\"action\":\"Enter the registered email address and its correct password in the Login to your account section\",\"expected_result\":\"The credentials are accepted in their fields.\"},{\"action\":\"Click the Login button\",\"expected_result\":\"The user is logged in: the header shows 'Logged in as <name>' with the Logout and Delete Account links, and no login error message is displayed.\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Functional\",\"notes\":\"Source: TCr2-S4~S8, TCr4-S4~S8 (Login correct) / prd.md FR-ACC-04 AC1.\"}",
+      "designer.run.id": "register-login-20261029T063052Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-5",
+    "span_id": "dc6a415bbfc44045",
+    "name": "claim FR-ACC-04 <- case-5",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-5",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-5",
+      "input.value": "### FR-ACC-04 登入\n- `/login` 的 `Login to your account` 區塊含 Email Address、Password 與 `Login` 按鈕。\n- **AC**\n  1. 正確帳密 → Header 顯示 `Logged in as <name>`。(TCr2-S4~S8、TCr4-S4~S8)\n  2. 錯誤帳密 → 顯示錯誤 `Your email or password is incorrect!`，停留在 `/login`。(TCr3-S4~S8)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\"],\"module_feature\":\"Account / Login – Invalid credentials\",\"test_scenario\":\"Verify that logging in with incorrect credentials shows the login error and keeps the user on /login as a guest\",\"preconditions\":[\"A registered account exists with known email and password.\",\"User is not logged in.\"],\"steps\":[{\"action\":\"Open /login and enter incorrect credentials in the Login to your account section\",\"expected_result\":\"The entered values are accepted in their fields.\"},{\"action\":\"Click the Login button\",\"expected_result\":\"The error message 'Your email or password is incorrect!' is displayed and the user stays on the /login page.\"},{\"action\":\"Observe the header and page state\",\"expected_result\":\"The user remains a guest: the header shows Signup / Login and not 'Logged in as <name>', and the Login to your account / New User Signup! sections remain visible.\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Negative\",\"notes\":\"Source: TCr3-S4~S8 (Login incorrect) / prd.md FR-ACC-04 AC2. Representative invalid inputs to cover in the same case (same expected result): registered email + wrong password; unregistered email + any password.\"}",
+      "designer.run.id": "register-login-20261029T063052Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-05<-case-6",
+    "span_id": "7bfee9626cf7a37a",
+    "name": "claim FR-ACC-05 <- case-6",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-05",
+      "claim.case_id": "case-6",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-05",
+      "case.id": "case-6",
+      "input.value": "### FR-ACC-05 登出\n- **AC**：點 Header 的 `Logout` → 回到 `/login`（可見 `Login to your account` / `New User Signup!`），狀態為訪客。(TCr4-S9~S10)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-05\"],\"module_feature\":\"Account / Logout\",\"test_scenario\":\"Verify that a logged-in member clicking Logout returns to /login as a guest\",\"preconditions\":[\"User is logged in (header shows 'Logged in as <name>' with Logout and Delete Account links).\"],\"steps\":[{\"action\":\"Click the Logout link in the header\",\"expected_result\":\"The /login page is displayed containing the Login to your account and New User Signup! sections.\"},{\"action\":\"Observe the header after logout\",\"expected_result\":\"The header no longer shows 'Logged in as <name>', Logout or Delete Account; it shows the Signup / Login link (guest state).\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Functional\",\"notes\":\"Source: TCr4-S9~S10 (Logout) / prd.md FR-ACC-05.\"}",
+      "designer.run.id": "register-login-20261029T063052Z",
+      "designer.prd": "register-login.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-06<-case-7",
+    "span_id": "f26c414124eb5141",
+    "name": "claim FR-ACC-06 <- case-7",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-06",
+      "claim.case_id": "case-7",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-06",
+      "case.id": "case-7",
+      "input.value": "### FR-ACC-06 刪除帳號\n- 會員可於 Header 點 `Delete Account`。\n- **AC**：顯示 `Account Deleted!` 頁（含 `Your account has been permanently deleted!`），點 `Continue` 後離開已登入狀態（Header 再現 `Signup / Login`）。(TCr1-S17~S18、TCr2-S9~S10)",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-06\"],\"module_feature\":\"Account / Delete Account\",\"test_scenario\":\"Verify that a logged-in member deleting the account sees the Account Deleted! confirmation and is returned to guest state after Continue\",\"preconditions\":[\"User is logged in with an account that may be permanently deleted.\"],\"steps\":[{\"action\":\"Click the Delete Account link in the header\",\"expected_result\":\"The Account Deleted! page is displayed with the text 'Your account has been permanently deleted!' and a Continue link.\"},{\"action\":\"Click the Continue link\",\"expected_result\":\"The user is no longer logged in: the header shows the Signup / Login link, and 'Logged in as <name>', Logout and Delete Account are no longer displayed.\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Functional\",\"notes\":\"Source: TCr1-S17~S18, TCr2-S9~S10 / prd.md FR-ACC-06. No confirmation step before deletion is described in the PRD (see open_questions).\"}",
+      "designer.run.id": "register-login-20261029T063052Z",
+      "designer.prd": "register-login.md"
+    }
+  }
+]

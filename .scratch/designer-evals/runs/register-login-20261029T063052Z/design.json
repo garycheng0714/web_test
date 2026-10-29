@@ -1,0 +1,216 @@
+{
+  "cases": [
+    {
+      "requirement_ids": [
+        "FR-ACC-01"
+      ],
+      "module_feature": "Account / Registration – Step 1 (Name + Email)",
+      "test_scenario": "Verify that a guest submitting a name and an unregistered email in New User Signup! is taken to the Enter Account Information page",
+      "preconditions": [
+        "User is not logged in (header shows Signup / Login).",
+        "The email address to be used is not registered on the site."
+      ],
+      "steps": [
+        {
+          "action": "Open http://automationexercise.com",
+          "expected_result": "Home page is displayed and the header shows the Signup / Login link."
+        },
+        {
+          "action": "Click the Signup / Login link in the header",
+          "expected_result": "The /login page is displayed with a Login to your account section and a New User Signup! section."
+        },
+        {
+          "action": "In the New User Signup! section enter a Name and an unregistered Email Address",
+          "expected_result": "Both fields accept the entered values."
+        },
+        {
+          "action": "Click the Signup button",
+          "expected_result": "The Enter Account Information page is displayed, containing the Address Information section and the Create Account button; the URL is no longer /login."
+        }
+      ],
+      "priority": "High",
+      "severity": "Critical",
+      "test_type": "Functional",
+      "notes": "Source: TCr1-S4~S7 (Register User) / prd.md FR-ACC-01. Header assertion for the guest role is folded into step 1 of this case."
+    },
+    {
+      "requirement_ids": [
+        "FR-ACC-02"
+      ],
+      "module_feature": "Account / Registration – Step 2 (Account + Address information)",
+      "test_scenario": "Verify that completing the account and address information and clicking Create Account produces the Account Created! confirmation and leaves the user logged in after Continue",
+      "preconditions": [
+        "The Enter Account Information page is open for a new, unregistered email (result of FR-ACC-01).",
+        "The email carried over from step 1 is unique."
+      ],
+      "steps": [
+        {
+          "action": "On the Enter Account Information page fill the account information: Title, Name, Password, Date of Birth, and leave/keep the newsletter and partner-offer opt-ins as desired",
+          "expected_result": "All entered values are accepted and displayed in their controls."
+        },
+        {
+          "action": "Fill the Address Information section: First name, Last name, Company, Address, Address 2, Country, State, City, Zipcode, Mobile Number",
+          "expected_result": "All entered values are accepted and displayed in their controls."
+        },
+        {
+          "action": "Click the Create Account button",
+          "expected_result": "The Account Created! page is displayed with the text 'Congratulations! Your new account has been successfully created!' and a Continue link."
+        },
+        {
+          "action": "Click the Continue link",
+          "expected_result": "The user is returned to the site in a logged-in state: the header shows 'Logged in as <name>' together with the Logout and Delete Account links."
+        }
+      ],
+      "priority": "High",
+      "severity": "Critical",
+      "test_type": "Functional",
+      "notes": "Source: TCr1-S9~S16 (Register User) / prd.md FR-ACC-02. Which fields are actually mandatory and any format rules are undefined in the PRD (see open_questions), so the case fills every documented field."
+    },
+    {
+      "requirement_ids": [
+        "FR-ACC-03"
+      ],
+      "module_feature": "Account / Registration – Duplicate email protection",
+      "test_scenario": "Verify that signing up with an already registered email shows the duplicate-email error and does not open the account information page",
+      "preconditions": [
+        "User is not logged in.",
+        "An account already exists for a known email address (e.g. created via FR-ACC-01/FR-ACC-02)."
+      ],
+      "steps": [
+        {
+          "action": "Open /login and, in the New User Signup! section, enter any Name together with the email address of the already registered account",
+          "expected_result": "Both fields accept the entered values."
+        },
+        {
+          "action": "Click the Signup button",
+          "expected_result": "The error message 'Email Address already exist!' is displayed."
+        },
+        {
+          "action": "Observe the page after the error is displayed",
+          "expected_result": "The user remains on the /login page; the Enter Account Information page is not displayed."
+        }
+      ],
+      "priority": "High",
+      "severity": "Major",
+      "test_type": "Negative",
+      "notes": "Source: TCr5-S4~S8 (Register existing email) / prd.md FR-ACC-03."
+    },
+    {
+      "requirement_ids": [
+        "FR-ACC-04"
+      ],
+      "module_feature": "Account / Login – Valid credentials",
+      "test_scenario": "Verify that logging in with correct credentials logs the user in and the header shows Logged in as <name>",
+      "preconditions": [
+        "A registered account exists with known email and password.",
+        "User is not logged in."
+      ],
+      "steps": [
+        {
+          "action": "Open /login",
+          "expected_result": "The Login to your account section with Email Address, Password and the Login button is displayed."
+        },
+        {
+          "action": "Enter the registered email address and its correct password in the Login to your account section",
+          "expected_result": "The credentials are accepted in their fields."
+        },
+        {
+          "action": "Click the Login button",
+          "expected_result": "The user is logged in: the header shows 'Logged in as <name>' with the Logout and Delete Account links, and no login error message is displayed."
+        }
+      ],
+      "priority": "High",
+      "severity": "Critical",
+      "test_type": "Functional",
+      "notes": "Source: TCr2-S4~S8, TCr4-S4~S8 (Login correct) / prd.md FR-ACC-04 AC1."
+    },
+    {
+      "requirement_ids": [
+        "FR-ACC-04"
+      ],
+      "module_feature": "Account / Login – Invalid credentials",
+      "test_scenario": "Verify that logging in with incorrect credentials shows the login error and keeps the user on /login as a guest",
+      "preconditions": [
+        "A registered account exists with known email and password.",
+        "User is not logged in."
+      ],
+      "steps": [
+        {
+          "action": "Open /login and enter incorrect credentials in the Login to your account section",
+          "expected_result": "The entered values are accepted in their fields."
+        },
+        {
+          "action": "Click the Login button",
+          "expected_result": "The error message 'Your email or password is incorrect!' is displayed and the user stays on the /login page."
+        },
+        {
+          "action": "Observe the header and page state",
+          "expected_result": "The user remains a guest: the header shows Signup / Login and not 'Logged in as <name>', and the Login to your account / New User Signup! sections remain visible."
+        }
+      ],
+      "priority": "High",
+      "severity": "Major",
+      "test_type": "Negative",
+      "notes": "Source: TCr3-S4~S8 (Login incorrect) / prd.md FR-ACC-04 AC2. Representative invalid inputs to cover in the same case (same expected result): registered email + wrong password; unregistered email + any password."
+    },
+    {
+      "requirement_ids": [
+        "FR-ACC-05"
+      ],
+      "module_feature": "Account / Logout",
+      "test_scenario": "Verify that a logged-in member clicking Logout returns to /login as a guest",
+      "preconditions": [
+        "User is logged in (header shows 'Logged in as <name>' with Logout and Delete Account links)."
+      ],
+      "steps": [
+        {
+          "action": "Click the Logout link in the header",
+          "expected_result": "The /login page is displayed containing the Login to your account and New User Signup! sections."
+        },
+        {
+          "action": "Observe the header after logout",
+          "expected_result": "The header no longer shows 'Logged in as <name>', Logout or Delete Account; it shows the Signup / Login link (guest state)."
+        }
+      ],
+      "priority": "High",
+      "severity": "Major",
+      "test_type": "Functional",
+      "notes": "Source: TCr4-S9~S10 (Logout) / prd.md FR-ACC-05."
+    },
+    {
+      "requirement_ids": [
+        "FR-ACC-06"
+      ],
+      "module_feature": "Account / Delete Account",
+      "test_scenario": "Verify that a logged-in member deleting the account sees the Account Deleted! confirmation and is returned to guest state after Continue",
+      "preconditions": [
+        "User is logged in with an account that may be permanently deleted."
+      ],
+      "steps": [
+        {
+          "action": "Click the Delete Account link in the header",
+          "expected_result": "The Account Deleted! page is displayed with the text 'Your account has been permanently deleted!' and a Continue link."
+        },
+        {
+          "action": "Click the Continue link",
+          "expected_result": "The user is no longer logged in: the header shows the Signup / Login link, and 'Logged in as <name>', Logout and Delete Account are no longer displayed."
+        }
+      ],
+      "priority": "High",
+      "severity": "Major",
+      "test_type": "Functional",
+      "notes": "Source: TCr1-S17~S18, TCr2-S9~S10 / prd.md FR-ACC-06. No confirmation step before deletion is described in the PRD (see open_questions)."
+    }
+  ],
+  "open_questions": [
+    "What are the password requirements for registration (minimum length, character classes), and what message is shown when a password does not meet them? The PRD defines no rule.",
+    "Which registration fields are mandatory, and what messages/behaviour are shown for empty or malformed input (e.g. Mobile Number format, Zipcode format, incomplete Date of Birth, missing Name/Address)?",
+    "Is email uniqueness and login case-sensitive — e.g. are 'User@Example.com' and 'user@example.com' the same account for the 'Email Address already exist!' check and for login?",
+    "Are Name and Email values trimmed of leading/trailing whitespace on signup and login, and does a trailing space in an email cause a duplicate-account or login failure?",
+    "Does a login attempt with an unregistered email show the same 'Your email or password is incorrect!' message as a wrong password, or is a distinguishable message intended?",
+    "Is the account deleted immediately without a confirmation prompt, and is any recovery or grace period intended after 'Your account has been permanently deleted!'?",
+    "After an account is deleted, can the same email address be used to register a new account immediately, and are previously used credentials rejected?",
+    "What should happen when a logged-in member navigates directly to /login or the signup section — is a redirect, the login page, or an error expected?",
+    "Is the login session remembered across browser restarts (persistent cookie) or does it end when the browser is closed?"
+  ]
+}

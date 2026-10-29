@@ -1,0 +1,16 @@
+{"id":"tl-002","critique":"使用「您」與「請問」，語氣禮貌、專業；時間有誤不影響 tone。","result":"Pass"}
+{"id":"tl-003","critique":"使用「您」與「幫您保留」，語氣禮貌、簡潔。","result":"Pass"}
+{"id":"tl-006","critique":"「已記錄。」冷淡、制式，沒有禮貌用語；符合 FAIL 的冷淡。","result":"Fail"}
+{"id":"tl-007","critique":"「就這樣」帶有不耐煩與打發感，沒有禮貌用語。","result":"Fail"}
+{"id":"tl-010","critique":"使用「您」與「請問」，語氣禮貌；人數錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-011","critique":"使用「您」與「請問」，語氣禮貌、簡潔。","result":"Pass"}
+{"id":"tl-014","critique":"「您確定是週六 20:00 嗎？」帶質疑與不耐煩；雖然有事實錯誤，tone 本身仍 Fail。","result":"Fail"}
+{"id":"tl-015","critique":"「好喔」「取消囉」是俚語、太隨便。","result":"Fail"}
+{"id":"tl-018","critique":"使用「您」與「請問」，語氣禮貌；時間錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-019","critique":"使用「您」與「請問」，語氣禮貌、簡潔。","result":"Pass"}
+{"id":"tl-022","critique":"「好喔」「囉」是俚語、太隨便。","result":"Fail"}
+{"id":"tl-023","critique":"「已記錄。」冷淡、制式，沒有禮貌用語。","result":"Fail"}
+{"id":"tl-026","critique":"使用「您」與「幫您保留」，語氣禮貌；人數錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-030","critique":"「當然有啊，怎麼會沒有？」帶反諷與不耐煩，沒有禮貌用語。","result":"Fail"}
+{"id":"tl-033","critique":"使用「請問」與「您」，語氣禮貌、專業。","result":"Pass"}
+{"id":"tl-037","critique":"「沒有啦」「怎麼可能」是俚語加上不耐煩。","result":"Fail"}

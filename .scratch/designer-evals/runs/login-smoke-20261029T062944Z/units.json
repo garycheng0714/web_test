@@ -1,0 +1,56 @@
+[
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-1",
+    "span_id": "8f439d868124bc82",
+    "name": "claim FR-ACC-04 <- case-1",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-1",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-1",
+      "input.value": "### FR-ACC-04 登入\n\n- `/login` 頁面的 `Login to your account` 區塊含 Email Address、Password 欄位與 `Login` 按鈕。\n\n**AC**\n\n1. 輸入正確的 Email 與 Password，點 `Login` → Header 顯示 `Logged in as <name>`。\n2. 輸入錯誤的 Email 或 Password，點 `Login` → 顯示錯誤訊息 `Your email or password is incorrect!`，並停留在 `/login`。",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\"],\"module_feature\":\"登入 Login (/login)\",\"test_scenario\":\"Verify that the /login page presents the 'Login to your account' section with an Email Address field, a Password field, and a Login button.\",\"preconditions\":[\"Browser session is a guest (not logged in) and the Header shows `Signup / Login`\",\"http://automationexercise.com is reachable\"],\"steps\":[{\"action\":\"Navigate to http://automationexercise.com/login\",\"expected_result\":\"The `/login` page loads and a section titled `Login to your account` is displayed (text matches verbatim).\"},{\"action\":\"Inspect the `Login to your account` section\",\"expected_result\":\"An `Email Address` input, a `Password` input, and a `Login` button are present and visible inside the section.\"}],\"priority\":\"Medium\",\"severity\":\"Minor\",\"test_type\":\"UI\",\"notes\":\"Source: PRD §3 FR-ACC-04 bullet 1 (login block contents) and §4 verbatim text list. Section title `Login to your account` is taken verbatim from §4.\"}",
+      "designer.run.id": "login-smoke-20261029T062944Z",
+      "designer.prd": "login-smoke.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-2",
+    "span_id": "03456c5464005d0a",
+    "name": "claim FR-ACC-04 <- case-2",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-2",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-2",
+      "input.value": "### FR-ACC-04 登入\n\n- `/login` 頁面的 `Login to your account` 區塊含 Email Address、Password 欄位與 `Login` 按鈕。\n\n**AC**\n\n1. 輸入正確的 Email 與 Password，點 `Login` → Header 顯示 `Logged in as <name>`。\n2. 輸入錯誤的 Email 或 Password，點 `Login` → 顯示錯誤訊息 `Your email or password is incorrect!`，並停留在 `/login`。",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\"],\"module_feature\":\"登入 Login (/login)\",\"test_scenario\":\"Verify that a member logs in successfully with a correct Email Address and Password and the Header switches to the logged-in state.\",\"preconditions\":[\"An existing account is known to the tester with its Email Address, Password, and displayed name <name>\",\"Browser session is a guest (not logged in) on http://automationexercise.com\"],\"steps\":[{\"action\":\"Open http://automationexercise.com/login\",\"expected_result\":\"The `Login to your account` section is displayed with the Email Address and Password fields and the `Login` button.\"},{\"action\":\"Enter the existing account's Email Address in the Email Address field and its Password in the Password field\",\"expected_result\":\"The entered values appear in the corresponding fields; the `Login` button remains available to click.\"},{\"action\":\"Click the `Login` button\",\"expected_result\":\"The Header changes to display `Logged in as <name>` for that account (text matches verbatim pattern, `<name>` is the account's name), the guest `Signup / Login` link is no longer the active account state, and no `Your email or password is incorrect!` message is displayed.\"}],\"priority\":\"High\",\"severity\":\"Critical\",\"test_type\":\"Functional\",\"notes\":\"Source: PRD §3 FR-ACC-04 AC1 and §4 verbatim header text. AC1 does not state the post-login landing page, so no URL assertion is made beyond the Header state.\"}",
+      "designer.run.id": "login-smoke-20261029T062944Z",
+      "designer.prd": "login-smoke.md"
+    }
+  },
+  {
+    "kind": "claim",
+    "target_id": "FR-ACC-04<-case-3",
+    "span_id": "484a62d1e7be4309",
+    "name": "claim FR-ACC-04 <- case-3",
+    "attributes": {
+      "openinference.span.kind": "EVALUATOR",
+      "claim.requirement_id": "FR-ACC-04",
+      "claim.case_id": "case-3",
+      "claim.requirement_exists": "true",
+      "requirement.id": "FR-ACC-04",
+      "case.id": "case-3",
+      "input.value": "### FR-ACC-04 登入\n\n- `/login` 頁面的 `Login to your account` 區塊含 Email Address、Password 欄位與 `Login` 按鈕。\n\n**AC**\n\n1. 輸入正確的 Email 與 Password，點 `Login` → Header 顯示 `Logged in as <name>`。\n2. 輸入錯誤的 Email 或 Password，點 `Login` → 顯示錯誤訊息 `Your email or password is incorrect!`，並停留在 `/login`。",
+      "output.value": "{\"requirement_ids\":[\"FR-ACC-04\"],\"module_feature\":\"登入 Login (/login)\",\"test_scenario\":\"Verify that login is rejected with the verbatim error message and the user stays on /login when the Email Address or Password is incorrect.\",\"preconditions\":[\"An existing account with a known Email Address and Password is available for the wrong-password variant\",\"Browser session is a guest on http://automationexercise.com/login\"],\"steps\":[{\"action\":\"Open http://automationexercise.com/login\",\"expected_result\":\"The `Login to your account` section is displayed.\"},{\"action\":\"Enter incorrect credentials — variants to cover: (a) an unregistered Email Address with any Password, (b) a registered Email Address with an incorrect Password — then note both variants produce the same outcome\",\"expected_result\":\"The entered values appear in the corresponding fields.\"},{\"action\":\"Click the `Login` button\",\"expected_result\":\"The message `Your email or password is incorrect!` is displayed (text matches verbatim), the page remains on `/login`, and the Header does not show `Logged in as <name>` (guest state `Signup / Login` persists).\"}],\"priority\":\"High\",\"severity\":\"Major\",\"test_type\":\"Negative\",\"notes\":\"Source: PRD §3 FR-ACC-04 AC2 and §4 verbatim failure message. The two variants (wrong email / wrong password) are merged because AC2 defines one identical message and behaviour; they are listed as representative inputs rather than separate cases.\"}",
+      "designer.run.id": "login-smoke-20261029T062944Z",
+      "designer.prd": "login-smoke.md"
+    }
+  }
+]

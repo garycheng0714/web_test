@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0005 · Binary judge</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0005 · Evals 基礎 · 約 30 分鐘</p>
+<h1>需要詮釋的錯，才輪到 judge</h1>
+<p class="subtitle">一個 judge 只判斷一件事；binary Pass/Fail；先寫 critique。</p>
+
+<h2>先檢查前提</h2>
+
+<p>Judge 不是預設選項。三個前提：</p>
+
+<ol>
+  <li>Error analysis 完成，failure mode 已經命名。</li>
+  <li>Code evaluator 寫不出來，或 proxy 的誤判率太高。</li>
+  <li>你有人類標籤可以驗證（至少 ~20 Pass + 20 Fail；正式驗證 ~50／50）。</li>
+</ol>
+
+<p>你的 8 個 mode 都能 code。我們需要一個真的需要詮釋的。看這兩筆你還沒標的：</p>
+
+<table>
+  <thead><tr><th>Trace</th><th>User</th><th>Assistant</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>t-005-b</td>
+      <td>週五 19:00，4 位，窗邊，可以嗎？</td>
+      <td>好的，已為您保留週五 19:00 的 4 人桌。我會幫您備註希望靠窗。請問需要留下聯絡電話嗎？ <strong>記得準時到嘿。</strong></td>
+    </tr>
+    <tr>
+      <td>t-016-b</td>
+      <td>幫我取消週五 19:00，4 位。</td>
+      <td>好的，已為您取消週五 19:00 的 4 人訂位。請問還有其他需要嗎？ <strong>好喔，取消囉。</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>這是「語氣不符」：事實沒錯，但語氣太隨便。Code 可以抓「嘿／喔／啦」，但那只是 proxy；換句話說就會漏。這種才輪到 judge。</p>
+
+<div class="callout">
+<h3>資料量誠實說</h3>
+<p>玩具版只有 2 筆 tone fail，不足以驗證 judge。現在是設計與試跑，不是 production judge；Lesson 0006 才量 TPR／TNR。</p>
+</div>
+
+<h2>四要素</h2>
+
+<h3>1. Task and criterion</h3>
+<p>一句話，一個 failure mode。不要「評估回覆好不好」，也不要一次判斷整個 trace。</p>
+
+<h3>2. Pass / Fail definitions</h3>
+<p>Binary，操作型定義。寫出什麼具體算 Pass、什麼具體算 Fail；不要用 1–5 分或 A–F。</p>
+
+<h3>3. Few-shot examples</h3>
+<p>至少一個 clear Pass、一個 clear Fail、一個 borderline。範例只從 training split 來；放進 prompt 的例子不能再進 dev/test。</p>
+
+<h3>4. Structured output</h3>
+<p>用 schema 強制輸出，而且 <strong>critique 要在 result 前面</strong>：先要模型說出理由，再讓它下判決。</p>
+
+<pre><code>{
+  "critique": "string",
+  "result": "Pass 或 Fail"
+}</code></pre>
+
+<h2>什麼該餵給 judge</h2>
+
+<table>
+  <thead><tr><th>Failure mode</th><th>Judge 需要什麼</th></tr></thead>
+  <tbody>
+    <tr><td>語氣不符</td><td>user message + assistant reply（必要時加 policy／persona）</td></tr>
+    <tr><td>答案忠實度</td><td>retrieved context + generated answer</td></tr>
+    <tr><td>工具呼叫正當性</td><td>對話歷史 + tool call + tool result</td></tr>
+  </tbody>
+</table>
+
+<p>只給 judge 需要的，不要塞整份 trace。長文件也只給相關片段。</p>
+
+<h2>模型選擇</h2>
+
+<p>先用最強的模型；pin 一個 dated snapshot（例：<code>&lt;model&gt;-&lt;YYYY-MM-DD&gt;</code>），不要用浮動 alias。對齊確認後再省成本。</p>
+
+<h2>Anti-patterns</h2>
+
+<ul>
+  <li>Likert 1–5、A–F；binary only。</li>
+  <li>一個 judge 評整個 trace；一個 judge 一個 mode。</li>
+  <li>沒有 few-shot；模型不知道你的邊界。</li>
+  <li>用 dev／test 當 few-shot；data leakage。</li>
+  <li>沒驗證就上 production。</li>
+  <li>spec 沒要求的事先寫 judge；先修 prompt。</li>
+</ul>
+
+<h2>練習：寫一個 tone judge</h2>
+
+<p>打開 <code>toy/judge_tone.md</code>，照四要素填完。規則可以先這樣定，但 Pass／Fail 的邊界由你決定：</p>
+
+<ul>
+  <li><strong>PASS</strong>：禮貌、專業、簡潔；有稱謂或請／謝謝；沒有俚語。</li>
+  <li><strong>FAIL</strong>：俚語或太隨便（嘿、喔、啦）、冷淡、不耐煩。</li>
+  <li><strong>Borderline</strong>：terse 但禮貌（例如「收到，已處理」）算 Pass 還是 Fail？你決定，並寫進定義。</li>
+</ul>
+
+<p>Few-shot 用這幾筆（不要用測試集）：</p>
+
+<table>
+  <thead><tr><th>Trace</th><th>用途</th></tr></thead>
+  <tbody>
+    <tr><td>t-005-b</td><td>FAIL（「記得準時到嘿」）</td></tr>
+    <tr><td>t-001-b</td><td>PASS（標準禮貌回覆）</td></tr>
+    <tr><td>t-020-b</td><td>PASS（包場轉業務，語氣得體）</td></tr>
+    <tr><td>t-012-b</td><td>borderline（「收到，已處理」）</td></tr>
+  </tbody>
+</table>
+
+<p>測試用這幾筆（不要放進 few-shot）：</p>
+
+<table>
+  <thead><tr><th>Trace</th><th>你預期</th></tr></thead>
+  <tbody>
+    <tr><td>t-016-b</td><td>FAIL（「好喔，取消囉」）</td></tr>
+    <tr><td>t-002-a</td><td>PASS（客滿 + 替代時段）</td></tr>
+    <tr><td>t-018-b</td><td>PASS（無障礙安排）</td></tr>
+    <tr><td>t-009-b</td><td>PASS（反問時間）</td></tr>
+    <tr><td>t-021-b</td><td>PASS（客滿 + 替代時段）</td></tr>
+  </tbody>
+</table>
+
+<p>寫完把 <code>judge_tone.md</code> 貼給我，或直接說「跑 judge」。我會套你的 prompt 跑測試集，回傳 <code>{critique, result}</code>，你再檢查判決跟你的判斷是否一致。</p>
+
+<p>如果你同意「語氣不符」是真實的 failure mode，記得把它加進 <code>NOTES.md</code> 的 taxonomy。</p>
+
+<h2>小測驗</h2>
+
+<fieldset class="quiz" data-quiz data-answer="prereq"
+  data-why="Judge 需要已命名的 failure mode、code 寫不出來的理由，以及人類標籤。沒有標籤就無法知道它準不準。">
+  <legend class="q">1. 寫 judge 之前，最重要的前提是什麼？</legend>
+  <ul>
+    <li><label><input type="radio" name="q1" value="prereq"> Error analysis 完成、有標籤、code 寫不出來</label></li>
+    <li><label><input type="radio" name="q1" value="dashboard"> 已經有 production dashboard</label></li>
+    <li><label><input type="radio" name="q1" value="deployed"> 已經部署到 production</label></li>
+    <li><label><input type="radio" name="q1" value="unlabeled"> 已經有 100 筆未標註 traces</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="definitions"
+  data-why="Judge prompt 的核心是明確的 binary 定義與 few-shot；不是分數刻度，也不是一次判斷所有事。">
+  <legend class="q">2. 哪個是 judge prompt 的必要元素？</legend>
+  <ul>
+    <li><label><input type="radio" name="q2" value="likert"> 1–5 分刻度</label></li>
+    <li><label><input type="radio" name="q2" value="definitions"> 明確的 Pass／Fail 定義</label></li>
+    <li><label><input type="radio" name="q2" value="many"> 越多 few-shot 越好</label></li>
+    <li><label><input type="radio" name="q2" value="holistic"> 一次判斷所有 failure modes</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="train"
+  data-why="Few-shot 只能從 training split 來。用 dev/test 的例子會造成 data leakage，讓對齊分數虛高。">
+  <legend class="q">3. Few-shot 範例應該從哪裡來？</legend>
+  <ul>
+    <li><label><input type="radio" name="q3" value="dev"> dev／test set</label></li>
+    <li><label><input type="radio" name="q3" value="train"> training split</label></li>
+    <li><label><input type="radio" name="q3" value="prod"> production 未標註資料</label></li>
+    <li><label><input type="radio" name="q3" value="model"> 模型自己生成</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<h2>主要來源</h2>
+
+<div class="callout">
+<h3>讀這一份再上下一課</h3>
+<p><a href="../../../.agents/skills/write-judge-prompt/SKILL.md">write-judge-prompt skill</a></p>
+<p>重點看 The Four Components 與 Choosing What to Pass to the Judge。Lesson 0006 會用 validate-evaluator 量 TPR／TNR。</p>
+</div>
+
+<h2>下一課</h2>
+
+<p>Lesson 0006：judge 寫完不算數——用 train／dev／test、TPR／TNR 與 Rogan-Gladen 校正它。</p>
+
+<footer>
+<p>寫完 <code>judge_tone.md</code> 就貼給我，或說「跑 judge」。卡住隨時問。</p>
+<nav>
+<a href="../reference/evals-loop.html">迴圈備忘</a>
+<a href="../reference/paired-diff.html">Paired diff</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+<script src="../assets/interactions.js"></script>
+</body>
+</html>
