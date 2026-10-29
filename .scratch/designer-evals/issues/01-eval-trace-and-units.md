@@ -21,19 +21,20 @@ human can open and annotate; it is not the coverage report yet.
 
 ## Tasks
 
-- [ ] Pin the PRD set and `WEB_TEST_DESIGN_MODEL`; record model and usage.
-- [ ] Parse requirements from `### FR-*` headings, stopping at the next `##` or `###` heading.
-- [ ] Run the designer; save `design.json`, `run.json`, and rendered markdown.
-- [ ] Fetch the designer agent span and create late-child `EVALUATOR` spans:
+- [x] Pin the PRD set and `WEB_TEST_DESIGN_MODEL`; record the model in `run.json`.
+- [ ] Record usage; `design_test_cases` currently returns only `DesignOutput`.
+- [x] Parse requirements from `### FR-*` headings, stopping at the next `##` or `###` heading.
+- [x] Run the designer; save `design.json`, `run.json`, and rendered markdown.
+- [x] Fetch the designer agent span and create late-child `EVALUATOR` spans:
       one per requirement, one per case.
-- [ ] Put the requirement text, claimed cases, case JSON, claimed requirements, `run_id`, and
+- [x] Put the requirement text, claimed cases, case JSON, claimed requirements, `run_id`, and
       PRD name on the spans.
 - [ ] Write `CODE` annotations: `requirement_claimed`, `case_requirement_ids`,
       `case_duplicate`.
-- [ ] Save `units.json` mapping `span_id` to requirement/case.
-- [ ] Add tests for requirement parsing and unit mapping.
-- [ ] Verify in Phoenix UI that requirement/case spans sit under the designer agent span.
-- [ ] Run `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`,
+- [x] Save `units.json` mapping `span_id` to requirement/case.
+- [x] Add tests for requirement parsing and unit mapping.
+- [x] Verify the trace structure in Phoenix (REST); 6 requirement + 7 case spans under the agent.
+- [x] Run `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`,
       `uv run ruff check --select F401`.
 
 ## Out of scope
@@ -76,3 +77,9 @@ units.json
 
 Created 2026-10-29 from `.scratch/designer-evals/spec.md`. Replaces the code-only half of the
 old coverage ticket; the report moves to ticket 02.
+
+2026-10-29: parser + eval units implemented in `.scratch/designer-evals/run_eval.py`.
+Run `register-login-20261029T060452Z` produced 6 requirement + 7 case `EVALUATOR` spans in
+project `web-test-designer-eval`. Artifacts are under
+`.scratch/designer-evals/runs/register-login-20261029T060452Z/`. Code annotations and usage
+capture remain.
