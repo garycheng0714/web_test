@@ -132,6 +132,17 @@ log_evaluation() → 自訂 annotation
   搭配 `OpenInferenceSpanProcessor` + OTLP exporter，designer run 會變成：
   `invoke_agent test_case_designer` → `chat ...` → `execute_tool load_capability` → `chat ...`。
 - `version=2` 也能映射，但 Pydantic AI 已標為 deprecated；預設用 5。
+- `phoenix.otel.register()` 本身不含 Pydantic AI translator：`arize-phoenix-otel` 只依賴
+  通用 `openinference-instrumentation`，而 pydantic-ai 的轉換在
+  `openinference-instrumentation-pydantic-ai`。`register()` 加上
+  `OpenInferenceSpanProcessor`（translator 在 exporter 之前）可得到與手動 setup 相同的
+  四個 spans 與 attributes；processor 順序錯了會失去 `llm.*`／`input.value`。
+- 手動 setup 仍是 Pydantic AI 官方範例的做法，processor 順序也最清楚。
+- `case_count` 的 `CODE` annotation 已寫回 designer agent span，並可用
+  `arize-phoenix-client==3.5.0` 讀回；這個版本的 `get_spans` 沒有 `sort`／`order`，
+  要自己挑最新 span。
+- 在 agent span 結束後補建 child span（`EVALUATOR`）仍會落在同一條 trace，`parent_id`
+  也正確；因此 requirement／case eval spans 可以直接掛回原 trace，不必另開 trace。
 - Runbook 與本 repo 專屬細節：`.scratch/designer-evals/phoenix/README.md`。
 
 ## 尚未驗證
