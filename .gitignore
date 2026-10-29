@@ -23,3 +23,7 @@ test-results/
 
 # Verification workflow input
 .verify/
+
+# Phoenix CLI config and coding sidecars (may contain credentials)
+.env.phoenix
+.px/

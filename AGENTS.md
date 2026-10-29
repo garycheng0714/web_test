@@ -11,6 +11,11 @@ Skills live under `.agents/skills/` — use the skill tool instead of writing fr
 - `building-pydantic-ai-agents` — agents, tools/capabilities, structured output, streaming, testing.
 - `playwright-cli` — browser automation; drives a browser via the global `playwright-cli` command.
 - `qa-test-case-generation` — manual QA test-case generation from requirements/mockups/templates; vendored from `saleem-daqa/qa-test-case-generation` (not recorded in `skills-lock.json`).
+- `pydantic-ai-harness` — harness capabilities (`Coder`, `Skills`, `PlaywrightBrowser`, workspaces, sandboxes, memory); the installed library is 0.54.0. MIT, from `pydantic/skills`.
+- `phoenix-tracing` — OpenInference/OTel instrumentation, span kinds, annotations, batch export. Apache-2.0, from `Arize-ai/phoenix`.
+- `phoenix-evals` — Phoenix evaluators, experiments, pytest gate, judge validation. Apache-2.0.
+- `phoenix-cli` — `px` terminal access to traces/spans/annotations; needs Node.js >= 22.20. Apache-2.0.
+- `phoenix-error-analysis` — open/axial coding over sampled Phoenix traces; depends on `phoenix-cli`. Apache-2.0.
 - The Matt Pocock engineering flow (`ask-matt`, `to-spec`, `to-tickets`, `implement`, `tdd`, …) — configured in the `## Agent skills` section below.
 
 **House skill libraries** (loaded at runtime via Pydantic AI Harness `Skills`) live under
@@ -93,6 +98,11 @@ single-file change):
 ## Gotchas
 - `playwright-cli` writes snapshots, storage state, and traces to `.playwright-cli/`.
   It is gitignored and may contain credentials — never commit it or paste its contents into commits/PRs.
+- `phoenix-error-analysis` cross-references a `phoenix-graphql` skill that does not exist upstream
+  (404); its GraphQL half is unverified — use the `px` path. It and `phoenix-cli` write `.px/` and
+  `.env.phoenix`, both gitignored.
+- `pydantic-ai-harness` (skill v0.2.0) documents `Skills(missing_directories=…, duplicate_names=…)`,
+  which the installed 0.54.0 does not accept; check `inspect.signature` before copying its examples.
 
 ## Teaching mode
 

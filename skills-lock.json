@@ -139,6 +139,30 @@
       "skillPath": "skills/misc/migrate-to-shoehorn/SKILL.md",
       "computedHash": "6397731ced114f3657aa88b55ed13d1344a56d77ca449c568e3200c21740fa99"
     },
+    "phoenix-cli": {
+      "source": "Arize-ai/phoenix",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/phoenix-cli/SKILL.md",
+      "computedHash": "2f11bbfdbf62acad35df3c22aa5955f712657d796451d4abc3711639f5d39e00"
+    },
+    "phoenix-error-analysis": {
+      "source": "Arize-ai/phoenix",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/phoenix-error-analysis/SKILL.md",
+      "computedHash": "eb294a409aac026c11477e0690bc36566c00040b31588432db6bd32b9cef8224"
+    },
+    "phoenix-evals": {
+      "source": "Arize-ai/phoenix",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/phoenix-evals/SKILL.md",
+      "computedHash": "e89f3c737bcd5ca3dfbdff7542f2940b0f15b85e17fd6c61262a6ae8b27fea8b"
+    },
+    "phoenix-tracing": {
+      "source": "Arize-ai/phoenix",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/phoenix-tracing/SKILL.md",
+      "computedHash": "511cce5177707eedc4a05eff1ee26a22d6498945a739b07e068a82e6ac35358b"
+    },
     "ponytail": {
       "source": "dietrichgebert/ponytail",
       "sourceType": "github",
@@ -156,6 +180,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/prototype/SKILL.md",
       "computedHash": "d3fc74689bd993e39c44bfae510d014eecffbeec2922764b065377fd1327c0f6"
+    },
+    "pydantic-ai-harness": {
+      "source": "pydantic/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pydantic-ai-harness/SKILL.md",
+      "computedHash": "8ff78d94c3f050c17b432ad5d9525160ec3f6cb0f2e263bd82d331890cbc3494"
     },
     "research": {
       "source": "mattpocock/skills",
