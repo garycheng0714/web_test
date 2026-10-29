@@ -1,0 +1,39 @@
+{
+  "judge": "tone",
+  "prompt": "judge_tone.md",
+  "run": "2026-10-27",
+  "revision": "PASS now accepts 您／請問／抱歉／謝謝／麻煩 as polite wording; Example 3 now resolves to Fail",
+  "resolved": "Example 3 changed to Fail; t-012-b (收到，已處理。) is the borderline case and resolves to Fail, consistent with the PASS definition.",
+  "results": [
+    {
+      "trace_id": "t-016-b",
+      "expected": "Fail",
+      "critique": "取消內容正確，且「您」符合禮貌用語；但結尾「好喔，取消囉」含口語「好喔」與「囉」，違反「沒有俚語」。",
+      "result": "Fail"
+    },
+    {
+      "trace_id": "t-002-a",
+      "expected": "Pass",
+      "critique": "以「抱歉」開頭，使用「您」，符合新的禮貌用語定義；說明客滿並提供替代時段，沒有俚語。",
+      "result": "Pass"
+    },
+    {
+      "trace_id": "t-018-b",
+      "expected": "Pass",
+      "critique": "使用「您」與「需要我幫您保留嗎」，符合禮貌用語定義；主動安排無障礙座位，沒有俚語。",
+      "result": "Pass"
+    },
+    {
+      "trace_id": "t-009-b",
+      "expected": "Pass",
+      "critique": "使用「請問」與「您」，符合禮貌用語定義；語氣願意協助，沒有俚語。",
+      "result": "Pass"
+    },
+    {
+      "trace_id": "t-021-b",
+      "expected": "Pass",
+      "critique": "以「抱歉」開頭，使用「您」，符合新的禮貌用語定義；說明客滿並提供替代時段，沒有俚語。",
+      "result": "Pass"
+    }
+  ]
+}

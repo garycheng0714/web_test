@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 · Evals 的核心迴圈</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0001 · Evals 基礎 · 約 20 分鐘</p>
+<h1>先看錯，再量測</h1>
+<p class="subtitle">Evals 不是儀表板；是一組你信得過的檢查。</p>
+
+<h2>三個詞，先定義</h2>
+
+<p><strong>Trace</strong>：一次完整執行的紀錄——輸入、中間步驟、工具呼叫、最終輸出。</p>
+<p><strong>Eval</strong>：一個「這個行為是否成立」的檢查，回傳 Pass 或 Fail。不是 1–5 分。</p>
+<p><strong>Failure mode</strong>：產品會犯的一種可命名的錯，例如「把 7 人訂位排進 4 人桌」。</p>
+
+<p>整門課都用 <strong>failure mode</strong> 當單位：一個名字，加一個可觀察的錯誤。</p>
+
+<h2>常見的錯誤順序</h2>
+
+<p>多數團隊從「容易量」的東西開始：延遲、token 數、一個 1–5 分的「helpfulness」，或憑想像寫的 LLM judge。這些是 <strong>vanity metrics</strong>：數字會動，但不告訴你產品哪裡壞。</p>
+
+<div class="callout">
+<h3>順序反了的代價</h3>
+<p>如果你先寫 evaluator，你量的是「你猜的品質」。Error analysis 才把「猜」換成「觀察」。</p>
+</div>
+
+<h2>核心迴圈</h2>
+
+<pre class="flow">synthetic inputs
+  │
+  ▼
+pipeline traces
+  │
+  ▼
+error discovery ──&gt; failure modes
+  │
+  ▼
+code eval / LLM judge
+  │
+  ▼
+validate against human labels (TPR/TNR)
+  │
+  ▼
+corrected success rate + CI</pre>
+
+<ol>
+  <li><strong>收集 traces</strong>：真實或合成，重點是完整。</li>
+  <li><strong>Error analysis</strong>：人看 traces，替錯誤命名。</li>
+  <li><strong>寫檢查</strong>：每個 failure mode 一個 evaluator。</li>
+  <li><strong>驗證檢查</strong>：拿人類標籤比對，量 TPR/TNR。</li>
+  <li><strong>回報</strong>：修正後的比率，加上不確定性。</li>
+</ol>
+
+<p>這個迴圈會重跑。模型、prompt、功能一改，failure modes 就會換。</p>
+
+<h2>兩種 evaluator，先記一條規則</h2>
+
+<table>
+  <thead>
+    <tr><th>檢查的性質</th><th>用什麼</th><th>餐廳訂位助理的例子</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>客觀、可判定</td><td>Code evaluator</td><td>日期格式、人數上限、時段是否存在、JSON 欄位</td></tr>
+    <tr><td>需要詮釋</td><td>LLM judge</td><td>語氣是否合適、拒絕是否得體、建議是否切合情境</td></tr>
+  </tbody>
+</table>
+
+<p><strong>能用 code 就不要用 judge。</strong> Judge 的成本、變異與驗證負擔都高得多。</p>
+
+<h2>為什麼是 binary</h2>
+
+<p>Pass/Fail 逼你先寫下邊界。1–5 分的 3 與 4 沒有共識，judge 會繼承那個噪音。</p>
+<p>需要嚴重度時，用多個 binary 檢查（例如「事實錯誤」與「危險錯誤」），而不是一個 ordinal scale。</p>
+
+<h2>練習：先猜，之後再對照</h2>
+
+<p>在下面寫 5 個你「猜」的 failure modes。先不要查，也不要寫得太抽象。Lesson 0003 你會拿真實 traces 對照，看看猜中幾個、漏掉幾個；那個落差就是 error analysis 的價值。</p>
+
+<div class="worksheet" data-save="lesson-0001-guesses">
+  <div class="row"><span>1</span><input type="text" aria-label="猜測 1" placeholder="一個可觀察的錯誤"></div>
+  <div class="row"><span>2</span><input type="text" aria-label="猜測 2" placeholder="一個可觀察的錯誤"></div>
+  <div class="row"><span>3</span><input type="text" aria-label="猜測 3" placeholder="一個可觀察的錯誤"></div>
+  <div class="row"><span>4</span><input type="text" aria-label="猜測 4" placeholder="一個可觀察的錯誤"></div>
+  <div class="row"><span>5</span><input type="text" aria-label="猜測 5" placeholder="一個可觀察的錯誤"></div>
+  <button type="button" data-copy>複製 5 行</button>
+  <p class="save-status" aria-live="polite">自動存在這個瀏覽器；也可以複製到 <code>NOTES.md</code>。</p>
+</div>
+
+<h2>小測驗</h2>
+
+<fieldset class="quiz" data-quiz data-answer="before"
+  data-why="Error analysis 的產出是 failure modes；evaluator 只是把 failure mode 變成可重複的檢查。順序反了，你量的是自己想像的品質。">
+  <legend class="q">1. 什麼時候該做 error analysis？</legend>
+  <ul>
+    <li><label><input type="radio" name="q1" value="before"> 在寫第一版 evaluator 之前</label></li>
+    <li><label><input type="radio" name="q1" value="deploy"> 在部署到 production 之後</label></li>
+    <li><label><input type="radio" name="q1" value="model"> 在選定 judge 模型之後</label></li>
+    <li><label><input type="radio" name="q1" value="dash"> 在建立 dashboard 之後</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="json"
+  data-why="欄位齊全是客觀規則：解析輸出、檢查必填欄位即可。語氣、說服力、情境切合度都需要詮釋，才輪到 judge。">
+  <legend class="q">2. 哪個 failure mode 最適合用 code evaluator？</legend>
+  <ul>
+    <li><label><input type="radio" name="q2" value="tone"> 回覆語氣是否符合客戶</label></li>
+    <li><label><input type="radio" name="q2" value="json"> 輸出 JSON 是否含必填欄位</label></li>
+    <li><label><input type="radio" name="q2" value="fit"> 建議是否切合使用者情境</label></li>
+    <li><label><input type="radio" name="q2" value="trust"> 解釋是否讓客戶願意相信</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="consensus"
+  data-why="評分者對 3 分與 4 分的差異沒有穩定共識，judge 會繼承這個噪音。Binary 先逼你把決策邊界定義清楚，錯誤才可歸因、可修正。">
+  <legend class="q">3. 為什麼 judge 用 binary Pass/Fail？</legend>
+  <ul>
+    <li><label><input type="radio" name="q3" value="average"> 分數平均比較容易計算</label></li>
+    <li><label><input type="radio" name="q3" value="consensus"> 評分者對中間分數沒有共識</label></li>
+    <li><label><input type="radio" name="q3" value="model"> 模型只會輸出兩種可能答案</label></li>
+    <li><label><input type="radio" name="q3" value="dash"> 儀表板只接受兩種顏色狀態</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<h2>主要來源</h2>
+
+<div class="callout">
+<h3>讀這一篇再上下一課</h3>
+<p><a href="https://hamel.dev/blog/posts/evals/index.html">Hamel Husain, "Your AI Product Needs Evals"</a></p>
+<p>它把「先做 error analysis」講成可操作流程，也是這門課的骨架。讀到「look at your data」那段就夠了。</p>
+</div>
+
+<h2>下一課</h2>
+
+<p>Lesson 0002：沒有 traces 就先合成——維度、tuple、query，然後產生 40 筆玩具 traces。</p>
+
+<footer>
+<p>卡住或有疑問，直接問 agent；這是你的課，不是考卷。</p>
+<nav>
+<a href="../reference/evals-loop.html">迴圈備忘</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+<script src="../assets/interactions.js"></script>
+</body>
+</html>

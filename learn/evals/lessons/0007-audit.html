@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0007 · Eval pipeline audit</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0007 · Evals 基礎 · 約 30 分鐘</p>
+<h1>審一份 eval pipeline</h1>
+<p class="subtitle">你現在是 auditor：找最該修的問題，不是把所有東西重寫。</p>
+
+<h2>Audit 不是 checklist</h2>
+
+<p>Checklist 只告訴你要看什麼；audit 要你打開 artifacts、判斷問題是否存在、排 impact。沒有打開檔案的 audit，只是 generic advice。</p>
+
+<p>最常見的 anti-pattern：跑完六個區域，每區寫一句「建議補齊」，但沒有指出哪個檔案、哪個數字、哪個決策會被影響。</p>
+
+<h2>六個區域</h2>
+
+<table>
+  <thead><tr><th>Area</th><th>要看什麼</th><th>常見 finding</th></tr></thead>
+  <tbody>
+    <tr><td>Error Analysis</td><td>有 traces、failure categories、review notes？</td><td>沒做 error analysis 就寫 evaluator</td></tr>
+    <tr><td>Evaluator Design</td><td>Binary？一個 mode 一個 check？code 優先？</td><td>Likert、holistic judge、用 judge 檢查 schema</td></tr>
+    <tr><td>Judge Validation</td><td>TPR/TNR？splits？沒有 leakage？</td><td>Judge 沒驗證、用 raw accuracy、用 dev/test 當 few-shot</td></tr>
+    <tr><td>Human Review</td><td>Domain expert？看完整 trace？UI 可讀？</td><td>外包給不懂 domain 的人、只看最終輸出、raw JSON</td></tr>
+    <tr><td>Labeled Data</td><td>~100 traces？50／50？抽樣策略？</td><td>資料太少、只抽常見案例、沒有 random sample</td></tr>
+    <tr><td>Pipeline Hygiene</td><td>改版後有重跑？judge 有重驗證？模型有 pin？</td><td>Error analysis 過期、evaluator set-and-forget</td></tr>
+  </tbody>
+</table>
+
+<h2>Report 格式</h2>
+
+<pre><code>### [Problem Title]
+**Area:** [1–6]
+**Status:** Problem exists / OK / Cannot determine
+[1–2 sentences：具體發生什麼]
+**Fix:** [concrete action + skill]</code></pre>
+
+<p>依 impact 排序：會讓決策錯的最前面，polish 最後。</p>
+
+<h2>Worked example</h2>
+
+<p>這個 workspace 裡的一個真實 finding：</p>
+
+<div class="callout">
+<h3>Judge 沒有被驗證，卻被當成對齊</h3>
+<p><strong>Area:</strong> Judge Validation<br>
+<strong>Status:</strong> Problem exists</p>
+<p><code>judge_tone.md</code> 只在 5 筆上試跑，TPR／TNR = 1.00，但沒有 train／dev／test split，也沒有 CI。5 筆的 1.00 不能支持「judge 可用」。</p>
+<p><strong>Fix:</strong> 補到 ~50 Pass + 50 Fail，切 train／dev／test，量 TPR／TNR 與 bootstrap CI；用 <code>validate-evaluator</code>。</p>
+</div>
+
+<h2>練習：審這個 workspace</h2>
+
+<p>打開 <code>learn/evals/audit.md</code>，照格式寫 5–8 個 findings。要看的 artifacts：</p>
+
+<ul>
+  <li><code>MISSION.md</code>、<code>NOTES.md</code>、<code>GLOSSARY.md</code></li>
+  <li><code>toy/traces.jsonl</code>、<code>toy/annotations.json</code>、<code>toy/answer-key.json</code></li>
+  <li><code>toy/checks.py</code>、<code>toy/judge_tone.md</code>、<code>toy/judge_tone_results.json</code></li>
+  <li><code>toy/validate.py</code>、<code>toy/validate_many.py</code></li>
+  <li><code>lessons/0001</code>–<code>0006</code></li>
+</ul>
+
+<p>規則：</p>
+
+<ul>
+  <li>每個 finding 都要指出具體檔案或數字；不要寫 generic advice。</li>
+  <li>沒問題的區域寫 <strong>OK</strong>；資料不足就寫 <strong>Cannot determine</strong>，不要硬掰。</li>
+  <li>依 impact 排序：決策風險最高的放前面。</li>
+</ul>
+
+<h2>怎麼排 impact</h2>
+
+<table>
+  <thead><tr><th>訊號</th><th>Impact</th></tr></thead>
+  <tbody>
+    <tr><td>沒有 failure modes 就寫 evaluator</td><td>最高：整條 pipeline 量錯東西</td></tr>
+    <tr><td>Judge 沒驗證就被當成對齊</td><td>高：決策會被假數字帶走</td></tr>
+    <tr><td>已知 failure mode 沒有 evaluator</td><td>中：覆蓋缺口</td></tr>
+    <tr><td>UI 不好用、檔名不一致</td><td>低：polish</td></tr>
+  </tbody>
+</table>
+
+<h2>做完之後</h2>
+
+<p>把你的 <code>audit.md</code> 貼給我，我會用 eval-audit 的六區檢查你有沒有漏掉高 impact 的問題。</p>
+
+<p>這是最後一課；之後可以拿同樣的方法去審真實專案。</p>
+
+<h2>小測驗</h2>
+
+<fieldset class="quiz" data-quiz data-answer="artifacts"
+  data-why="Audit 的核心是看實際 artifacts：traces、evaluator config、judge prompt、標籤、metrics。只看 checklist 會得到 generic advice。">
+  <legend class="q">1. Audit 的第一步是什麼？</legend>
+  <ul>
+    <li><label><input type="radio" name="q1" value="checklist"> 先跑完六區 checklist</label></li>
+    <li><label><input type="radio" name="q1" value="artifacts"> 打開 artifacts 看實際內容</label></li>
+    <li><label><input type="radio" name="q1" value="evaluator"> 先寫一個新的 evaluator</label></li>
+    <li><label><input type="radio" name="q1" value="dashboard"> 先看 production dashboard</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="judge"
+  data-why="未驗證的 judge 會讓後續所有數字失去意義；UI、檔名、README 都是 polish，不影響決策正確性。">
+  <legend class="q">2. 哪個 finding 的 impact 最高？</legend>
+  <ul>
+    <li><label><input type="radio" name="q2" value="ui"> Review UI 不好用</label></li>
+    <li><label><input type="radio" name="q2" value="judge"> Judge 沒驗證卻被當成對齊</label></li>
+    <li><label><input type="radio" name="q2" value="naming"> 檔名不一致</label></li>
+    <li><label><input type="radio" name="q2" value="readme"> 沒有 README</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="discover"
+  data-why="沒有 artifacts 時，先做 error discovery；沒有 traces 就先合成。不要在 error analysis 完成前建 evaluator 或 dashboard。">
+  <legend class="q">3. 完全沒有 eval artifacts 時，應該先做什麼？</legend>
+  <ul>
+    <li><label><input type="radio" name="q3" value="dashboard"> 先建 dashboard</label></li>
+    <li><label><input type="radio" name="q3" value="discover"> 先做 error discovery，沒有 traces 就合成</label></li>
+    <li><label><input type="radio" name="q3" value="judge"> 先寫一個 LLM judge</label></li>
+    <li><label><input type="radio" name="q3" value="ship"> 先上 production 收集資料</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<h2>主要來源</h2>
+
+<div class="callout">
+<h3>讀這一份</h3>
+<p><a href="../../../.agents/skills/eval-audit/SKILL.md">eval-audit skill</a></p>
+<p>重點看六個 Diagnostic Checks 與 Report Format。這門課只把玩具 workspace 當案例；真實專案要換成你的 traces、judge 與標籤。</p>
+</div>
+
+<h2>七課之後</h2>
+
+<p>你現在有一套可重複的流程：traces → error analysis → evaluator → validation → corrected rate。下一步是把同樣的流程帶到真實專案：</p>
+
+<ul>
+  <li>用真實 traces 重跑 error discovery；合成資料只補缺口。</li>
+  <li>把 judge 的 TPR／TNR 與 CI 放進決策文件，不要只報單點。</li>
+  <li>模型、prompt、功能一改，就重跑 error analysis 與 validation。</li>
+  <li>需要時再加 production monitoring、CI gate、RAG 專項評測。</li>
+</ul>
+
+<footer>
+<p>寫完 <code>audit.md</code> 貼給我，我會用六區檢查你有沒有漏掉高 impact 的問題。</p>
+<nav>
+<a href="../reference/evals-loop.html">迴圈備忘</a>
+<a href="../reference/paired-diff.html">Paired diff</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+<script src="../assets/interactions.js"></script>
+</body>
+</html>

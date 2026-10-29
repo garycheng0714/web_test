@@ -1,0 +1,493 @@
+{
+  "_warning": "Spoiler: 完成 Lesson 0003 再打開。",
+  "t-001-a": {
+    "tuple_id": "t-001",
+    "defect": "time_hallucination",
+    "expected": {
+      "intent": "booking",
+      "party": 2,
+      "clarity": "clear",
+      "day": "週五",
+      "time": "19:00"
+    }
+  },
+  "t-001-b": {
+    "tuple_id": "t-001",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 2,
+      "clarity": "clear",
+      "day": "週五",
+      "time": "19:00"
+    }
+  },
+  "t-002-a": {
+    "tuple_id": "t-002",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 4,
+      "clarity": "clear",
+      "day": "週六",
+      "time": "20:00"
+    }
+  },
+  "t-002-b": {
+    "tuple_id": "t-002",
+    "defect": "false_availability",
+    "expected": {
+      "intent": "booking",
+      "party": 4,
+      "clarity": "clear",
+      "day": "週六",
+      "time": "20:00"
+    }
+  },
+  "t-003-a": {
+    "tuple_id": "t-003",
+    "defect": "day_mismatch",
+    "expected": {
+      "intent": "booking",
+      "party": 7,
+      "clarity": "clear",
+      "day": "週日",
+      "time": "12:00"
+    }
+  },
+  "t-003-b": {
+    "tuple_id": "t-003",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 7,
+      "clarity": "clear",
+      "day": "週日",
+      "time": "12:00"
+    }
+  },
+  "t-004-a": {
+    "tuple_id": "t-004",
+    "defect": "party_mismatch",
+    "expected": {
+      "intent": "booking",
+      "party": 12,
+      "clarity": "clear",
+      "day": "下週二",
+      "time": "18:30"
+    }
+  },
+  "t-004-b": {
+    "tuple_id": "t-004",
+    "defect": "missing_confirmation",
+    "expected": {
+      "intent": "booking",
+      "party": 12,
+      "clarity": "clear",
+      "day": "下週二",
+      "time": "18:30"
+    }
+  },
+  "t-005-a": {
+    "tuple_id": "t-005",
+    "defect": "dropped_special",
+    "expected": {
+      "intent": "booking",
+      "party": 4,
+      "clarity": "special_request",
+      "day": "週五",
+      "time": "19:00",
+      "special": "窗邊"
+    }
+  },
+  "t-005-b": {
+    "tuple_id": "t-005",
+    "defect": "tone_mismatch",
+    "expected": {
+      "intent": "booking",
+      "party": 4,
+      "clarity": "special_request",
+      "day": "週五",
+      "time": "19:00",
+      "special": "窗邊"
+    }
+  },
+  "t-006-a": {
+    "tuple_id": "t-006",
+    "defect": "false_availability",
+    "expected": {
+      "intent": "booking",
+      "party": 2,
+      "clarity": "special_request",
+      "day": "週六",
+      "time": "20:00",
+      "special": "生日"
+    }
+  },
+  "t-006-b": {
+    "tuple_id": "t-006",
+    "defect": "day_mismatch",
+    "expected": {
+      "intent": "booking",
+      "party": 2,
+      "clarity": "special_request",
+      "day": "週六",
+      "time": "20:00",
+      "special": "生日"
+    }
+  },
+  "t-007-a": {
+    "tuple_id": "t-007",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 7,
+      "clarity": "special_request",
+      "day": "週日",
+      "time": "12:00",
+      "special": "花生過敏"
+    }
+  },
+  "t-007-b": {
+    "tuple_id": "t-007",
+    "defect": "party_mismatch",
+    "expected": {
+      "intent": "booking",
+      "party": 7,
+      "clarity": "special_request",
+      "day": "週日",
+      "time": "12:00",
+      "special": "花生過敏"
+    }
+  },
+  "t-008-a": {
+    "tuple_id": "t-008",
+    "defect": "time_hallucination",
+    "expected": {
+      "intent": "booking",
+      "party": 4,
+      "clarity": "special_request",
+      "day": "下週二",
+      "time": "18:30",
+      "special": "兒童椅"
+    }
+  },
+  "t-008-b": {
+    "tuple_id": "t-008",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 4,
+      "clarity": "special_request",
+      "day": "下週二",
+      "time": "18:30",
+      "special": "兒童椅"
+    }
+  },
+  "t-009-a": {
+    "tuple_id": "t-009",
+    "defect": "assumed_time",
+    "expected": {
+      "intent": "booking",
+      "party": 2,
+      "clarity": "ambiguous",
+      "day": "週五"
+    }
+  },
+  "t-009-b": {
+    "tuple_id": "t-009",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 2,
+      "clarity": "ambiguous",
+      "day": "週五"
+    }
+  },
+  "t-010-a": {
+    "tuple_id": "t-010",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 4,
+      "clarity": "ambiguous",
+      "day": "週六"
+    }
+  },
+  "t-010-b": {
+    "tuple_id": "t-010",
+    "defect": "assumed_time",
+    "expected": {
+      "intent": "booking",
+      "party": 4,
+      "clarity": "ambiguous",
+      "day": "週六"
+    }
+  },
+  "t-011-a": {
+    "tuple_id": "t-011",
+    "defect": "party_mismatch",
+    "expected": {
+      "intent": "booking",
+      "party": 7,
+      "clarity": "ambiguous",
+      "day": "週日"
+    }
+  },
+  "t-011-b": {
+    "tuple_id": "t-011",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 7,
+      "clarity": "ambiguous",
+      "day": "週日"
+    }
+  },
+  "t-012-a": {
+    "tuple_id": "t-012",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 12,
+      "clarity": "ambiguous",
+      "day": "下週二"
+    }
+  },
+  "t-012-b": {
+    "tuple_id": "t-012",
+    "defect": "missing_confirmation",
+    "expected": {
+      "intent": "booking",
+      "party": 12,
+      "clarity": "ambiguous",
+      "day": "下週二"
+    }
+  },
+  "t-013-a": {
+    "tuple_id": "t-013",
+    "defect": "time_hallucination",
+    "expected": {
+      "intent": "modify",
+      "party": 4,
+      "clarity": "clear",
+      "day": "週五",
+      "time": "19:00",
+      "new_time": "20:00"
+    }
+  },
+  "t-013-b": {
+    "tuple_id": "t-013",
+    "defect": null,
+    "expected": {
+      "intent": "modify",
+      "party": 4,
+      "clarity": "clear",
+      "day": "週五",
+      "time": "19:00",
+      "new_time": "20:00"
+    }
+  },
+  "t-014-a": {
+    "tuple_id": "t-014",
+    "defect": null,
+    "expected": {
+      "intent": "modify",
+      "party": 7,
+      "clarity": "clear",
+      "day": "週日",
+      "time": "12:00",
+      "new_time": "13:00"
+    }
+  },
+  "t-014-b": {
+    "tuple_id": "t-014",
+    "defect": "day_mismatch",
+    "expected": {
+      "intent": "modify",
+      "party": 7,
+      "clarity": "clear",
+      "day": "週日",
+      "time": "12:00",
+      "new_time": "13:00"
+    }
+  },
+  "t-015-a": {
+    "tuple_id": "t-015",
+    "defect": "party_mismatch",
+    "expected": {
+      "intent": "cancel",
+      "party": 2,
+      "clarity": "clear",
+      "day": "週六",
+      "time": "20:00"
+    }
+  },
+  "t-015-b": {
+    "tuple_id": "t-015",
+    "defect": null,
+    "expected": {
+      "intent": "cancel",
+      "party": 2,
+      "clarity": "clear",
+      "day": "週六",
+      "time": "20:00"
+    }
+  },
+  "t-016-a": {
+    "tuple_id": "t-016",
+    "defect": null,
+    "expected": {
+      "intent": "cancel",
+      "party": 4,
+      "clarity": "clear",
+      "day": "週五",
+      "time": "19:00"
+    }
+  },
+  "t-016-b": {
+    "tuple_id": "t-016",
+    "defect": "tone_mismatch",
+    "expected": {
+      "intent": "cancel",
+      "party": 4,
+      "clarity": "clear",
+      "day": "週五",
+      "time": "19:00"
+    }
+  },
+  "t-017-a": {
+    "tuple_id": "t-017",
+    "defect": "party_mismatch",
+    "expected": {
+      "intent": "question",
+      "party": 2,
+      "clarity": "clear",
+      "day": "週五",
+      "time": "19:00"
+    }
+  },
+  "t-017-b": {
+    "tuple_id": "t-017",
+    "defect": null,
+    "expected": {
+      "intent": "question",
+      "party": 2,
+      "clarity": "clear",
+      "day": "週五",
+      "time": "19:00"
+    }
+  },
+  "t-018-a": {
+    "tuple_id": "t-018",
+    "defect": "dropped_special",
+    "expected": {
+      "intent": "question",
+      "party": 7,
+      "clarity": "special_request",
+      "day": "週日",
+      "time": "12:00",
+      "special": "無障礙"
+    }
+  },
+  "t-018-b": {
+    "tuple_id": "t-018",
+    "defect": null,
+    "expected": {
+      "intent": "question",
+      "party": 7,
+      "clarity": "special_request",
+      "day": "週日",
+      "time": "12:00",
+      "special": "無障礙"
+    }
+  },
+  "t-019-a": {
+    "tuple_id": "t-019",
+    "defect": "false_promise",
+    "expected": {
+      "intent": "out_of_scope",
+      "party": 4,
+      "clarity": "clear"
+    }
+  },
+  "t-019-b": {
+    "tuple_id": "t-019",
+    "defect": null,
+    "expected": {
+      "intent": "out_of_scope",
+      "party": 4,
+      "clarity": "clear"
+    }
+  },
+  "t-020-a": {
+    "tuple_id": "t-020",
+    "defect": "dropped_special",
+    "expected": {
+      "intent": "booking",
+      "party": 12,
+      "clarity": "special_request",
+      "day": "下週二",
+      "time": "18:30",
+      "special": "包場"
+    }
+  },
+  "t-020-b": {
+    "tuple_id": "t-020",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 12,
+      "clarity": "special_request",
+      "day": "下週二",
+      "time": "18:30",
+      "special": "包場"
+    }
+  },
+  "t-021-a": {
+    "tuple_id": "t-021",
+    "defect": "false_availability",
+    "expected": {
+      "intent": "booking",
+      "party": 12,
+      "clarity": "clear",
+      "day": "母親節",
+      "time": "19:00"
+    }
+  },
+  "t-021-b": {
+    "tuple_id": "t-021",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 12,
+      "clarity": "clear",
+      "day": "母親節",
+      "time": "19:00"
+    }
+  },
+  "t-022-a": {
+    "tuple_id": "t-022",
+    "defect": null,
+    "expected": {
+      "intent": "booking",
+      "party": 2,
+      "clarity": "special_request",
+      "day": "情人節",
+      "time": "19:00",
+      "special": "生日"
+    }
+  },
+  "t-022-b": {
+    "tuple_id": "t-022",
+    "defect": "dropped_special",
+    "expected": {
+      "intent": "booking",
+      "party": 2,
+      "clarity": "special_request",
+      "day": "情人節",
+      "time": "19:00",
+      "special": "生日"
+    }
+  }
+}

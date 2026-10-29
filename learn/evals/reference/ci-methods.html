@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI methods 備忘</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Reference · Evals 基礎</p>
+<h1>CI methods 備忘</h1>
+<p class="subtitle">不用背；查什麼、選什麼、怎麼解讀。</p>
+
+<div class="cols">
+<section>
+<h2>必學概念</h2>
+<ul>
+  <li><strong>95% 是選的覆蓋率</strong>，不是資料算出來的。正確說法：重複抽樣下，約 95% 的區間會涵蓋真值。</li>
+  <li><strong>TPR 的分母</strong>是 Pass 範例；<strong>TNR 的分母</strong>是 Fail 範例。分母小，CI 就寬。</li>
+  <li><strong>4/4 不等於 100%</strong>；Wilson 95% CI 約 [0.51, 1.00]。</li>
+  <li><strong>Wald 在 n 小或 p 接近 0／1 時會壞</strong>；改用 Wilson、Clopper-Pearson 或 bootstrap。</li>
+  <li><strong>Bootstrap</strong>：重抽樣、算統計量、取百分位。不需要常態假設。</li>
+  <li><strong>回報 point estimate + CI</strong>，不要只報單點。</li>
+  <li><strong>寬度</strong>：單一比例約 1/sqrt(n)；corrected rate 約 1/(J*sqrt(n))。</li>
+</ul>
+</section>
+
+<section>
+<h2>選哪個方法</h2>
+<table>
+  <thead><tr><th>方法</th><th>什麼時候用</th><th>弱點</th></tr></thead>
+  <tbody>
+    <tr><td>Wald</td><td>n 大、p 不靠近 0／1</td><td>小樣本與極端值會壞</td></tr>
+    <tr><td>Wilson</td><td>小樣本、p 靠近 0／1</td><td>仍是近似</td></tr>
+    <tr><td>Clopper-Pearson</td><td>要保守、小樣本</td><td>區間較寬</td></tr>
+    <tr><td>Bootstrap</td><td>任何統計量，例如 corrected rate</td><td>需要寫程式；結果依重抽樣</td></tr>
+  </tbody>
+</table>
+<p>規則：n &lt; 30 或 p 接近 0／1，不要用 Wald。</p>
+</section>
+</div>
+
+<h2>公式查表</h2>
+
+<h3>Wald</h3>
+<pre class="flow">p_hat ± z * sqrt(p_hat(1 - p_hat) / n)</pre>
+
+<h3>Wilson</h3>
+<pre class="flow">p  = 觀測比例
+n  = 樣本數
+z  = 1.96（95%）
+
+center = (p + z^2/(2n)) / (1 + z^2/n)
+half   = z * sqrt(p(1-p)/n + z^2/(4n^2)) / (1 + z^2/n)
+CI     = center ± half</pre>
+
+<h3>z 值</h3>
+<pre class="flow">90%: 1.645
+95%: 1.960
+99%: 2.576</pre>
+
+<h3>Bootstrap</h3>
+<pre class="flow">for i in 1..B:
+    sample = resample(data, replace=True)
+    stat[i] = statistic(sample)
+
+CI = [percentile(stat, 2.5), percentile(stat, 97.5)]</pre>
+
+<h3>Rogan-Gladen</h3>
+<pre class="flow">J      = TPR + TNR - 1
+theta  = (p_obs + TNR - 1) / J
+Var(theta) ≈ Var(p_obs) / J^2</pre>
+
+<h2>工作例：4 個 Fail</h2>
+
+<table>
+  <thead><tr><th>觀察</th><th>TNR</th><th>約 95% Wilson CI</th></tr></thead>
+  <tbody>
+    <tr><td>4/4</td><td>1.00</td><td>[0.51, 1.00]</td></tr>
+    <tr><td>3/4</td><td>0.75</td><td>[0.30, 0.95]</td></tr>
+    <tr><td>45/50</td><td>0.90</td><td>[0.78, 0.96]</td></tr>
+    <tr><td>50/50</td><td>1.00</td><td>[0.93, 1.00]</td></tr>
+  </tbody>
+</table>
+
+<p>4 個 Fail 只要錯 1 個，TNR 就掉 25 個百分點；這就是為什麼要 ~50／50。</p>
+
+<h2>工具</h2>
+
+<ul>
+  <li><code>statsmodels.stats.proportion.proportion_confint(k, n, method="wilson")</code></li>
+  <li><code>scipy.stats.binomtest(k, n).proportion_ci()</code></li>
+  <li><code>judgy</code>：Rogan-Gladen 與 CI</li>
+  <li>本 workspace 的 <code>toy/validate.py</code>：bootstrap 範例</li>
+</ul>
+
+<h2>背什麼、查什麼</h2>
+
+<table>
+  <thead><tr><th>必學</th><th>查就好</th></tr></thead>
+  <tbody>
+    <tr><td>CI 意義與 95% 說法</td><td>Wilson 代數</td></tr>
+    <tr><td>TPR／TNR 分母</td><td>z 值表</td></tr>
+    <tr><td>小 n 的後果</td><td>Clopper-Pearson 分位數</td></tr>
+    <tr><td>選方法、解讀</td><td>bootstrap 實作</td></tr>
+  </tbody>
+</table>
+
+<h2>來源</h2>
+
+<ul>
+  <li><a href="../../../.agents/skills/validate-evaluator/SKILL.md">validate-evaluator skill</a></li>
+  <li><a href="https://hamel.dev/blog/posts/llm-judge/">Creating an LLM Judge That Drives Business Results</a></li>
+</ul>
+
+<footer>
+<nav>
+<a href="../lessons/0006-validate-judge.html">Lesson 0006</a>
+<a href="evals-loop.html">Evals 迴圈</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+</body>
+</html>

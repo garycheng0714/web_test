@@ -1,0 +1,40 @@
+{"id":"tl-001","context":"booking","user":"你好，我想訂週五 19:00，4 位。","assistant":"好的，已為您保留週五 19:00 的 4 人桌。請問需要留下聯絡電話嗎？"}
+{"id":"tl-002","context":"booking","user":"我想訂週六 20:00，2 位。","assistant":"好的，已為您保留週六 20:30 的 2 人桌。請問需要留下聯絡電話嗎？"}
+{"id":"tl-003","context":"booking","user":"請問週日 12:00 還有 7 位的位子嗎？","assistant":"有的，週日 12:00 目前還有 7 人的位子。需要我幫您保留嗎？"}
+{"id":"tl-004","context":"booking","user":"我想訂下週二 18:30，12 位，兒童椅。","assistant":"好的，已為您保留下週二 18:30 的 10 人桌，並準備兒童椅。請問需要留下聯絡電話嗎？"}
+{"id":"tl-005","context":"booking","user":"我想訂週五 19:00，2 位。","assistant":"好喔，幫你訂了週五 19:00 的 2 人桌，記得來嘿。"}
+{"id":"tl-006","context":"booking","user":"我想訂週六 20:00，4 位。","assistant":"已記錄。週六 20:00 的 6 人桌。"}
+{"id":"tl-007","context":"booking","user":"請問週日 12:00 可以訂 12 位嗎？","assistant":"可以。已保留週日 12:00 的 12 人桌。就這樣。"}
+{"id":"tl-008","context":"booking","user":"我想訂情人節 19:00，2 位，生日。","assistant":"嗨嗨～情人節 20:00 幫你訂好囉～生日的事再說啦～"}
+{"id":"tl-009","context":"cancel","user":"我想取消週五 19:00 的 4 人訂位。","assistant":"好的，已為您取消週五 19:00 的 4 人訂位。請問還有其他需要嗎？"}
+{"id":"tl-010","context":"cancel","user":"幫我取消週六 20:00，2 位。","assistant":"好的，已為您取消週六 20:00 的 3 人訂位。請問還有其他需要嗎？"}
+{"id":"tl-011","context":"cancel","user":"請問可以取消下週二 18:30 的訂位嗎？","assistant":"可以，已為您取消下週二 18:30 的訂位。請問還有其他需要嗎？"}
+{"id":"tl-012","context":"cancel","user":"我想取消週日 12:00 的 7 人訂位。","assistant":"好的，已為您取消週一 12:00 的 7 人訂位。請問還有其他需要嗎？"}
+{"id":"tl-013","context":"cancel","user":"我想取消週五 19:00 的 2 人訂位。","assistant":"收到，已處理。"}
+{"id":"tl-014","context":"cancel","user":"幫我取消週六 20:00，4 位。","assistant":"您確定是週六 20:00 嗎？我幫您取消了週日 20:00 的 4 人訂位。"}
+{"id":"tl-015","context":"cancel","user":"我想取消下週二 18:30 的 12 人訂位。","assistant":"好喔，取消囉，下週二 18:30 的 12 人訂位。"}
+{"id":"tl-016","context":"cancel","user":"請問可以取消週日 12:00 的 7 人訂位嗎？","assistant":"已記錄。週日 13:00 的 7 人訂位已取消。"}
+{"id":"tl-017","context":"modify","user":"我原本訂週五 19:00，想改成 20:00，4 位。","assistant":"好的，我幫您把週五 19:00 的 4 人訂位改到 20:00。請問這樣正確嗎？"}
+{"id":"tl-018","context":"modify","user":"我想把週日 12:00 的 7 人訂位改到 13:00。","assistant":"好的，我幫您把週日 12:00 的 7 人訂位改到 13:30。請問這樣正確嗎？"}
+{"id":"tl-019","context":"modify","user":"請問可以幫我把下週二 18:30 的 12 人訂位改到 19:00 嗎？","assistant":"可以，已幫您改到下週二 19:00。請問還有其他需要嗎？"}
+{"id":"tl-020","context":"modify","user":"我想把週六 20:00 的 2 人訂位改成 4 位。","assistant":"好的，已幫您把週六 20:00 的 3 人訂位改成 4 位。請問這樣正確嗎？"}
+{"id":"tl-021","context":"modify","user":"我原本訂週五 19:00，想改成 20:00，4 位。","assistant":"嗨嗨～幫你改成 20:00 囉～4 位沒問題～"}
+{"id":"tl-022","context":"modify","user":"我想把週日 12:00 的 7 人訂位改到 13:00。","assistant":"好喔，改到 14:00 囉，7 位。"}
+{"id":"tl-023","context":"modify","user":"請問可以幫我把下週二 18:30 的 12 人訂位改到 19:00 嗎？","assistant":"已記錄。下週二 19:00，12 人。"}
+{"id":"tl-024","context":"modify","user":"我想把週六 20:00 的 2 人訂位改成 4 位。","assistant":"收到，幫你改成 3 位了。"}
+{"id":"tl-025","context":"question","user":"請問週五 19:00 還有 2 位的位子嗎？","assistant":"有的，週五 19:00 目前還有 2 人的位子。需要我幫您保留嗎？"}
+{"id":"tl-026","context":"question","user":"請問週六 20:00 還有 4 位的位子嗎？","assistant":"有的，週六 20:00 還有 6 人的位子。需要我幫您保留嗎？"}
+{"id":"tl-027","context":"question","user":"請問母親節 19:00 還有 12 位的位子嗎？","assistant":"抱歉，母親節 19:00 已經客滿。當天 18:00 或 21:00 還有位子，需要幫您保留嗎？"}
+{"id":"tl-028","context":"question","user":"請問情人節 19:00 還有 2 位的位子嗎？","assistant":"有的，情人節 19:00 還有 4 人的位子。需要我幫您保留嗎？"}
+{"id":"tl-029","context":"question","user":"請問週五 19:00 還有 2 位的位子嗎？","assistant":"有。2 位。"}
+{"id":"tl-030","context":"question","user":"請問週六 20:00 還有 4 位的位子嗎？","assistant":"當然有啊，怎麼會沒有？4 位。"}
+{"id":"tl-031","context":"question","user":"請問母親節 19:00 還有 12 位的位子嗎？","assistant":"客滿了，自己看別的時間。"}
+{"id":"tl-032","context":"question","user":"請問情人節 19:00 還有 2 位的位子嗎？","assistant":"有喔～還有 4 位的位子～要訂要快嘿～"}
+{"id":"tl-033","context":"out_of_scope","user":"請問你們有外送嗎？","assistant":"我們目前只有內用，沒有外送服務。請問需要幫您訂位嗎？"}
+{"id":"tl-034","context":"out_of_scope","user":"你們有外送嗎？","assistant":"有的，我們有外送服務，滿 500 元免運。請問需要幫您訂位嗎？"}
+{"id":"tl-035","context":"out_of_scope","user":"可以帶寵物嗎？","assistant":"寵物目前只能坐在戶外區。請問需要幫您安排嗎？"}
+{"id":"tl-036","context":"out_of_scope","user":"有停車場嗎？","assistant":"有的，我們有免費停車場。請問需要幫您保留車位嗎？"}
+{"id":"tl-037","context":"out_of_scope","user":"請問你們有外送嗎？","assistant":"沒有啦，怎麼可能？我們只做內用。"}
+{"id":"tl-038","context":"out_of_scope","user":"可以帶寵物嗎？","assistant":"可以啦，帶來就好。"}
+{"id":"tl-039","context":"out_of_scope","user":"有停車場嗎？","assistant":"沒有喔，附近才有停車場，自己找一下嘿。"}
+{"id":"tl-040","context":"out_of_scope","user":"你們有外送嗎？","assistant":"已記錄。外送 30 分鐘到。"}

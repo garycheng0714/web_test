@@ -1,0 +1,94 @@
+fieldset.quiz { min-width: 0; }
+
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin: 1.25rem 0;
+}
+
+.cols > section {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+}
+
+.cols > section h2 { margin-top: 0; }
+
+@media (max-width: 700px) {
+  .cols { grid-template-columns: 1fr; }
+}
+
+@media print {
+  .cols { grid-template-columns: 1fr 1fr; }
+}
+
+.quiz .feedback {
+  margin: .9rem 0 0;
+  padding-top: .75rem;
+  border-top: 1px dashed var(--rule);
+  font-size: .92rem;
+}
+
+.quiz .feedback.ok { color: #1f6b3a; }
+.quiz .feedback.no { color: var(--accent); }
+
+.worksheet {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1.1rem 1.25rem;
+  margin: 1.25rem 0;
+}
+
+.worksheet .row {
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  margin: .45rem 0;
+}
+
+.worksheet .row span {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 1rem;
+}
+
+.worksheet input[type="text"] {
+  width: 100%;
+  padding: .45rem .6rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font: inherit;
+  font-size: .95rem;
+  background: var(--bg);
+}
+
+.worksheet input[type="text"]:focus {
+  outline: 2px solid rgba(138, 28, 28, .25);
+  border-color: var(--accent);
+}
+
+.worksheet button {
+  font: inherit;
+  font-size: .85rem;
+  padding: .35rem .8rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--note);
+  cursor: pointer;
+}
+
+.worksheet button:hover { border-color: var(--accent); }
+
+.worksheet .save-status {
+  margin: .7rem 0 0;
+  color: var(--muted);
+  font-size: .8rem;
+  min-height: 1.2em;
+}
+
+@media print {
+  .worksheet button { display: none; }
+}

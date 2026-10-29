@@ -1,0 +1,16 @@
+{"id":"tl-004","critique":"使用「您」與「請問」，語氣禮貌、專業；人數錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-008","critique":"「嗨嗨」「囉」「啦」過度隨便，沒有禮貌用語。","result":"Fail"}
+{"id":"tl-012","critique":"使用「您」與「請問」，語氣禮貌；日期錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-016","critique":"「已記錄。」冷淡、制式，沒有禮貌用語。","result":"Fail"}
+{"id":"tl-020","critique":"使用「您」與「請問」，語氣禮貌；人數錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-024","critique":"「收到」是打發式回覆，沒有禮貌用語。","result":"Fail"}
+{"id":"tl-027","critique":"使用「抱歉」與「您」，語氣禮貌、專業。","result":"Pass"}
+{"id":"tl-028","critique":"使用「您」與「幫您保留」，語氣禮貌；人數錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-031","critique":"「自己看別的時間」不耐煩，沒有禮貌用語。","result":"Fail"}
+{"id":"tl-032","critique":"「喔」「嘿」是俚語，語氣太隨便。","result":"Fail"}
+{"id":"tl-034","critique":"使用「請問」與「您」，語氣禮貌；事實錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-035","critique":"使用「請問」，語氣禮貌、專業。","result":"Pass"}
+{"id":"tl-036","critique":"使用「請問」與「您」，語氣禮貌；事實錯誤不影響 tone。","result":"Pass"}
+{"id":"tl-038","critique":"「可以啦」太隨便，沒有禮貌用語。","result":"Fail"}
+{"id":"tl-039","critique":"「喔」「嘿」與「自己找一下」太隨便、不耐煩。","result":"Fail"}
+{"id":"tl-040","critique":"「已記錄。」冷淡、制式，沒有禮貌用語。","result":"Fail"}

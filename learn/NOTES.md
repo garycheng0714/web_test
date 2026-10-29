@@ -17,6 +17,10 @@
 - `grilling` 的 `➡️` 只在形成建議時出現；不需要每題都有。
 - 決策留給使用者；目的仍是把 planning 的主導權留在使用者身上。
 
+## 子工作區
+- `evals/`：LLM evals 課程（7 課 + capstone，2026-10-27 完成）。範圍是 toy/離線資料；
+  真實專案 follow-up 在 `.scratch/designer-evals/`，不屬於課程。入口見 `evals/MISSION.md`。
+
 ## 工作筆記
 - 本工作區是 `teach` skill 的 stateful 教學工作區，根目錄 `learn/`，納入版控。
 - 對應的實作 repo 是上層的 `web_test`（Python/uv + playwright-cli + Pydantic AI）。

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0004 · Code evaluator</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Lesson 0004 · Evals 基礎 · 約 30 分鐘</p>
+<h1>能寫成 code，就不要用 judge</h1>
+<p class="subtitle">一個 failure mode，一個檢查，一個理由。</p>
+
+<h2>三個詞，先定義</h2>
+
+<p><strong>Code evaluator</strong>：用程式檢查一個客觀規則，回傳 Pass/Fail 與理由。</p>
+<p><strong>LLM judge</strong>：用模型判斷需要詮釋的規則，例如語氣或同理心。</p>
+<p><strong>Proxy</strong>：用可觀察的替代訊號（例如關鍵字）代表你真正想量的東西。</p>
+
+<h2>決策順序</h2>
+
+<pre class="flow">objective rule?
+  │
+  ├─ yes ──&gt; code evaluator
+  │
+  └─ no
+       │
+       ▼
+  needs interpretation?
+       │
+       ├─ yes ──&gt; LLM judge
+       └─ no  ──&gt; add the missing data or policy</pre>
+
+<p>先把 code 的可能性用完，再考慮 judge。Judge 的成本、變異與驗證負擔都高得多。</p>
+
+<h2>看起來主觀，其實可以 code</h2>
+
+<p>Skill 的例子：判斷面試教練是否建議「一般性問題」（問典型行為，而不是具體事件），看起來需要語意理解；實務上用關鍵字 <code>usually</code>、<code>typical</code>、<code>normally</code> 就能抓到大部分。</p>
+
+<p>重點不是「code 一定比較好」，而是「先問這條規則能不能寫成可觀察的條件」。</p>
+
+<h2>你的 8 個 failure modes</h2>
+
+<table>
+  <thead><tr><th>Mode</th><th>Code?</th><th>需要什麼</th><th>檢查方式</th></tr></thead>
+  <tbody>
+    <tr><td>時間錯置</td><td>Code</td><td>user + reply</td><td>抓 HH:MM 比對</td></tr>
+    <tr><td>日期錯置</td><td>Code</td><td>user + reply</td><td>抓日期詞比對</td></tr>
+    <tr><td>人數錯置</td><td>Code</td><td>user + reply</td><td>抓「N 位／人」比對</td></tr>
+    <tr><td>特殊需求遺漏</td><td>Code</td><td>user + reply</td><td>special 關鍵字是否被回覆</td></tr>
+    <tr><td>包場未轉業務</td><td>Code</td><td>user + reply</td><td>有「包場」→ 回覆要有「業務／專人／報價」</td></tr>
+    <tr><td>客滿仍接單</td><td>Code</td><td>availability data 或 a/b pair</td><td>客滿時段不可說「已保留」</td></tr>
+    <tr><td>缺少與客戶再次確認</td><td>Code</td><td>user + reply</td><td>回覆要含 day／time／party</td></tr>
+    <tr><td>未確認就自行假設時間</td><td>Code</td><td>user + reply</td><td>user 沒 HH:MM → reply 不該有 HH:MM</td></tr>
+  </tbody>
+</table>
+
+<p>你的 8 個都能用 code 檢查，這不是巧合：你把 failure mode 定義成可觀察的行為了。Judge 留給語氣、同理心、說服力這類真的需要詮釋的東西。</p>
+
+<h2>Worked example：人數錯置</h2>
+
+<p>規則：使用者說 N 位，回覆卻說 M 人（M≠N）。</p>
+
+<pre><code>PARTY = re.compile(r"(\d+)\s*(?:位|人)")
+
+def check_party_mismatch(trace):
+    user, assistant = (turn["content"] for turn in trace["turns"])
+    wanted = first_party(user)
+    got = first_party(assistant)
+    if wanted is None or got is None:
+        return Result(trace["id"], True, "no party size in both turns")
+    if wanted != got:
+        return Result(trace["id"], False, f"user asked {wanted}, reply says {got}")
+    return Result(trace["id"], True, f"party size matches ({wanted})")</code></pre>
+
+<p>執行 <code>python3 learn/evals/toy/checks.py</code>，它抓出 5 筆：</p>
+
+<pre class="flow">party_mismatch: 5 fail / 44
+  t-004-a: user asked 12, reply says 10
+  t-007-b: user asked 7, reply says 8
+  t-011-a: user asked 7, reply says 8
+  t-015-a: user asked 2, reply says 3
+  t-017-a: user asked 2, reply says 3</pre>
+
+<p>注意它<strong>沒有</strong>抓 t-004-b（回覆是「收到，已處理」）：那不是人數錯置，是「缺少確認」。一個 check 只量一個 mode。</p>
+
+<h2>練習：輪到你寫一個</h2>
+
+<p>在 <code>toy/checks.py</code> 加一個 <code>check_special_omitted</code>，並註冊進 <code>CHECKS</code>。規則：</p>
+
+<ul>
+  <li>使用者提到 <code>窗邊</code>、<code>無障礙</code>、<code>生日</code>、<code>花生過敏</code>、<code>兒童椅</code> 其中之一。</li>
+  <li>回覆必須提到它（或它的同義詞）。</li>
+  <li><code>包場</code> 不算，它是 routing failure，分開檢查。</li>
+</ul>
+
+<p>先不要加同義詞，直接跑。你應該會看到三筆真陽性，還有幾筆因為「生日 vs 慶生」被誤判。</p>
+
+<div class="callout">
+<h3>重點不是一次寫對</h3>
+<p>先寫一個粗的 proxy，跑在所有 traces 上，對照你的標註與 answer key，找出 false positive / false negative，再收緊規則。這就是 evaluator 的迭代。</p>
+</div>
+
+<h2>什麼時候該放棄 code</h2>
+
+<ul>
+  <li>規則需要大量同義詞、例外、語氣判斷才能寫對。</li>
+  <li>兩個人看同一筆會給不同答案，而且沒有客觀判準。</li>
+  <li>Proxy 的誤判率太高，且你無法用更精確的條件修正。</li>
+</ul>
+
+<p>這時候才用 judge；用了之後還是要用 <code>validate-evaluator</code> 驗證它跟人類標籤的對齊。</p>
+
+<h2>小測驗</h2>
+
+<fieldset class="quiz" data-quiz data-answer="schema"
+  data-why="JSON 欄位齊全是客觀規則：解析輸出、檢查必填欄位即可。語氣、同理心、說服力需要詮釋，才輪到 judge。">
+  <legend class="q">1. 哪個最適合 code evaluator？</legend>
+  <ul>
+    <li><label><input type="radio" name="q1" value="tone"> 回覆語氣是否同理</label></li>
+    <li><label><input type="radio" name="q1" value="schema"> 輸出 JSON 欄位是否齊全</label></li>
+    <li><label><input type="radio" name="q1" value="refusal"> 拒絕說法是否得體</label></li>
+    <li><label><input type="radio" name="q1" value="persuasion"> 建議是否具有說服力</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="interpret"
+  data-why="Judge 的門檻是「需要詮釋」。能用 regex、schema、數值比對或資料查詢表達的規則，先用 code。">
+  <legend class="q">2. 什麼時候該用 LLM judge？</legend>
+  <ul>
+    <li><label><input type="radio" name="q2" value="regex"> 規則可以用 regex 表達</label></li>
+    <li><label><input type="radio" name="q2" value="interpret"> 需要判斷語氣或同理心</label></li>
+    <li><label><input type="radio" name="q2" value="numbers"> 需要比較兩個數字</label></li>
+    <li><label><input type="radio" name="q2" value="schema"> 需要檢查 JSON schema</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<fieldset class="quiz" data-quiz data-answer="loose"
+  data-why="通過可能代表規則太寬鬆，也可能代表這批 traces 沒有該 failure。要用人工標籤與邊界案例驗證，不能直接推論產品沒問題。">
+  <legend class="q">3. Code evaluator 在 44 筆都通過，代表什麼？</legend>
+  <ul>
+    <li><label><input type="radio" name="q3" value="clean"> 產品已經沒有 failure</label></li>
+    <li><label><input type="radio" name="q3" value="loose"> 檢查可能太寬鬆，要用人工標籤驗證</label></li>
+    <li><label><input type="radio" name="q3" value="unneeded"> Judge 已經完全不需要</label></li>
+    <li><label><input type="radio" name="q3" value="ship"> 可以直接上 production</label></li>
+  </ul>
+  <p class="feedback" hidden></p>
+</fieldset>
+
+<h2>主要來源</h2>
+
+<div class="callout">
+<h3>讀這一份再上下一課</h3>
+<p><a href="../../../.agents/skills/write-code-eval/SKILL.md">write-code-eval skill</a></p>
+<p>重點看 Step 1–3：先有 failure mode，再寫檢查，最後測 known pass/fail 與邊界案例。</p>
+</div>
+
+<h2>下一課</h2>
+
+<p>Lesson 0005：當 code 寫不出來——binary judge 的四要素。</p>
+
+<footer>
+<p>寫完 <code>check_special_omitted</code> 告訴我你抓到幾筆、誤判幾筆。卡住隨時問。</p>
+<nav>
+<a href="../reference/evals-loop.html">迴圈備忘</a>
+<a href="../reference/paired-diff.html">Paired diff</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+<script src="../assets/interactions.js"></script>
+</body>
+</html>

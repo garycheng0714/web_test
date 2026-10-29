@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evals 迴圈備忘</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../assets/evals.css">
+</head>
+<body>
+
+<p class="lesson-meta">Reference · Evals 基礎</p>
+<h1>Evals 迴圈備忘</h1>
+<p class="subtitle">一張圖、幾個定義、一條決策規則。</p>
+
+<h2>迴圈</h2>
+
+<pre class="flow">synthetic inputs
+  │
+  ▼
+pipeline traces
+  │
+  ▼
+error discovery ──&gt; failure modes
+  │
+  ▼
+code eval / LLM judge
+  │
+  ▼
+validate against human labels (TPR/TNR)
+  │
+  ▼
+corrected success rate + CI</pre>
+
+<h2>定義</h2>
+
+<table>
+  <tbody>
+    <tr><th>Trace</th><td>一次完整執行的紀錄：輸入、中間步驟、工具呼叫、最終輸出。</td></tr>
+    <tr><th>Eval</th><td>一個「行為是否成立」的檢查，回傳 Pass 或 Fail。</td></tr>
+    <tr><th>Failure mode</th><td>一種可命名的錯，附一個可觀察的例子。</td></tr>
+    <tr><th>Error analysis</th><td>人看 traces、替錯誤命名，產出 failure mode 清單。</td></tr>
+    <tr><th>Golden set</th><td>帶人類標籤、用來驗證 evaluator 的固定資料集。</td></tr>
+    <tr><th>TPR / TNR</th><td>人類說 Pass 時 judge 也說 Pass 的比率／人類說 Fail 時 judge 也說 Fail 的比率。</td></tr>
+    <tr><th>Data leakage</th><td>把 dev/test 的例子放進 judge prompt 的 few-shot，讓分數虛高。</td></tr>
+  </tbody>
+</table>
+
+<h2>順序</h2>
+
+<table>
+  <thead><tr><th>先做</th><th>不要先做</th></tr></thead>
+  <tbody>
+    <tr><td>看 traces，替錯誤命名</td><td>憑想像寫 judge</td></tr>
+    <tr><td>每個 failure mode 一個檢查</td><td>一個 judge 評整個 trace</td></tr>
+    <tr><td>客觀規則用 code</td><td>用 LLM 檢查 JSON schema</td></tr>
+    <tr><td>Binary Pass/Fail</td><td>1–5 分、A–F 等第</td></tr>
+    <tr><td>用 TPR/TNR 驗證 judge</td><td>用 raw accuracy 宣稱對齊</td></tr>
+  </tbody>
+</table>
+
+<h2>Code 還是 judge</h2>
+
+<table>
+  <thead><tr><th>性質</th><th>選擇</th><th>例子</th></tr></thead>
+  <tbody>
+    <tr><td>客觀、可判定</td><td>Code evaluator</td><td>格式、schema、必填欄位、數值比對、工具參數</td></tr>
+    <tr><td>需要詮釋</td><td>LLM judge</td><td>語氣、忠實度、切題、完整性</td></tr>
+  </tbody>
+</table>
+
+<p><strong>能用 code 就不要用 judge。</strong> Judge 是最後手段，不是預設。</p>
+
+<h2>常用數字</h2>
+
+<table>
+  <tbody>
+    <tr><th>Error analysis 飽和</th><td>約 100 筆 traces；新 traces 不再帶出新 failure mode。</td></tr>
+    <tr><th>Judge 驗證資料</th><td>約 50 Pass + 50 Fail；低於 60 筆信賴區間會很寬。</td></tr>
+    <tr><th>Judge 對齊目標</th><td>TPR 與 TNR 都 &gt; 90%；最低可接受 &gt; 80%。</td></tr>
+    <tr><th>資料切分</th><td>Train 10–20%（few-shot 來源）、Dev 40–45%、Test 40–45%。</td></tr>
+  </tbody>
+</table>
+
+<h2>Rogan-Gladen 修正</h2>
+
+<p>Judge 在未標註資料上算出的 Pass 比率是有偏的：容易心軟的 judge 會把 false positive 算進 Pass。用 TPR／TNR 反推真實通過率：</p>
+
+<pre class="flow">theta_hat = (p_obs + TNR - 1) / (TPR + TNR - 1)</pre>
+
+<p><code>p_obs</code> = judge 在未標註資料上說 Pass 的比率。<code>raw pass rate = (TP + FP) / N</code>，不是 accuracy <code>(TP + TN) / N</code>；corrected 修正的是 true pass rate。</p>
+<p><code>J = TPR + TNR - 1</code>（Youden index）。<code>J=1</code> 完美、<code>J=0</code> 沒有資訊、<code>J&lt;0</code> 比亂猜還糟。</p>
+<p><code>Var(theta_hat) ≈ Var(p_obs) / J^2</code>；CI 寬度約正比於 <code>1 / (J * sqrt(n))</code>。</p>
+<p>95% CI 是<strong>程序覆蓋率</strong>：重複抽樣下約 95% 的區間會涵蓋真值；不是「真值有 95% 機率在區間內」。</p>
+<p><code>[5%, 95%]</code> 不能決策；<code>[49%, 51%]</code> 可以。</p>
+<p>公式與方法查表：<a href="ci-methods.html">CI methods</a>。</p>
+
+<h2>主要來源</h2>
+
+<ul>
+  <li><a href="https://hamel.dev/blog/posts/evals/index.html">Your AI Product Needs Evals</a> — 整體流程與 error analysis。</li>
+  <li><a href="https://hamel.dev/blog/posts/llm-judge/">Creating an LLM Judge That Drives Business Results</a> — binary judge 與 TPR/TNR。</li>
+  <li><a href="https://hamel.dev/blog/posts/evals-faq/">LLM Evals FAQ</a> — vanity metrics 與常見誤解。</li>
+</ul>
+
+<footer>
+<nav>
+<a href="../lessons/0001-evals-loop.html">Lesson 0001</a>
+<a href="../MISSION.md">Mission</a>
+</nav>
+</footer>
+
+</body>
+</html>
