@@ -5,7 +5,7 @@ from hashlib import sha256
 
 
 class VerificationStatus(StrEnum):
-    PASS = "PASS"
+    PASS = "PASS"  # noqa: S105 - a status value, not a credential
     NEEDS_REVIEW = "NEEDS_REVIEW"
     FAIL = "FAIL"
     BLOCKED = "BLOCKED"

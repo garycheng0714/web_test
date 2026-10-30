@@ -31,7 +31,7 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Designer eval report: `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/report.py --run <run>`
 - Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
 - Typecheck: `uv run basedpyright` (scope: `web_test`, `standard` mode)
-- Lint Python (unused imports, import order): `uv run ruff check` (scope in `[tool.ruff]`)
+- Lint Python: `uv run ruff check` (rules and scope in `[tool.ruff]`)
 - Format Python: `uv run ruff format` (line length 100)
 - Install the pre-commit hook (one-time per clone): `uv run pre-commit install`
 - Architecture contracts: `uv run lint-imports`

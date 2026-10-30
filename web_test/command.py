@@ -21,5 +21,7 @@ Runner = Callable[..., CommandResult]
 
 
 def subprocess_runner(args: list[str], *, cwd: str | Path | None = None) -> CommandResult:
-    proc = subprocess.run(args, cwd=cwd, capture_output=True, text=True, check=False)
+    proc = subprocess.run(  # noqa: S603 - a list argv with shell=False cannot be injected into
+        args, cwd=cwd, capture_output=True, text=True, check=False
+    )
     return CommandResult(proc.returncode, proc.stdout, proc.stderr)

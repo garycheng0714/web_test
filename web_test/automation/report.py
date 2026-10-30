@@ -54,7 +54,7 @@ def _message(testcase: ET.Element) -> str:
 
 def parse_junit(text: str) -> tuple[TestOutcome, ...]:
     """Read pytest's JUnit XML into test outcomes."""
-    root = ET.fromstring(text)
+    root = ET.fromstring(text)  # noqa: S314 - pytest's own JUnit output, not remote input
     outcomes = []
     for testcase in root.iter("testcase"):
         classname = testcase.get("classname", "")

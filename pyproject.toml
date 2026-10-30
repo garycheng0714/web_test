@@ -54,6 +54,7 @@ select = [
     "E501",
     "E402",
     "ISC004",
+    "S",
 ]
 ignore = ["RUF003"]
 
@@ -61,6 +62,8 @@ ignore = ["RUF003"]
 "tests/**/*.py" = [
     "ARG",      # callback and pytest fixture signatures are fixed by the caller
     "PLR2004",  # a number in an assertion is the specification
+    "S101",     # assert is the test body
+    "S105",     # fixed credentials in test fixtures
 ]
 # Pydantic AI calls these hooks with `call=` and `tool_def=` keywords, so the names are fixed.
 "web_test/automation/repair_guard.py" = ["ARG001"]
