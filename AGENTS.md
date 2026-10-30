@@ -38,7 +38,7 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Coverage (report only): `uv run pytest --cov=web_test --cov-report=term-missing`
 - Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[coder,playwright,skills]` are dependencies)
 - `uv sync` to generate `uv.lock`
-- Python is formatted with `ruff format`; workflows are checked with `actionlint` in CI. CI: `.github/workflows/ci.yml` (suite with coverage, typecheck with lint, contracts, workflows on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
+- Lint and format cover `web_test`, `tests`, `pages`, and `components` (see `[tool.ruff]` `include`); `main.py` is the demo script and is out of scope. Workflows are checked with `actionlint` in CI. CI: `.github/workflows/ci.yml` (suite with coverage, typecheck with lint, contracts, workflows on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
 
 ## Language
 Reply in Traditional Chinese. Keep code, commit messages, and existing English docs in their

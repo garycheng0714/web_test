@@ -31,7 +31,7 @@ eval = [
 ]
 
 [tool.ruff]
-include = ["web_test/**/*.py", "tests/**/*.py"]
+include = ["web_test/**/*.py", "tests/**/*.py", "pages/**/*.py", "components/**/*.py"]
 line-length = 100
 
 [tool.ruff.lint]
