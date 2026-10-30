@@ -1,8 +1,8 @@
 from pathlib import Path
 
+from verify_helpers import write_case, write_prd
 from web_test.planning.verify.prepare import prepare
 from web_test.planning.verify.resolution import ResolutionKind
-from verify_helpers import write_case, write_prd
 
 
 def test_prepare_builds_aready_input(tmp_path: Path) -> None:
@@ -17,11 +17,13 @@ def test_prepare_builds_aready_input(tmp_path: Path) -> None:
     assert verification_input.test_case_text == case_text
     assert verification_input.prd_text == "# PRD"
 
+
 def test_prepare_builds_an_early_input(tmp_path: Path) -> None:
     verification_input = prepare([], workspace=tmp_path)
 
     assert verification_input.kind is ResolutionKind.NOTHING
     assert verification_input.test_case_text is None
+
 
 def test_prepare_marks_a_test_case_without_cases_invalid(tmp_path: Path) -> None:
     path = tmp_path / "test-case" / "test-case-demo.md"

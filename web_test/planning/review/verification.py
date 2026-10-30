@@ -5,7 +5,7 @@ from hashlib import sha256
 
 
 class VerificationStatus(StrEnum):
-    PASS = "PASS"
+    PASS = "PASS"  # noqa: S105 - a status value, not a credential
     NEEDS_REVIEW = "NEEDS_REVIEW"
     FAIL = "FAIL"
     BLOCKED = "BLOCKED"
@@ -92,26 +92,26 @@ class Override:
 class VerificationResult:
     """The review's verdict and the per-unit evidence behind it."""
 
-    status: VerificationStatus          # 檔案層級：Jev + structure 聚合後的最終結果
-    checks: tuple[CheckOutcome, ...]    # 每個預期 Jev 問題的結果；缺答案為 BLOCKED
-    steps: tuple[UnitOutcome, ...]      # 每個 step 的聚合結果
-    cases: tuple[UnitOutcome, ...]      # 每個 case 的聚合結果
+    status: VerificationStatus  # 檔案層級：Jev + structure 聚合後的最終結果
+    checks: tuple[CheckOutcome, ...]  # 每個預期 Jev 問題的結果；缺答案為 BLOCKED
+    steps: tuple[UnitOutcome, ...]  # 每個 step 的聚合結果
+    cases: tuple[UnitOutcome, ...]  # 每個 case 的聚合結果
     structure: tuple[DeterministicOutcome, ...] = ()  # 不用 Jev 的結構檢查
-    jev_status: VerificationStatus | None = None      # 只看 Jev 的結果；結構檢查前
-    blocked_reason: str | None = None   # 整份無法判斷的原因；部分缺答案時為 None
-    override: Override | None = None    # 人工裁決；ticket 24 才會填入
+    jev_status: VerificationStatus | None = None  # 只看 Jev 的結果；結構檢查前
+    blocked_reason: str | None = None  # 整份無法判斷的原因；部分缺答案時為 None
+    override: Override | None = None  # 人工裁決；ticket 24 才會填入
 
 
 @dataclass(frozen=True)
 class VerificationBinding:
     """The exact inputs and configuration the result was produced from."""
 
-    prd_digest: str                     # 被判斷的 PRD 文字 SHA-256
-    test_case_digest: str               # 被判斷的 test-case 檔案 SHA-256
-    model: str                          # 釘住的 Jev model id
-    question_set_version: str           # 問題集 hash；不含 PRD 內容
-    bands: Bands                        # probability 的分類門檻
-    check_set_version: str              # deterministic 檢查規則的版本
+    prd_digest: str  # 被判斷的 PRD 文字 SHA-256
+    test_case_digest: str  # 被判斷的 test-case 檔案 SHA-256
+    model: str  # 釘住的 Jev model id
+    question_set_version: str  # 問題集 hash；不含 PRD 內容
+    bands: Bands  # probability 的分類門檻
+    check_set_version: str  # deterministic 檢查規則的版本
 
 
 @dataclass(frozen=True)

@@ -43,6 +43,8 @@ class CaseFile(BaseModel):
         """Validate the artifact path, read it, and return the model with its raw text."""
         artifact = Path(path)
         if not _is_test_case_artifact(artifact):
-            raise ValueError(f"{artifact} is not a test-case artifact (expected test-case/test-case-<id>.md).")
+            raise ValueError(
+                f"{artifact} is not a test-case artifact (expected test-case/test-case-<id>.md)."
+            )
         text = artifact.read_text(encoding="utf-8")
         return cls.from_text(text), text

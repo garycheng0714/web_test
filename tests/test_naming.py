@@ -1,8 +1,8 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from web_test.naming import branch_for, run_token
 
-NOW = datetime(2026, 10, 14, 12, 0, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 14, 12, 0, 0, tzinfo=UTC)
 
 
 def test_run_token_uses_the_run_id_and_attempt(monkeypatch):

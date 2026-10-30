@@ -10,9 +10,7 @@ from web_test.planning.verify.resolution import (
 )
 
 
-def prepare(
-    changed_paths: Iterable[str], *, workspace: Path
-) -> PreparedVerification:
+def prepare(changed_paths: Iterable[str], *, workspace: Path) -> PreparedVerification:
     """Resolve the changed paths to the verification input."""
     resolution = resolve(changed_paths, workspace=workspace)
     if isinstance(resolution, EarlyResolution):

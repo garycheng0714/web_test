@@ -54,7 +54,7 @@ def _message(testcase: ET.Element) -> str:
 
 def parse_junit(text: str) -> tuple[TestOutcome, ...]:
     """Read pytest's JUnit XML into test outcomes."""
-    root = ET.fromstring(text)
+    root = ET.fromstring(text)  # noqa: S314 - pytest's own JUnit output, not remote input
     outcomes = []
     for testcase in root.iter("testcase"):
         classname = testcase.get("classname", "")
@@ -113,5 +113,5 @@ def render_run_report(report: RunReport) -> str:
         lines.append("JUnit XML was unavailable; per-test results could not be read.")
         return "\n".join(lines)
     lines += _section("Generated tests", report.generated)
-    lines += [""] + _section("Failing existing tests", report.failing)
+    lines += ["", *_section("Failing existing tests", report.failing)]
     return "\n".join(lines)

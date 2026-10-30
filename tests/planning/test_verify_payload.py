@@ -6,9 +6,7 @@ from web_test.planning.verify.resolution import ResolutionKind
 
 
 def test_nothing_is_success() -> None:
-    payload = early_payload(
-        ResolutionKind.NOTHING, head_sha="sha", name="verify-test-case"
-    )
+    payload = early_payload(ResolutionKind.NOTHING, head_sha="sha", name="verify-test-case")
 
     assert payload.conclusion == "success"
     assert "no Test Case file" in payload.title
@@ -70,9 +68,7 @@ def test_ready_is_not_an_early_payload() -> None:
         (VerificationStatus.BLOCKED, "failure"),
     ],
 )
-def test_verdict_payload_maps_the_status(
-    status: VerificationStatus, conclusion: str
-) -> None:
+def test_verdict_payload_maps_the_status(status: VerificationStatus, conclusion: str) -> None:
     payload = verdict_payload(
         status,
         summary="summary",

@@ -21,13 +21,14 @@ from web_test.paths import REPO_ROOT
 from web_test.write_guard import write_guard
 
 # `Skills` takes a *library* directory (its immediate child directories with a `SKILL.md`), not a
-# single skill. Two libraries are read: the page-object-model house skill, and the repo's `.agents/skills`
-# for the `pr` skill. Both are read from the repo, not the run workspace, so the agent can work in a
-# throwaway clone and still load the house conventions.
+# single skill. Two libraries are read: the page-object-model house skill, and the repo's
+# `.agents/skills` for the `pr` skill. Both are read from the repo, not the run workspace, so the
+# agent can work in a throwaway clone and still load the house conventions.
 SKILL_LIBRARY = REPO_ROOT / ".agents" / "libraries" / "coding_agent"
 PR_SKILL_LIBRARY = REPO_ROOT / ".agents" / "skills"
 SKILL_NAME = "page-object-model"
 PR_SKILL_NAME = "pr"
+
 
 class AutomationResult(BaseModel):
     """What an automation run returns: the PR body, or nothing when the suite stayed red."""
@@ -64,10 +65,10 @@ INSTRUCTIONS = (
     "Tests: build locators from the snapshot's roles and accessible names. Before creating a page "
     "object, read `pages/base_page.py` and an existing page object; follow the base class's "
     "constructor and patterns. Write test and page-object code with Playwright's **Python** API "
-    "(`page.goto`, `page.click`, `expect`, `page.on(\"dialog\", lambda d: d.accept())`); the browser "
-    "tools you grounded with (`navigate`, `snapshot`, `click`, `handle_next_dialog`, `tabs`) are not "
-    "Python APIs and must not appear in the code. After opening a page, wait for it to settle "
-    "(`page.wait_for_load_state(\"networkidle\")`) before reading or interacting: a URL/title check "
+    '(`page.goto`, `page.click`, `expect`, `page.on("dialog", lambda d: d.accept())`); the browser '
+    "tools you grounded with (`navigate`, `snapshot`, `click`, `handle_next_dialog`, `tabs`) are "
+    "not Python APIs and must not appear in the code. After opening a page, wait for it to settle "
+    '(`page.wait_for_load_state("networkidle")`) before reading or interacting: a URL/title check '
     "can pass before the page's scripts load, and a submit handler attached by script then ignores "
     "the click. Locate content that "
     "appears only after an interaction (a success message, a confirmation dialog) with a locator "
@@ -75,20 +76,21 @@ INSTRUCTIONS = (
     "every locator (for an action as well as an assertion) must be unique, since an ambiguous one "
     "fails with a strict-mode violation. Create any file "
     "a test needs with pytest's `tmp_path`: take `tmp_path` as a test parameter and write the file "
-    "with `(tmp_path / \"name\").write_text(...)`; upload via the page object's "
-    "`set_input_files(str(tmp_path / \"name\"))`. Never use `pytest.tmp_path` or a `page.context.set_*` "
-    "method. Write generated tests directly under `tests/`. The write tool accepts only Python files "
-    "under `tests/`, `pages/`, and `components/`, so never write data files into the workspace. "
-    "Tag every test function with its source case: `@pytest.mark.case(\"<id>\", <n>)`, using the "
+    'with `(tmp_path / "name").write_text(...)`; upload via the page object\'s '
+    '`set_input_files(str(tmp_path / "name"))`. Never use `pytest.tmp_path` or a '
+    "`page.context.set_*` method. Write generated tests directly under `tests/`. The write tool "
+    "accepts only Python files under `tests/`, `pages/`, and `components/`, so never write data "
+    "files into the workspace. "
+    'Tag every test function with its source case: `@pytest.mark.case("<id>", <n>)`, using the '
     "`id` from the case front matter and the integer from its `## Case N:` heading. One marker per "
     "test; a case may have more than one test. Add the decorator to each test function; do not "
     "replace an existing `pytestmark`.\n\n"
-    "Verify: after writing, run `uv run pytest <path> -q --tb=short`. If it fails, fix it and rerun, up to "
-    f"{REPAIR_ATTEMPTS} attempts. Only claim success when the run is green. When it is green, call "
-    f"load_capability('{PR_SKILL_NAME}') and write the pull-request body for these changes in that "
-    f"skill's template, returning it as `pr_body`. When the suite is still red after {REPAIR_ATTEMPTS} "
-    "attempts, stop and return `pr_body` as null — never write a body for a red suite. Keep comments "
-    "minimal, matching the surrounding code."
+    "Verify: after writing, run `uv run pytest <path> -q --tb=short`. If it fails, fix it and "
+    f"rerun, up to {REPAIR_ATTEMPTS} attempts. Only claim success when the run is green. When it "
+    f"is green, call load_capability('{PR_SKILL_NAME}') and write the pull-request body for these "
+    "changes in that skill's template, returning it as `pr_body`. When the suite is still red "
+    f"after {REPAIR_ATTEMPTS} attempts, stop and return `pr_body` as null — never write a body for "
+    "a red suite. Keep comments minimal, matching the surrounding code."
 )
 
 

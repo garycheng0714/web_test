@@ -1,7 +1,7 @@
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 
 @dataclass(frozen=True)
@@ -21,5 +21,7 @@ Runner = Callable[..., CommandResult]
 
 
 def subprocess_runner(args: list[str], *, cwd: str | Path | None = None) -> CommandResult:
-    proc = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+    proc = subprocess.run(  # noqa: S603 - argv list with shell=False: no shell to inject into
+        args, cwd=cwd, capture_output=True, text=True, check=False
+    )
     return CommandResult(proc.returncode, proc.stdout, proc.stderr)

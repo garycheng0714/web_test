@@ -96,10 +96,7 @@ def render_summary(
     ]
     if evidence.quality:
         lines += ["", "### Quality gate", ""]
-        lines += [
-            f"- **{finding.rule}**: {finding.detail}"
-            for finding in evidence.quality
-        ]
+        lines += [f"- **{finding.rule}**: {finding.detail}" for finding in evidence.quality]
     if evidence.report is not None:
         lines += ["", render_run_report(evidence.report)]
     lines += [
@@ -119,11 +116,7 @@ def render_summary(
             if evidence.traces
             else "no trace produced (green run or tracing unavailable)"
         ),
-        *(
-            ["", "The files are copied under `traces/` in the artifact."]
-            if evidence.traces
-            else []
-        ),
+        *(["", "The files are copied under `traces/` in the artifact."] if evidence.traces else []),
         "",
         "### Tool trace",
         "",
@@ -132,15 +125,15 @@ def render_summary(
     if evidence.traces_skipped:
         lines += [
             "",
-            f"{evidence.traces_skipped} trace(s) skipped by the "
-            f"{MAX_TRACE_FILES}-file / {MAX_TRACE_BYTES // (1024 * 1024)}MB cap.",
+            (
+                f"{evidence.traces_skipped} trace(s) skipped by the "
+                f"{MAX_TRACE_FILES}-file / {MAX_TRACE_BYTES // (1024 * 1024)}MB cap."
+            ),
         ]
     return "\n".join(lines)
 
 
-def _copy_generated(
-    workspace: Path, directory: Path, relative: str
-) -> None:
+def _copy_generated(workspace: Path, directory: Path, relative: str) -> None:
     candidate = PurePosixPath(relative)
     if not candidate.parts or candidate.parts[0] not in ALLOWED_DIRS:
         return

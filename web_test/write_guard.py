@@ -35,16 +35,14 @@ def is_generated_test_path(relative: str) -> bool:
     return candidate.suffix == ".py" and candidate.parts[:1] == ("tests",)
 
 
-def resolve_workspace_path(
-    workspace: Path, relative: str, *, suffix: str
-) -> Path | None:
+def resolve_workspace_path(workspace: Path, relative: str, *, suffix: str) -> Path | None:
     """Resolve a relative path to an existing file inside the workspace, or None."""
     candidate = PurePosixPath(relative)
     if (
-        candidate.is_absolute()         # 拒絕絕對路徑（如 /etc/passwd）
-        or not candidate.parts          # 空路徑（""）
-        or ".." in candidate.parts      # 拒絕目錄穿越（../）
-        or candidate.suffix != suffix   # 只收指定副檔名
+        candidate.is_absolute()  # 拒絕絕對路徑（如 /etc/passwd）
+        or not candidate.parts  # 空路徑（""）
+        or ".." in candidate.parts  # 拒絕目錄穿越（../）
+        or candidate.suffix != suffix  # 只收指定副檔名
     ):
         return None
     path = workspace / Path(*candidate.parts)

@@ -5,12 +5,8 @@ from web_test.planning.review.eval_report import render_eval_report
 from web_test.planning.review.eval_set import EvalSet, load_eval_set
 from web_test.planning.review.jev import JevAnswer
 
-
 _FIXTURES = (
-    Path(__file__).parent.parent
-    / "fixtures"
-    / "review_eval"
-    / "register_login_golden_v1.json"
+    Path(__file__).parent.parent / "fixtures" / "review_eval" / "register_login_golden_v1.json"
 )
 
 

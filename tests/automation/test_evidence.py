@@ -40,12 +40,8 @@ def test_write_evidence_keeps_outputs_and_allowed_files(tmp_path: Path) -> None:
     assert "agent red output" in summary
     assert "suite stderr" in summary
     assert (directory / "summary.md").read_text(encoding="utf-8") == summary + "\n"
-    assert (directory / "pytest-output.txt").read_text(encoding="utf-8") == (
-        "agent red output\n"
-    )
-    assert (directory / "suite-output.txt").read_text(encoding="utf-8").startswith(
-        "exit: 1"
-    )
+    assert (directory / "pytest-output.txt").read_text(encoding="utf-8") == ("agent red output\n")
+    assert (directory / "suite-output.txt").read_text(encoding="utf-8").startswith("exit: 1")
     assert (directory / "trace.txt").read_text(encoding="utf-8") == "-> uv run pytest\n"
     assert (directory / "files" / "tests" / "test_a.py").is_file()
     assert not (directory / "files" / ".venv" / "secret.py").exists()
@@ -54,9 +50,7 @@ def test_write_evidence_keeps_outputs_and_allowed_files(tmp_path: Path) -> None:
 
 def test_render_summary_includes_quality_findings() -> None:
     evidence = AutomationEvidence(
-        quality=(
-            QualityFinding(QualityRule.CASE_MARKER, "tests/test_a.py:1: no marker"),
-        )
+        quality=(QualityFinding(QualityRule.CASE_MARKER, "tests/test_a.py:1: no marker"),)
     )
 
     summary = render_summary("quality_red", None, evidence)
@@ -177,9 +171,7 @@ def test_collect_traces_caps_the_file_count(tmp_path: Path) -> None:
     assert skipped == 1
 
 
-def test_collect_traces_caps_the_total_size(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_collect_traces_caps_the_total_size(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(evidence_module, "MAX_TRACE_BYTES", 10)
     workspace = tmp_path / "repo"
     root = workspace / "test-results"

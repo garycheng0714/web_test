@@ -98,13 +98,13 @@ def _read_prd(workspace: Path, case_id: str) -> str:
 
 def resolve(changed_paths: Iterable[str], *, workspace: Path) -> Resolution:
     """Resolve the changed paths to the single Test Case file and its inputs."""
-    artifacts = sorted(
-        path for path in (Path(raw) for raw in changed_paths) if _is_artifact(path)
-    )
+    artifacts = sorted(path for path in (Path(raw) for raw in changed_paths) if _is_artifact(path))
     if not artifacts:
         return EarlyResolution(ResolutionKind.NOTHING)
     if len(artifacts) > 1:
-        return EarlyResolution(ResolutionKind.MULTIPLE, files=tuple(str(path) for path in artifacts))
+        return EarlyResolution(
+            ResolutionKind.MULTIPLE, files=tuple(str(path) for path in artifacts)
+        )
 
     case_path = artifacts[0]
     try:

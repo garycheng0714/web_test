@@ -31,12 +31,14 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Designer eval report: `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/report.py --run <run>`
 - Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
 - Typecheck: `uv run basedpyright` (scope: `web_test`, `standard` mode)
-- Lint Python (unused imports): `uv run ruff check --select F401`
+- Lint Python: `uv run ruff check` (rules and scope in `[tool.ruff]`)
+- Format Python: `uv run ruff format` (line length 100)
+- Install the pre-commit hook (one-time per clone): `uv run pre-commit install`
 - Architecture contracts: `uv run lint-imports`
 - Coverage (report only): `uv run pytest --cov=web_test --cov-report=term-missing`
 - Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[coder,playwright,skills]` are dependencies)
 - `uv sync` to generate `uv.lock`
-- No Python formatter is configured; workflows are checked with `actionlint` in CI. CI: `.github/workflows/ci.yml` (suite with coverage, typecheck with lint, contracts, workflows on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
+- Lint and format cover `web_test`, `tests`, `pages`, and `components` (see `[tool.ruff]` `include`); `main.py` is the demo script and is out of scope. Workflows are checked with `actionlint` in CI. CI: `.github/workflows/ci.yml` (suite with coverage, typecheck with lint, contracts, workflows on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).
 
 ## Language
 Reply in Traditional Chinese. Keep code, commit messages, and existing English docs in their

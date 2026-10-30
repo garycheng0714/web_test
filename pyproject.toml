@@ -18,6 +18,7 @@ dev = [
     "basedpyright>=1.40.2",
     "import-linter>=2.15",
     "playwright>=1.63.0",
+    "pre-commit>=4.7.0",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "pytest-playwright>=0.9.0",
@@ -28,6 +29,59 @@ eval = [
     "arize-phoenix-otel==0.17.2",
     "openinference-instrumentation-pydantic-ai==0.1.30",
 ]
+
+[tool.ruff]
+include = ["web_test/**/*.py", "tests/**/*.py", "pages/**/*.py", "components/**/*.py"]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "F401",
+    "I",
+    "UP",
+    "PIE",
+    "FURB",
+    "SIM",
+    "RET",
+    "B",
+    "C4",
+    "PTH",
+    "RUF",
+    "ARG",
+    "PLW1510",
+    "PLR0912",
+    "PLR2004",
+    "E501",
+    "E402",
+    "ISC004",
+    "S",
+    "PLR0911",
+    "PLR0913",
+    "PLR0915",
+]
+ignore = ["RUF003"]
+
+[tool.ruff.lint.pylint]
+# Keyword-only options and dependency injection are not the smell; long positional
+# argument lists are. 10 is today's worst case (build_record), a backstop only.
+max-args = 10
+max-positional-args = 5
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "ARG",      # callback and pytest fixture signatures are fixed by the caller
+    "PLR2004",  # a number in an assertion is the specification
+    "S101",     # assert is the test body
+    "S105",     # fixed credentials in test fixtures
+]
+# Pydantic AI calls these hooks with `call=` and `tool_def=` keywords, so the names are fixed.
+"web_test/automation/repair_guard.py" = ["ARG001"]
+"web_test/write_guard.py" = ["ARG001"]
+# JUnit XML fixture: its attribute-bearing lines cannot be wrapped without changing the fixture.
+"tests/automation/test_report.py" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["web_test", "verify_helpers", "review_helpers"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -81,8 +81,10 @@ def render_eval_report(report: EvalReport) -> str:
         f"**Question set:** `{report.question_set_version}`",
         f"**Runs:** {report.runs} ({run_note})",
         f"**Record status:** `{report.record_status.value}`",
-        f"**Needs review rate:** {report.needs_review_cases}/{len(report.cases)} cases "
-        f"({report.needs_review_rate:.0%})",
+        (
+            f"**Needs review rate:** {report.needs_review_cases}/{len(report.cases)} cases "
+            f"({report.needs_review_rate:.0%})"
+        ),
         "**Override rate:** n/a (until ticket 24b)",
         f"**Kill criteria:** {'PASS' if report.kill_criteria_passed else 'FAIL'}",
         "",
@@ -141,7 +143,10 @@ def render_eval_report(report: EvalReport) -> str:
         "",
         "- One run is directional, not a stable estimate."
         if report.runs == 1
-        else "- Multiple runs only show stability for this fixture set; it is not statistical confidence.",
+        else (
+            "- Multiple runs only show stability for this fixture set; it is not statistical "
+            "confidence."
+        ),
         "- Override rate is unavailable until ticket 24b implements human adjudication.",
         "- BLOCKED means no answer, not a caught defect.",
     ]

@@ -36,7 +36,9 @@ def test_section_heading_and_metadata_block():
     text = render_case_section(_case(), index=2)
 
     assert text.startswith("## Case 2: Account: Register\n\n")
-    assert "```yaml\nrequirement_ids: [FR-ACC-01]\npriority: High\ntest_type: Functional\n```" in text
+    assert (
+        "```yaml\nrequirement_ids: [FR-ACC-01]\npriority: High\ntest_type: Functional\n```" in text
+    )
     assert "**Severity:** Critical" in text
 
 
@@ -111,7 +113,10 @@ def test_render_document_omits_open_questions_when_empty():
 
 def test_rendered_front_matter_parses_with_case_file():
     text = render_document(
-        [_case()], id="register-login", base_url="https://automationexercise.com", title="Register Login"
+        [_case()],
+        id="register-login",
+        base_url="https://automationexercise.com",
+        title="Register Login",
     )
 
     case = CaseFile.from_text(text)

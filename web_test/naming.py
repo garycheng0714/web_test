@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def run_token(now: datetime | None = None) -> str:
@@ -12,8 +12,8 @@ def run_token(now: datetime | None = None) -> str:
     if run_id:
         attempt = os.environ.get("WEB_TEST_RUN_ATTEMPT")
         return f"{run_id}-{attempt}" if attempt else run_id
-    moment = now or datetime.now(timezone.utc)
-    return f"{moment.astimezone(timezone.utc):%Y%m%dT%H%M%SZ}"
+    moment = now or datetime.now(UTC)
+    return f"{moment.astimezone(UTC):%Y%m%dT%H%M%SZ}"
 
 
 def branch_for(kind: str, identifier: str, token: str) -> str:

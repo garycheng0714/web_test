@@ -1,8 +1,8 @@
+from review_helpers import make_case, render_case
 from web_test.planning.review.cli import main
 from web_test.planning.review.jev import JevAnswer
 from web_test.planning.review.local import review_case_file
 from web_test.planning.review.verification import VerificationStatus
-from review_helpers import make_case, render_case
 
 
 def _document() -> str:
@@ -55,11 +55,7 @@ def test_review_case_file_sends_an_edited_step_to_jev(tmp_path):
 
     review_case_file(case_path, prd_path, system_one=system_one)
 
-    actions = [
-        step.action
-        for case in captured["request"].subject.cases
-        for step in case.steps
-    ]
+    actions = [step.action for case in captured["request"].subject.cases for step in case.steps]
     assert "Click Submit" in actions
 
 

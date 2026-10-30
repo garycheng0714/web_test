@@ -68,7 +68,11 @@ def test_plan_publisher_puts_the_review_in_the_pr_body():
     writer.write.return_value = "prd-register.md"
 
     PlanPublisher(git=git, pr=pr, writer=writer).publish(
-        branch=BRANCH, message=MESSAGE, prd_stem="prd-register", cases=[_case()], review="## Jev review"
+        branch=BRANCH,
+        message=MESSAGE,
+        prd_stem="prd-register",
+        cases=[_case()],
+        review="## Jev review",
     )
 
     opened = pr.open_pull_request.call_args.args[0]

@@ -1,15 +1,14 @@
 from dataclasses import replace
 
+from review_helpers import answers_for, make_design
 from web_test.planning.review import JevAnswer, run_review
 from web_test.planning.review.report import render_report
-from review_helpers import answers_for, make_design
 from web_test.planning.review.verification import (
     DeterministicOutcome,
     Override,
     VerificationStatus,
     digest_text,
 )
-
 
 
 def _record(**overrides):

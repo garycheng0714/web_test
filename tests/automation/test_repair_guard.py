@@ -1,8 +1,14 @@
+from types import SimpleNamespace
+
 import pytest
 
+from web_test._run import run_sync
 from web_test.automation.repair_guard import (
     MAX_PYTEST_RUNS,
+    AutomationDeps,
     RepairBudgetExceeded,
+    _capture_shell_result,
+    _enforce_repair_budget,
     count_pytest_run,
 )
 
@@ -18,16 +24,6 @@ def test_non_pytest_command_is_ignored() -> None:
 def test_exceeding_the_bound_raises() -> None:
     with pytest.raises(RepairBudgetExceeded):
         count_pytest_run("uv run pytest tests/a.py -q", MAX_PYTEST_RUNS)
-
-
-from types import SimpleNamespace
-
-from web_test._run import run_sync
-from web_test.automation.repair_guard import (
-    AutomationDeps,
-    _capture_shell_result,
-    _enforce_repair_budget,
-)
 
 
 def test_shell_calls_are_traced_and_pytest_runs_counted() -> None:

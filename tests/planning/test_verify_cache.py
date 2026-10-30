@@ -2,10 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from web_test.planning.review.verification import VerificationStatus
-from web_test.planning.verify.cache import CachedVerdict, VerdictCache
-from web_test.planning.verify.run import run
-from web_test.publishing.github import CheckPayload
 from verify_helpers import (
     approval,
     empty_system_one,
@@ -15,6 +11,10 @@ from verify_helpers import (
     ready_input,
     sink,
 )
+from web_test.planning.review.verification import VerificationStatus
+from web_test.planning.verify.cache import CachedVerdict, VerdictCache
+from web_test.planning.verify.run import run
+from web_test.publishing.github import CheckPayload
 
 
 def test_run_uses_a_cached_verdict(tmp_path: Path) -> None:

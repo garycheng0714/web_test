@@ -1,7 +1,6 @@
 import ast
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import TypeVar
 
 from pydantic_ai import Agent, AgentRunResult
 from pydantic_ai.capabilities import LocalWorkspace
@@ -22,12 +21,7 @@ from web_test.automation.coding_agent import (
 from web_test.automation.repair_guard import AutomationDeps
 
 
-T = TypeVar("T")
-
-
-def _capability(
-    agent: Agent[AutomationDeps, AutomationResult], kind: type[T]
-) -> T:
+def _capability[T](agent: Agent[AutomationDeps, AutomationResult], kind: type[T]) -> T:
     found: list[object] = []
     agent.root_capability.apply(found.append)
     return next(c for c in found if isinstance(c, kind))
@@ -47,7 +41,9 @@ def _scripted(*responses: ModelResponse) -> FunctionModel:
     def respond(messages: object, info: object) -> ModelResponse:
         return remaining.pop(0)
 
-    async def stream(messages: object, info: object) -> AsyncIterator[str | dict[int, DeltaToolCall]]:
+    async def stream(
+        messages: object, info: object
+    ) -> AsyncIterator[str | dict[int, DeltaToolCall]]:
         for part in remaining.pop(0).parts:
             if isinstance(part, TextPart):
                 yield part.content
@@ -99,7 +95,12 @@ def test_grounding_policy_blocks_ads_and_allows_the_sut() -> None:
 
     assert GROUNDING_POLICY.refuse(ad_script) == "domain in blocked_domains"
     assert GROUNDING_POLICY.refuse(ad_frame) == "domain in blocked_domains"
-    assert GROUNDING_POLICY.refuse(EgressRequest(url="https://automationexercise.com/", kind="navigation")) is None
+    assert (
+        GROUNDING_POLICY.refuse(
+            EgressRequest(url="https://automationexercise.com/", kind="navigation")
+        )
+        is None
+    )
 
 
 def test_grounding_instructions_name_the_capability_tools() -> None:
@@ -123,9 +124,7 @@ def test_page_object_skill_requires_the_case_marker() -> None:
 
 def test_case_marker_is_parseable() -> None:
     tree = ast.parse(
-        '@pytest.mark.case("register-login", 1)\n'
-        "def test_signup() -> None:\n"
-        "    pass\n"
+        '@pytest.mark.case("register-login", 1)\ndef test_signup() -> None:\n    pass\n'
     )
     function = tree.body[0]
     assert isinstance(function, ast.FunctionDef)

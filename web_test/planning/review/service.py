@@ -53,7 +53,7 @@ def run_review_on(
         questions = questions_for_subject(subject)
         request = ReviewRequest(subject=subject, questions=questions)
         version = question_set_version(questions)
-    except Exception as error:  # noqa: BLE001 - a malformed subject must not fail the plan
+    except Exception as error:  # a malformed subject must not fail the plan
         return build_blocked_record(
             subject,
             test_case_text=test_case_text,
@@ -84,7 +84,7 @@ def _review_request(
 ) -> VerificationRecord:
     try:
         answers = system_one(request)
-    except Exception as error:  # noqa: BLE001 - the record must carry the blocked reason
+    except Exception as error:  # the record must carry the blocked reason
         return build_blocked_record(
             request.subject,
             test_case_text=test_case_text,

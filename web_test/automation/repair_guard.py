@@ -7,7 +7,8 @@ from pydantic_ai.capabilities.hooks import Hooks
 
 from web_test.observability import log_usage_value
 
-# How many times the agent may fix a failing run before it is stopped (overridable for cost control).
+# How many times the agent may fix a failing run before it is stopped (overridable for cost
+# control).
 REPAIR_ATTEMPTS = int(os.environ.get("WEB_TEST_REPAIR_ATTEMPTS", "4"))
 # The initial verify run plus the repair attempts; enforced below, not just instructed.
 MAX_PYTEST_RUNS = REPAIR_ATTEMPTS + 1

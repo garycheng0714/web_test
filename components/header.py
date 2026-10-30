@@ -17,11 +17,7 @@ class Header:
         self.page = page
 
     def nav_link(self, name: str) -> Locator:
-        return (
-            self.page.get_by_role("banner")
-            .get_by_role("list")
-            .get_by_role("link", name=name)
-        )
+        return self.page.get_by_role("banner").get_by_role("list").get_by_role("link", name=name)
 
     def click_nav_link(self, name: str) -> None:
         self.nav_link(name).click()

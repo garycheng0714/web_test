@@ -1,8 +1,8 @@
+from review_helpers import review_case, review_subject
 from web_test.planning.review.aggregation import aggregate_checks
 from web_test.planning.review.questions import expected_checks
 from web_test.planning.review.subject import ReviewStep, ReviewSubject
 from web_test.planning.review.verification import CheckOutcome, VerificationStatus
-from review_helpers import review_case, review_subject
 
 _PROBABILITY = {
     VerificationStatus.PASS: 0.95,
@@ -74,9 +74,7 @@ def test_precedence_is_fail_over_blocked_over_needs_review():
 def test_ac_failure_marks_case_fail_even_when_steps_pass():
     subject = review_subject()
 
-    steps, cases, status = aggregate_checks(
-        subject, _checks(subject, ac_1=VerificationStatus.FAIL)
-    )
+    steps, cases, status = aggregate_checks(subject, _checks(subject, ac_1=VerificationStatus.FAIL))
 
     assert [step.status for step in steps] == [VerificationStatus.PASS] * 2
     assert cases[0].status is VerificationStatus.FAIL
@@ -99,7 +97,7 @@ def test_file_status_is_the_worst_case():
         ],
     )
 
-    steps, cases, status = aggregate_checks(
+    _, cases, status = aggregate_checks(
         subject, _checks(subject, step_2_1_continuity=VerificationStatus.NEEDS_REVIEW)
     )
 

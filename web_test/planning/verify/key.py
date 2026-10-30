@@ -35,9 +35,7 @@ def cache_key(
     )
 
 
-def _cache_key(
-    test_case_digest: str, prd_digest: str, version: str, check_set_version: str
-) -> str:
+def _cache_key(test_case_digest: str, prd_digest: str, version: str, check_set_version: str) -> str:
     payload = "\n".join(
         [
             test_case_digest,

@@ -29,9 +29,7 @@ def _adapter(client: MagicMock) -> GitHubAdapter:
 
 def _check_runs(*runs: int) -> SimpleNamespace:
     return SimpleNamespace(
-        parsed_data=SimpleNamespace(
-            check_runs=[SimpleNamespace(id=run_id) for run_id in runs]
-        )
+        parsed_data=SimpleNamespace(check_runs=[SimpleNamespace(id=run_id) for run_id in runs])
     )
 
 

@@ -1,5 +1,5 @@
-from web_test.planning.review.parser import parse_test_case
 from review_helpers import make_case, render_case
+from web_test.planning.review.parser import parse_test_case
 
 
 def _document() -> str:

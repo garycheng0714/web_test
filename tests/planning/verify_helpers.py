@@ -23,9 +23,7 @@ def case() -> Case:
 
 
 def case_text() -> str:
-    return render_document(
-        [case()], id="demo", base_url="https://example.com", title="Demo"
-    )
+    return render_document([case()], id="demo", base_url="https://example.com", title="Demo")
 
 
 def write_case(
@@ -39,9 +37,7 @@ def write_case(
     if steps is not None:
         data["steps"] = steps
     rendered = Case.model_validate(data)
-    text = render_document(
-        [rendered], id=case_id, base_url="https://example.com", title=title
-    )
+    text = render_document([rendered], id=case_id, base_url="https://example.com", title=title)
     path = root / "test-case" / f"test-case-{case_id}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")

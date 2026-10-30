@@ -12,7 +12,7 @@ _LABEL_LIMIT = 120
 
 def _text(value: str) -> str:
     text = " ".join(value.split())
-    return text if len(text) <= _LABEL_LIMIT else f"{text[:_LABEL_LIMIT - 1]}…"
+    return text if len(text) <= _LABEL_LIMIT else f"{text[: _LABEL_LIMIT - 1]}…"
 
 
 def _probability(value: float | None) -> str:
@@ -47,7 +47,9 @@ def render_report(record: VerificationRecord) -> str:
     needs_review = [
         _item(check) for check in checks if check.status is VerificationStatus.NEEDS_REVIEW
     ]
-    blocked_checks = [_item(check) for check in checks if check.status is VerificationStatus.BLOCKED]
+    blocked_checks = [
+        _item(check) for check in checks if check.status is VerificationStatus.BLOCKED
+    ]
     blocked = []
     if result.blocked_reason:
         blocked.append(result.blocked_reason)
@@ -62,11 +64,7 @@ def render_report(record: VerificationRecord) -> str:
 
     if result.structure:
         structure_status = worst(outcome.status for outcome in result.structure)
-        passed = sum(
-            1
-            for outcome in result.structure
-            if outcome.status is VerificationStatus.PASS
-        )
+        passed = sum(1 for outcome in result.structure if outcome.status is VerificationStatus.PASS)
         failures = [
             f"- {_text(outcome.label)}: {_text(outcome.detail)}"
             for outcome in result.structure
@@ -76,8 +74,10 @@ def render_report(record: VerificationRecord) -> str:
             "",
             "## Structure",
             "",
-            f"**Structure status:** `{structure_status.value}`; "
-            f"{passed}/{len(result.structure)} checks passed",
+            (
+                f"**Structure status:** `{structure_status.value}`; "
+                f"{passed}/{len(result.structure)} checks passed"
+            ),
             "",
             "**Structure findings**",
             "",
@@ -117,8 +117,10 @@ def render_report(record: VerificationRecord) -> str:
             "",
             "**Override**",
             "",
-            f"- {result.override.original.value} -> {result.status.value} at {target}: "
-            f"{result.override.reason}",
+            (
+                f"- {result.override.original.value} -> {result.status.value} at {target}: "
+                f"{result.override.reason}"
+            ),
         ]
 
     lines += [
@@ -130,9 +132,14 @@ def render_report(record: VerificationRecord) -> str:
         f"- Model: `{binding.model}`",
         f"- Question set: `{binding.question_set_version}`",
         f"- Check set: `{binding.check_set_version}`",
-        f"- Bands: pass >= {binding.bands.pass_min}, "
-        f"needs review >= {binding.bands.needs_review_min}",
+        (
+            f"- Bands: pass >= {binding.bands.pass_min}, "
+            f"needs review >= {binding.bands.needs_review_min}"
+        ),
         "",
-        "_Required-check contract: PASS or an adjudicated NEEDS_REVIEW/BLOCKED; FAIL is not overridable._",
+        (
+            "_Required-check contract: PASS or an adjudicated NEEDS_REVIEW/BLOCKED; FAIL is not "
+            "overridable._"
+        ),
     ]
     return "\n".join(lines)
