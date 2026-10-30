@@ -99,7 +99,7 @@ def test_file_status_is_the_worst_case():
         ],
     )
 
-    steps, cases, status = aggregate_checks(
+    _, cases, status = aggregate_checks(
         subject, _checks(subject, step_2_1_continuity=VerificationStatus.NEEDS_REVIEW)
     )
 

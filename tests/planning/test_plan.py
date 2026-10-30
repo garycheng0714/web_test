@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,7 +7,7 @@ from web_test.planning.entrypoint import PlanStatus, commit_message, main, plan,
 from web_test.planning.review import JevAnswer, run_review
 from web_test.planning.schema import Case, DesignOutput
 
-NOW = datetime(2026, 10, 14, 12, 0, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 14, 12, 0, 0, tzinfo=UTC)
 
 
 def _case(**overrides):

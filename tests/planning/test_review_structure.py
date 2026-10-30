@@ -34,7 +34,7 @@ def test_structure_checks_pass_a_clean_document() -> None:
 
 
 def test_front_matter_is_required() -> None:
-    text = re.sub(r"\A---\n.*?\n---\n", "", _document(), count=1, flags=re.S)
+    text = re.sub(r"\A---\n.*?\n---\n", "", _document(), count=1, flags=re.DOTALL)
 
     outcomes = _by_id(text)
 

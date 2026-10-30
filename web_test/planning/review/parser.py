@@ -5,7 +5,7 @@ import yaml
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
 
 _CASE_HEADING = re.compile(r"(?m)^## Case (\d+): (.*)$")
-_YAML_BLOCK = re.compile(r"```yaml\n(.*?)\n```", re.S)
+_YAML_BLOCK = re.compile(r"```yaml\n(.*?)\n```", re.DOTALL)
 _CELL_SEPARATOR = re.compile(r"(?<!\\)\|")
 
 
@@ -40,7 +40,7 @@ def _preconditions(section: str) -> list[str]:
 
     items = []
     for line in lines[start + 1 :]:
-        if line.startswith("## ") or line.startswith("### "):
+        if line.startswith(("## ", "### ")):
             break
         if line.strip().startswith("- "):
             items.append(line.strip()[2:].strip())
@@ -56,7 +56,7 @@ def _steps(section: str) -> list[ReviewStep]:
 
     steps = []
     for line in lines[start + 1 :]:
-        if line.startswith("## ") or line.startswith("### "):
+        if line.startswith(("## ", "### ")):
             break
         if not line.strip().startswith("|"):
             continue

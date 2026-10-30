@@ -1,7 +1,6 @@
 import ast
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import TypeVar
 
 from pydantic_ai import Agent, AgentRunResult
 from pydantic_ai.capabilities import LocalWorkspace
@@ -21,10 +20,8 @@ from web_test.automation.coding_agent import (
 )
 from web_test.automation.repair_guard import AutomationDeps
 
-T = TypeVar("T")
 
-
-def _capability(
+def _capability[T](
     agent: Agent[AutomationDeps, AutomationResult], kind: type[T]
 ) -> T:
     found: list[object] = []

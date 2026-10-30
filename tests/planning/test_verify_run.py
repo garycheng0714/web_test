@@ -79,7 +79,7 @@ def test_run_publishes_failure_for_multiple_files() -> None:
 
 def test_run_publishes_failure_for_a_missing_prd() -> None:
     verification_input = PreparedVerification(kind=ResolutionKind.MISSING_PRD, detail="/repo/prd/demo.md")
-    payloads, publish = sink()
+    _, publish = sink()
 
     payload = run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=never_called
@@ -91,7 +91,7 @@ def test_run_publishes_failure_for_a_missing_prd() -> None:
 
 def test_run_publishes_failure_for_an_invalid_artifact() -> None:
     verification_input = PreparedVerification(kind=ResolutionKind.INVALID, detail="no '## Case N' sections")
-    payloads, publish = sink()
+    _, publish = sink()
 
     payload = run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=never_called
@@ -118,7 +118,7 @@ def test_run_publishes_pass(tmp_path: Path) -> None:
 
 def test_run_publishes_needs_review(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
-    payloads, publish = sink()
+    _, publish = sink()
 
     payload = run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=one_answer(0.6)
@@ -129,7 +129,7 @@ def test_run_publishes_needs_review(tmp_path: Path) -> None:
 
 def test_run_publishes_fail(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
-    payloads, publish = sink()
+    _, publish = sink()
 
     payload = run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=one_answer(0.1)
@@ -140,7 +140,7 @@ def test_run_publishes_fail(tmp_path: Path) -> None:
 
 def test_run_publishes_blocked_when_jev_returns_nothing(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
-    payloads, publish = sink()
+    _, publish = sink()
 
     payload = run_payload(
         verification_input, head_sha="sha", publish=publish, system_one=empty_system_one
@@ -184,7 +184,7 @@ def test_run_applies_an_approval_to_needs_review(tmp_path: Path) -> None:
 
 def test_run_applies_an_approval_to_blocked(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
-    payloads, publish = sink()
+    _, publish = sink()
 
     result = run(
         verification_input,

@@ -102,9 +102,12 @@ def _asserts(function: ast.FunctionDef) -> bool:
     for node in ast.walk(function):
         if isinstance(node, ast.Assert):
             return True
-        if isinstance(node, ast.Call):
-            if isinstance(node.func, ast.Name) and node.func.id == "expect":
-                return True
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "expect"
+        ):
+            return True
     return False
 
 

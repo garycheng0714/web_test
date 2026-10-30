@@ -113,5 +113,5 @@ def render_run_report(report: RunReport) -> str:
         lines.append("JUnit XML was unavailable; per-test results could not be read.")
         return "\n".join(lines)
     lines += _section("Generated tests", report.generated)
-    lines += [""] + _section("Failing existing tests", report.failing)
+    lines += ["", *_section("Failing existing tests", report.failing)]
     return "\n".join(lines)
