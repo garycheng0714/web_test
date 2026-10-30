@@ -81,7 +81,7 @@ def render_case_section(case: Case, *, index: int) -> str:
 def render_document(
     cases: list[Case], *, id: str, base_url: str, title: str, open_questions: Iterable[str] = ()
 ) -> str:
-    """Render one test-case file: front-matter, a title, one section per case, and open questions."""
+    """Render one test-case file: front-matter, a title, one section per case, open questions."""
     front_matter = f"---\nid: {id}\nbase_url: {base_url}\n---"
     sections = (render_case_section(case, index=index) for index, case in enumerate(cases, start=1))
     return _join([front_matter, f"# {title}", *sections, _open_questions(open_questions)]) + "\n"
@@ -89,7 +89,7 @@ def render_document(
 
 @dataclass(frozen=True)
 class CaseWriter:
-    """Writes a PRD's cases into one `test-case/test-case-<prd-stem>.md` file (overwriting any existing one)."""
+    """Write a PRD's cases into one `test-case/test-case-<prd-stem>.md`, overwriting it."""
 
     directory: Path
     base_url: str

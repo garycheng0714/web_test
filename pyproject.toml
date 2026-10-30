@@ -51,6 +51,9 @@ select = [
     "PLW1510",
     "PLR0912",
     "PLR2004",
+    "E501",
+    "E402",
+    "ISC004",
 ]
 ignore = ["RUF003"]
 
@@ -62,6 +65,8 @@ ignore = ["RUF003"]
 # Pydantic AI calls these hooks with `call=` and `tool_def=` keywords, so the names are fixed.
 "web_test/automation/repair_guard.py" = ["ARG001"]
 "web_test/write_guard.py" = ["ARG001"]
+# JUnit XML fixture: its attribute-bearing lines cannot be wrapped without changing the fixture.
+"tests/automation/test_report.py" = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["web_test", "verify_helpers", "review_helpers"]

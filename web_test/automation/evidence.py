@@ -125,8 +125,10 @@ def render_summary(
     if evidence.traces_skipped:
         lines += [
             "",
-            f"{evidence.traces_skipped} trace(s) skipped by the "
-            f"{MAX_TRACE_FILES}-file / {MAX_TRACE_BYTES // (1024 * 1024)}MB cap.",
+            (
+                f"{evidence.traces_skipped} trace(s) skipped by the "
+                f"{MAX_TRACE_FILES}-file / {MAX_TRACE_BYTES // (1024 * 1024)}MB cap."
+            ),
         ]
     return "\n".join(lines)
 

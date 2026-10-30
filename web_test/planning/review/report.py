@@ -74,8 +74,10 @@ def render_report(record: VerificationRecord) -> str:
             "",
             "## Structure",
             "",
-            f"**Structure status:** `{structure_status.value}`; "
-            f"{passed}/{len(result.structure)} checks passed",
+            (
+                f"**Structure status:** `{structure_status.value}`; "
+                f"{passed}/{len(result.structure)} checks passed"
+            ),
             "",
             "**Structure findings**",
             "",
@@ -115,8 +117,10 @@ def render_report(record: VerificationRecord) -> str:
             "",
             "**Override**",
             "",
-            f"- {result.override.original.value} -> {result.status.value} at {target}: "
-            f"{result.override.reason}",
+            (
+                f"- {result.override.original.value} -> {result.status.value} at {target}: "
+                f"{result.override.reason}"
+            ),
         ]
 
     lines += [
@@ -128,9 +132,14 @@ def render_report(record: VerificationRecord) -> str:
         f"- Model: `{binding.model}`",
         f"- Question set: `{binding.question_set_version}`",
         f"- Check set: `{binding.check_set_version}`",
-        f"- Bands: pass >= {binding.bands.pass_min}, "
-        f"needs review >= {binding.bands.needs_review_min}",
+        (
+            f"- Bands: pass >= {binding.bands.pass_min}, "
+            f"needs review >= {binding.bands.needs_review_min}"
+        ),
         "",
-        "_Required-check contract: PASS or an adjudicated NEEDS_REVIEW/BLOCKED; FAIL is not overridable._",
+        (
+            "_Required-check contract: PASS or an adjudicated NEEDS_REVIEW/BLOCKED; FAIL is not "
+            "overridable._"
+        ),
     ]
     return "\n".join(lines)

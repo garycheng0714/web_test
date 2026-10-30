@@ -19,9 +19,9 @@ def _profile(model_name: str) -> ModelProfile | None:
         # usable; claim none so pydantic-ai uses `auto` (matches pydantic-ai's Moonshot provider).
         return ModelProfile(supports_forced_tool_choice=False)
     if model_name.startswith("deepseek-"):
-        # DeepSeek supports forced tool choice, but not while thinking — and thinking is on by default.
-        # Keep `supports_forced_tool_choice` on and mark only the thinking restriction, so pydantic-ai
-        # falls back to `auto` while thinking. With tools, DeepSeek requires each turn's
+        # DeepSeek supports forced tool choice, but not while thinking — and thinking is on by
+        # default. Keep `supports_forced_tool_choice` on and mark only the thinking restriction, so
+        # pydantic-ai falls back to `auto` while thinking. With tools, DeepSeek requires each turn's
         # `reasoning_content` to be passed back, or the next request 400s.
         return OpenAIModelProfile(
             supports_thinking=True,
