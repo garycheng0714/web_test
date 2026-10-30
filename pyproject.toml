@@ -35,8 +35,33 @@ include = ["web_test/**/*.py", "tests/**/*.py"]
 line-length = 100
 
 [tool.ruff.lint]
-select = ["F401", "I", "UP", "PIE", "FURB", "SIM", "RET", "B", "C4", "PTH", "RUF"]
+select = [
+    "F401",
+    "I",
+    "UP",
+    "PIE",
+    "FURB",
+    "SIM",
+    "RET",
+    "B",
+    "C4",
+    "PTH",
+    "RUF",
+    "ARG",
+    "PLW1510",
+    "PLR0912",
+    "PLR2004",
+]
 ignore = ["RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "ARG",      # callback and pytest fixture signatures are fixed by the caller
+    "PLR2004",  # a number in an assertion is the specification
+]
+# Pydantic AI calls these hooks with `call=` and `tool_def=` keywords, so the names are fixed.
+"web_test/automation/repair_guard.py" = ["ARG001"]
+"web_test/write_guard.py" = ["ARG001"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["web_test", "verify_helpers", "review_helpers"]

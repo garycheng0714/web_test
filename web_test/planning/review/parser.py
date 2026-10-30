@@ -5,6 +5,9 @@ import yaml
 from web_test.planning.review.subject import ReviewCase, ReviewStep, ReviewSubject
 
 _CASE_HEADING = re.compile(r"(?m)^## Case (\d+): (.*)$")
+
+# A test-step row is a step index, an action, and an expected result.
+_STEP_COLUMNS = 3
 _YAML_BLOCK = re.compile(r"```yaml\n(.*?)\n```", re.DOTALL)
 _CELL_SEPARATOR = re.compile(r"(?<!\\)\|")
 
@@ -61,7 +64,7 @@ def _steps(section: str) -> list[ReviewStep]:
         if not line.strip().startswith("|"):
             continue
         cells = _cells(line)
-        if len(cells) < 3 or cells[0].lower() == "step" or set(cells[0]) <= {"-", ":"}:
+        if len(cells) < _STEP_COLUMNS or cells[0].lower() == "step" or set(cells[0]) <= {"-", ":"}:
             continue
         steps.append(
             ReviewStep(index=int(cells[0]), action=cells[1], expected_result=cells[2])

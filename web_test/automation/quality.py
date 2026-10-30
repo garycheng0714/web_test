@@ -8,6 +8,9 @@ from pathlib import Path
 from web_test.write_guard import is_generated_test_path, resolve_workspace_path
 
 _CASE_HEADING = re.compile(r"(?m)^## Case (\d+):")
+
+# @pytest.mark.case takes the test-case id and the case number.
+_CASE_MARKER_ARGS = 2
 _PAGE_OBJECT_PACKAGES = {"pages", "components"}
 _DIRECT_PAGE_METHODS = frozenset(
     {
@@ -67,7 +70,7 @@ def _markers(function: ast.FunctionDef) -> list[tuple[str, int]]:
         owner = decorator.func.value
         if not (isinstance(owner, ast.Attribute) and owner.attr == "mark"):
             continue
-        if len(decorator.args) < 2:
+        if len(decorator.args) < _CASE_MARKER_ARGS:
             continue
         first, second = decorator.args[0], decorator.args[1]
         if not (isinstance(first, ast.Constant) and isinstance(second, ast.Constant)):
@@ -129,6 +132,77 @@ def _where(relative: str, function: ast.FunctionDef) -> str:
     return f"{relative}:{function.lineno} ({function.name})"
 
 
+def _file_findings(relative: str, tree: ast.Module) -> list[QualityFinding]:
+    findings: list[QualityFinding] = []
+    if not is_generated_test_path(relative):
+        findings.append(
+            QualityFinding(
+                QualityRule.TESTS_LOCATION,
+                f"{relative}: generated tests must live under tests/",
+            )
+        )
+    if not _imports_page_objects(tree):
+        findings.append(
+            QualityFinding(
+                QualityRule.PAGE_OBJECT_IMPORT,
+                f"{relative}: imports neither pages nor components",
+            )
+        )
+    return findings
+
+
+def _function_findings(
+    relative: str,
+    function: ast.FunctionDef,
+    case_id: str,
+    cases: set[int],
+    covered: set[int],
+) -> list[QualityFinding]:
+    where = _where(relative, function)
+    findings: list[QualityFinding] = []
+    markers = _markers(function)
+    if not markers:
+        findings.append(
+            QualityFinding(
+                QualityRule.CASE_MARKER,
+                f"{where}: no @pytest.mark.case marker",
+            )
+        )
+    for file_id, number in markers:
+        if file_id != case_id:
+            findings.append(
+                QualityFinding(
+                    QualityRule.CASE_MARKER,
+                    f"{where}: marker id {file_id!r} does not match {case_id!r}",
+                )
+            )
+        elif number not in cases:
+            findings.append(
+                QualityFinding(
+                    QualityRule.CASE_MARKER,
+                    f"{where}: marker for case {number} does not exist",
+                )
+            )
+        else:
+            covered.add(number)
+
+    if not _asserts(function):
+        findings.append(
+            QualityFinding(
+                QualityRule.ASSERTION,
+                f"{where}: has no assert or expect(...)",
+            )
+        )
+    for method in _direct_page_calls(function):
+        findings.append(
+            QualityFinding(
+                QualityRule.PAGE_OBJECT,
+                f"{where}: calls page.{method}; use a page object",
+            )
+        )
+    return findings
+
+
 def quality_findings(
     case_id: str,
     case_text: str,
@@ -161,63 +235,9 @@ def quality_findings(
         if not tests:
             continue
 
-        if not is_generated_test_path(relative):
-            findings.append(
-                QualityFinding(
-                    QualityRule.TESTS_LOCATION,
-                    f"{relative}: generated tests must live under tests/",
-                )
-            )
-        if not _imports_page_objects(tree):
-            findings.append(
-                QualityFinding(
-                    QualityRule.PAGE_OBJECT_IMPORT,
-                    f"{relative}: imports neither pages nor components",
-                )
-            )
-
+        findings += _file_findings(relative, tree)
         for function in tests:
-            where = _where(relative, function)
-            markers = _markers(function)
-            if not markers:
-                findings.append(
-                    QualityFinding(
-                        QualityRule.CASE_MARKER,
-                        f"{where}: no @pytest.mark.case marker",
-                    )
-                )
-            for file_id, number in markers:
-                if file_id != case_id:
-                    findings.append(
-                        QualityFinding(
-                            QualityRule.CASE_MARKER,
-                            f"{where}: marker id {file_id!r} does not match {case_id!r}",
-                        )
-                    )
-                elif number not in cases:
-                    findings.append(
-                        QualityFinding(
-                            QualityRule.CASE_MARKER,
-                            f"{where}: marker for case {number} does not exist",
-                        )
-                    )
-                else:
-                    covered.add(number)
-
-            if not _asserts(function):
-                findings.append(
-                    QualityFinding(
-                        QualityRule.ASSERTION,
-                        f"{where}: has no assert or expect(...)",
-                    )
-                )
-            for method in _direct_page_calls(function):
-                findings.append(
-                    QualityFinding(
-                        QualityRule.PAGE_OBJECT,
-                        f"{where}: calls page.{method}; use a page object",
-                    )
-                )
+            findings += _function_findings(relative, function, case_id, cases, covered)
 
     for number in sorted(cases - covered):
         findings.append(
