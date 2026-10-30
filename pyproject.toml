@@ -93,6 +93,17 @@ markers = [
     "live: needs network access to the real automationexercise.com site",
 ]
 
+[tool.coverage.run]
+branch = true
+source = ["web_test"]
+
+[tool.coverage.report]
+fail_under = 92
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+]
+
 [tool.basedpyright]
 include = ["web_test"]
 exclude = [".venv", "**/__pycache__"]
