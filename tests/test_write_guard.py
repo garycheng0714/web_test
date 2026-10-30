@@ -79,6 +79,17 @@ def test_resolve_workspace_path_rejects_the_wrong_suffix(tmp_path: Path) -> None
     assert resolve_workspace_path(tmp_path, "tests/notes.txt", suffix=".py") is None
 
 
+def test_resolve_workspace_path_returns_none_when_resolution_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def explode(self: Path) -> Path:
+        raise OSError("cannot resolve")
+
+    monkeypatch.setattr(Path, "resolve", explode)
+
+    assert resolve_workspace_path(tmp_path, "tests/test_a.py", suffix=".py") is None
+
+
 def test_resolve_workspace_path_rejects_a_symlink_outside(tmp_path: Path) -> None:
     workspace = tmp_path / "repo"
     outside = tmp_path / "outside.py"

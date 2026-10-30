@@ -16,6 +16,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "basedpyright>=1.40.2",
+    "httpx>=0.28.1",
     "import-linter>=2.15",
     "playwright>=1.63.0",
     "pre-commit>=4.7.0",
@@ -86,8 +87,10 @@ known-first-party = ["web_test", "verify_helpers", "review_helpers"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = ["-m", "not live"]
 markers = [
     "case(id, number): the source test-case id and case number",
+    "live: needs network access to the real automationexercise.com site",
 ]
 
 [tool.basedpyright]

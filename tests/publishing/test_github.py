@@ -2,9 +2,11 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import httpx
 import pytest
 from githubkit import GitHub
-from githubkit.exception import GitHubException
+from githubkit.exception import GitHubException, RequestFailed, RequestTimeout
+from githubkit.response import Response as GitHubResponse
 
 from web_test.publishing.github import (
     CheckPayload,
@@ -31,6 +33,15 @@ def _check_runs(*runs: int) -> SimpleNamespace:
     return SimpleNamespace(
         parsed_data=SimpleNamespace(check_runs=[SimpleNamespace(id=run_id) for run_id in runs])
     )
+
+
+CHECK_RUNS_URL = "https://api.github.com/repos/o/r/check-runs"
+
+
+def _request_failed(status: int, text: str) -> RequestFailed:
+    request = httpx.Request("GET", CHECK_RUNS_URL)
+    raw = httpx.Response(status, text=text, request=request)
+    return RequestFailed(GitHubResponse(raw, type(None)))
 
 
 def test_open_pull_request_uses_the_sdk() -> None:
@@ -119,6 +130,30 @@ def test_a_github_error_keeps_its_cause() -> None:
         _adapter(client).find_check_run("abc", name="verify-test-case")
 
     assert raised.value.__cause__ is cause
+
+
+def test_a_status_failure_reports_method_url_status_and_truncated_text() -> None:
+    client = MagicMock()
+    client.rest.checks.list_for_ref.side_effect = _request_failed(500, "boom" * 100)
+
+    with pytest.raises(GitHubError) as raised:
+        _adapter(client).find_check_run("abc", name="verify-test-case")
+
+    message = str(raised.value)
+    assert f"GitHub list check runs failed: GET {CHECK_RUNS_URL} -> 500: boom" in message
+    assert message.endswith("boom" * 50)
+
+
+def test_a_timeout_reports_the_method_and_url() -> None:
+    client = MagicMock()
+    client.rest.checks.list_for_ref.side_effect = RequestTimeout(
+        httpx.TimeoutException("timed out", request=httpx.Request("GET", CHECK_RUNS_URL))
+    )
+
+    with pytest.raises(GitHubError) as raised:
+        _adapter(client).find_check_run("abc", name="verify-test-case")
+
+    assert str(raised.value) == f"GitHub list check runs failed: GET {CHECK_RUNS_URL} timed out"
 
 
 def test_from_env_reads_the_token_and_repository(monkeypatch: pytest.MonkeyPatch) -> None:
