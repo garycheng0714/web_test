@@ -2770,6 +2770,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "basedpyright" },
+    { name = "httpx" },
     { name = "import-linter" },
     { name = "playwright" },
     { name = "pre-commit" },
@@ -2797,6 +2798,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "basedpyright", specifier = ">=1.40.2" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "import-linter", specifier = ">=2.15" },
     { name = "playwright", specifier = ">=1.63.0" },
     { name = "pre-commit", specifier = ">=4.7.0" },

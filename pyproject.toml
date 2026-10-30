@@ -16,6 +16,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "basedpyright>=1.40.2",
+    "httpx>=0.28.1",
     "import-linter>=2.15",
     "playwright>=1.63.0",
     "pre-commit>=4.7.0",
