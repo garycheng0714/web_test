@@ -55,8 +55,17 @@ select = [
     "E402",
     "ISC004",
     "S",
+    "PLR0911",
+    "PLR0913",
+    "PLR0915",
 ]
 ignore = ["RUF003"]
+
+[tool.ruff.lint.pylint]
+# Keyword-only options and dependency injection are not the smell; long positional
+# argument lists are. 10 is today's worst case (build_record), a backstop only.
+max-args = 10
+max-positional-args = 5
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
