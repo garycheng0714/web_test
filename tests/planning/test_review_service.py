@@ -3,6 +3,13 @@ from unittest.mock import MagicMock
 from typesafe_sdk import Noul
 
 import web_test.planning.review.service as review_module
+from review_helpers import (
+    answers_for,
+    make_case,
+    make_design,
+    passing_system_one,
+    render_case,
+)
 from web_test.planning.review import (
     JEV_MODEL,
     JevAnswer,
@@ -13,13 +20,6 @@ from web_test.planning.review import (
 from web_test.planning.review.questions import STEP_QUALITY_DIMENSIONS
 from web_test.planning.review.verification import VerificationStatus, digest_text
 from web_test.planning.schema import DesignOutput
-from review_helpers import (
-    answers_for,
-    make_case,
-    make_design,
-    passing_system_one,
-    render_case,
-)
 
 
 def _question_ids() -> list[str]:

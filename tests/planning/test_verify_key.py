@@ -1,7 +1,7 @@
 import pytest
 
-from web_test.planning.verify.key import InvalidTestCase, cache_key
 from verify_helpers import case_text
+from web_test.planning.verify.key import InvalidTestCase, cache_key
 
 
 def test_cache_key_is_stable_and_sensitive() -> None:

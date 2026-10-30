@@ -1,11 +1,11 @@
 import re
 
+from review_helpers import make_case
 from web_test.planning.cases_writer import render_document
 from web_test.planning.review.parser import parse_test_case
 from web_test.planning.review.structure import CHECK_SET_VERSION, structure_checks
 from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.schema import Case
-from review_helpers import make_case
 
 
 def _document(cases: list[Case] | None = None) -> str:

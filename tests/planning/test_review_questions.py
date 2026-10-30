@@ -1,10 +1,10 @@
+from review_helpers import review_case, review_subject
 from web_test.planning.review.questions import (
     STEP_QUALITY_DIMENSIONS,
     expected_checks,
     questions_for_subject,
 )
 from web_test.planning.review.verification import CheckDimension
-from review_helpers import review_case, review_subject
 
 
 def test_questions_for_subject_matches_expected_checks():

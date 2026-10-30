@@ -1,3 +1,4 @@
+from review_helpers import answers_for_subject, review_subject
 from web_test.planning.review.jev import JEV_MODEL, JevAnswer
 from web_test.planning.review.record import (
     DEFAULT_BANDS,
@@ -7,7 +8,6 @@ from web_test.planning.review.record import (
     build_record,
 )
 from web_test.planning.review.structure import CHECK_SET_VERSION
-from review_helpers import answers_for_subject, review_subject
 from web_test.planning.review.verification import (
     CheckDimension,
     CheckOutcome,

@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from web_test.planning.verify.resolution import EarlyResolution, ResolutionKind, resolve
 from verify_helpers import write_case, write_prd
+from web_test.planning.verify.resolution import EarlyResolution, ResolutionKind, resolve
 
 
 def test_nothing_when_no_artifact_changed(tmp_path: Path) -> None:

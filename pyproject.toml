@@ -18,6 +18,7 @@ dev = [
     "basedpyright>=1.40.2",
     "import-linter>=2.15",
     "playwright>=1.63.0",
+    "pre-commit>=4.7.0",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "pytest-playwright>=0.9.0",
@@ -28,6 +29,16 @@ eval = [
     "arize-phoenix-otel==0.17.2",
     "openinference-instrumentation-pydantic-ai==0.1.30",
 ]
+
+[tool.ruff]
+include = ["web_test/**/*.py", "tests/**/*.py"]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["F401", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["web_test", "verify_helpers", "review_helpers"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

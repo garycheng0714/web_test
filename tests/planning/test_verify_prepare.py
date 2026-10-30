@@ -1,8 +1,8 @@
 from pathlib import Path
 
+from verify_helpers import write_case, write_prd
 from web_test.planning.verify.prepare import prepare
 from web_test.planning.verify.resolution import ResolutionKind
-from verify_helpers import write_case, write_prd
 
 
 def test_prepare_builds_aready_input(tmp_path: Path) -> None:

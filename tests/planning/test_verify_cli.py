@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from verify_helpers import never_called, ready_input, write_case, write_prd
 from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.verify import cli
 from web_test.planning.verify.cache import CachedVerdict
@@ -9,7 +10,6 @@ from web_test.planning.verify.input import Approval, PreparedVerification
 from web_test.planning.verify.resolution import ResolutionKind
 from web_test.planning.verify.run import RunResult
 from web_test.publishing.github import CheckPayload, GitHubError
-from verify_helpers import never_called, ready_input, write_case, write_prd
 
 
 def test_cli_run_reports_a_cache_hit(

@@ -2,12 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from web_test.planning.review.verification import VerificationStatus
-from web_test.planning.verify.cache import CachedVerdict, VerdictCache
-from web_test.planning.verify.input import PreparedVerification
-from web_test.planning.verify.resolution import ResolutionKind
-from web_test.planning.verify.run import run
-from web_test.publishing.github import CheckPayload, GitHubError
 from verify_helpers import (
     approval,
     empty_system_one,
@@ -18,6 +12,12 @@ from verify_helpers import (
     run_payload,
     sink,
 )
+from web_test.planning.review.verification import VerificationStatus
+from web_test.planning.verify.cache import CachedVerdict, VerdictCache
+from web_test.planning.verify.input import PreparedVerification
+from web_test.planning.verify.resolution import ResolutionKind
+from web_test.planning.verify.run import run
+from web_test.publishing.github import CheckPayload, GitHubError
 
 
 def test_run_rejects_a_ready_input_without_verdict_data() -> None:

@@ -21,7 +21,6 @@ from web_test.automation.coding_agent import (
 )
 from web_test.automation.repair_guard import AutomationDeps
 
-
 T = TypeVar("T")
 
 

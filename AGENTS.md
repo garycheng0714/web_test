@@ -31,7 +31,8 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Designer eval report: `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/report.py --run <run>`
 - Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
 - Typecheck: `uv run basedpyright` (scope: `web_test`, `standard` mode)
-- Lint Python (unused imports): `uv run ruff check --select F401`
+- Lint Python (unused imports, import order): `uv run ruff check` (scope in `[tool.ruff]`)
+- Install the pre-commit hook (one-time per clone): `uv run pre-commit install`
 - Architecture contracts: `uv run lint-imports`
 - Coverage (report only): `uv run pytest --cov=web_test --cov-report=term-missing`
 - Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[coder,playwright,skills]` are dependencies)

@@ -8,7 +8,8 @@ from web_test.planning.review.service import run_review_on
 from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.verify.cache import VerdictCache
 from web_test.planning.verify.input import Approval, PreparedVerification
-from web_test.planning.verify.key import InvalidTestCase, cache_key as compute_cache_key
+from web_test.planning.verify.key import InvalidTestCase
+from web_test.planning.verify.key import cache_key as compute_cache_key
 from web_test.planning.verify.payload import (
     adjudicated_payload,
     approval_ignored_payload,

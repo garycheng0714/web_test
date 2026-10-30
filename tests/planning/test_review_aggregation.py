@@ -1,8 +1,8 @@
+from review_helpers import review_case, review_subject
 from web_test.planning.review.aggregation import aggregate_checks
 from web_test.planning.review.questions import expected_checks
 from web_test.planning.review.subject import ReviewStep, ReviewSubject
 from web_test.planning.review.verification import CheckOutcome, VerificationStatus
-from review_helpers import review_case, review_subject
 
 _PROBABILITY = {
     VerificationStatus.PASS: 0.95,
