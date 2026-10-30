@@ -36,7 +36,7 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Format Python: `uv run ruff format` (line length 100)
 - Install the pre-commit hook (one-time per clone): `uv run pre-commit install`
 - Architecture contracts: `uv run lint-imports`
-- Coverage (report only): `uv run pytest --cov=web_test --cov-report=term-missing`
+- Coverage (gated by `[tool.coverage.report] fail_under`): `uv run pytest --cov=web_test --cov-report=term-missing`
 - Add a dependency: `uv add <pkg>` (`pydantic-ai` and `pydantic-ai-harness[coder,playwright,skills]` are dependencies)
 - `uv sync` to generate `uv.lock`
 - Lint and format cover `web_test`, `tests`, `pages`, and `components` (see `[tool.ruff]` `include`); `main.py` is the demo script and is out of scope. Workflows are checked with `actionlint` in CI. CI: `.github/workflows/ci.yml` (suite with coverage, typecheck with lint, contracts, workflows on every PR) and `.github/workflows/automate.yml` (merge-triggered automation).

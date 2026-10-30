@@ -87,10 +87,24 @@ known-first-party = ["web_test", "verify_helpers", "review_helpers"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-addopts = ["-m", "not live"]
+addopts = ["-m", "not live", "--strict-markers", "--strict-config"]
+filterwarnings = ["error"]
+faulthandler_timeout = 120
+faulthandler_exit_on_timeout = true
 markers = [
     "case(id, number): the source test-case id and case number",
     "live: needs network access to the real automationexercise.com site",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["web_test"]
+
+[tool.coverage.report]
+fail_under = 92
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
 ]
 
 [tool.basedpyright]

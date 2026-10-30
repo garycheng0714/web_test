@@ -45,14 +45,25 @@ third-party site.
 - The branch was first created on top of `feature/designer-evals-claims` and rebased onto
   `origin/main` (`69ab91a`) before any push.
 
-**Next** (not started)
+### Coverage, pytest hygiene, and goldens
 
-- Coverage gate: `[tool.coverage.run] branch = true`, `source = ["web_test"]`, a measured
-  `[tool.coverage.report] fail_under`, and `exclude_lines` for `pragma: no cover` and
-  `if __name__ == .__main__.:`.
-- pytest hygiene: `--strict-markers`, `--strict-config`, a warning policy measured with `-W error`,
-  and a timeout (`pytest-timeout` if it supports pytest 9, otherwise `faulthandler_timeout`).
-- Golden tests: `render_report` (FAIL and BLOCKED records) and `render_document` compared against
-  files under `tests/fixtures/golden/`, with a documented manual update procedure.
+Follow-up work on the stacked branch `test/coverage-gate-and-goldens`, three commits:
+
+| Commit | Change |
+| --- | --- |
+| `56043ad` Gate coverage at the current branch coverage | `[tool.coverage.run] branch = true`, `source = ["web_test"]`, `fail_under = 92`, `exclude_lines` for `pragma: no cover` and `if __name__ == .__main__.:` |
+| `cd24987` Harden the pytest configuration | `--strict-markers`, `--strict-config`, `filterwarnings = ["error"]`, `faulthandler_timeout = 120` with `faulthandler_exit_on_timeout` |
+| `3aca52c` Add golden tests for the report and case document | three whole-file snapshots under `tests/fixtures/golden/`, compared by `tests/planning/test_golden_outputs.py` with no update flag |
+
+**Measured while shipping**
+
+- Branch coverage was 91.81% before excluding the six `if __name__ == "__main__":` blocks and 92.32%
+  after; the gate is the floor, 92.
+- `filterwarnings = ["error"]` was safe: the hermetic and live suites both pass with `-W error`, so no
+  third-party ignore was needed.
+- Nothing in the repo uses `TYPE_CHECKING` or a bare `...` body, so `exclude_lines` stays minimal.
+- `pytest-timeout` was not added: pytest 9 already ships `faulthandler_timeout` plus
+  `faulthandler_exit_on_timeout`, which aborts the run (verified by a 5s sleep under a 1s timeout).
+- Coverage starts at 92.3%, not the 73% in the stale `.coverage`; the gate is set from a fresh run.
 
 **Status:** shipped
