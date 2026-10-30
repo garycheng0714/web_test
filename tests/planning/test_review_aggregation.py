@@ -74,9 +74,7 @@ def test_precedence_is_fail_over_blocked_over_needs_review():
 def test_ac_failure_marks_case_fail_even_when_steps_pass():
     subject = review_subject()
 
-    steps, cases, status = aggregate_checks(
-        subject, _checks(subject, ac_1=VerificationStatus.FAIL)
-    )
+    steps, cases, status = aggregate_checks(subject, _checks(subject, ac_1=VerificationStatus.FAIL))
 
     assert [step.status for step in steps] == [VerificationStatus.PASS] * 2
     assert cases[0].status is VerificationStatus.FAIL

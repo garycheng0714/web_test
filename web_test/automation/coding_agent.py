@@ -29,6 +29,7 @@ PR_SKILL_LIBRARY = REPO_ROOT / ".agents" / "skills"
 SKILL_NAME = "page-object-model"
 PR_SKILL_NAME = "pr"
 
+
 class AutomationResult(BaseModel):
     """What an automation run returns: the PR body, or nothing when the suite stayed red."""
 
@@ -64,10 +65,10 @@ INSTRUCTIONS = (
     "Tests: build locators from the snapshot's roles and accessible names. Before creating a page "
     "object, read `pages/base_page.py` and an existing page object; follow the base class's "
     "constructor and patterns. Write test and page-object code with Playwright's **Python** API "
-    "(`page.goto`, `page.click`, `expect`, `page.on(\"dialog\", lambda d: d.accept())`); the browser "
+    '(`page.goto`, `page.click`, `expect`, `page.on("dialog", lambda d: d.accept())`); the browser '
     "tools you grounded with (`navigate`, `snapshot`, `click`, `handle_next_dialog`, `tabs`) are not "
     "Python APIs and must not appear in the code. After opening a page, wait for it to settle "
-    "(`page.wait_for_load_state(\"networkidle\")`) before reading or interacting: a URL/title check "
+    '(`page.wait_for_load_state("networkidle")`) before reading or interacting: a URL/title check '
     "can pass before the page's scripts load, and a submit handler attached by script then ignores "
     "the click. Locate content that "
     "appears only after an interaction (a success message, a confirmation dialog) with a locator "
@@ -75,11 +76,11 @@ INSTRUCTIONS = (
     "every locator (for an action as well as an assertion) must be unique, since an ambiguous one "
     "fails with a strict-mode violation. Create any file "
     "a test needs with pytest's `tmp_path`: take `tmp_path` as a test parameter and write the file "
-    "with `(tmp_path / \"name\").write_text(...)`; upload via the page object's "
-    "`set_input_files(str(tmp_path / \"name\"))`. Never use `pytest.tmp_path` or a `page.context.set_*` "
+    'with `(tmp_path / "name").write_text(...)`; upload via the page object\'s '
+    '`set_input_files(str(tmp_path / "name"))`. Never use `pytest.tmp_path` or a `page.context.set_*` '
     "method. Write generated tests directly under `tests/`. The write tool accepts only Python files "
     "under `tests/`, `pages/`, and `components/`, so never write data files into the workspace. "
-    "Tag every test function with its source case: `@pytest.mark.case(\"<id>\", <n>)`, using the "
+    'Tag every test function with its source case: `@pytest.mark.case("<id>", <n>)`, using the '
     "`id` from the case front matter and the integer from its `## Case N:` heading. One marker per "
     "test; a case may have more than one test. Add the decorator to each test function; do not "
     "replace an existing `pytestmark`.\n\n"

@@ -29,8 +29,7 @@ def _requirement_ids(section: str) -> list[str]:
 
 def _cells(line: str) -> list[str]:
     return [
-        cell.strip().replace(r"\|", "|")
-        for cell in _CELL_SEPARATOR.split(line.strip().strip("|"))
+        cell.strip().replace(r"\|", "|") for cell in _CELL_SEPARATOR.split(line.strip().strip("|"))
     ]
 
 
@@ -66,9 +65,7 @@ def _steps(section: str) -> list[ReviewStep]:
         cells = _cells(line)
         if len(cells) < _STEP_COLUMNS or cells[0].lower() == "step" or set(cells[0]) <= {"-", ":"}:
             continue
-        steps.append(
-            ReviewStep(index=int(cells[0]), action=cells[1], expected_result=cells[2])
-        )
+        steps.append(ReviewStep(index=int(cells[0]), action=cells[1], expected_result=cells[2]))
     return steps
 
 

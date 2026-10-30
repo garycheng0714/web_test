@@ -22,9 +22,7 @@ class PreparedVerification(BaseModel):
         fields = (self.test_case_text, self.prd_text, self.cache_key)
         if self.kind is ResolutionKind.READY:
             if any(field is None for field in fields):
-                raise ValueError(
-                    "ready verification input is missing its verdict data"
-                )
+                raise ValueError("ready verification input is missing its verdict data")
         elif any(field is not None for field in fields):
             raise ValueError("early verification input has verdict data")
         return self
@@ -41,7 +39,7 @@ class Approval(BaseModel):
     @classmethod
     def _clean_reason(cls, value: str) -> str:
         text = value.strip()
-        return text if len(text) <= _REASON_LIMIT else f"{text[:_REASON_LIMIT - 1]}…"
+        return text if len(text) <= _REASON_LIMIT else f"{text[: _REASON_LIMIT - 1]}…"
 
     @field_validator("head_sha")
     @classmethod

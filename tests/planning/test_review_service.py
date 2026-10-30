@@ -60,9 +60,7 @@ def test_run_review_passes_case_preconditions_into_the_subject():
         return passing_system_one(request)
 
     case = make_case(preconditions=["User is on /login"])
-    run_review(
-        "# PRD", DesignOutput(cases=[case]), "artifact", system_one=system_one
-    )
+    run_review("# PRD", DesignOutput(cases=[case]), "artifact", system_one=system_one)
 
     assert captured["request"].subject.cases[0].preconditions == ["User is on /login"]
 
@@ -145,9 +143,7 @@ def test_question_set_version_failure_is_blocked(monkeypatch):
 
     monkeypatch.setattr(review_module, "question_set_version", _boom)
 
-    record = run_review(
-        "# PRD", make_design(), "artifact", system_one=passing_system_one
-    )
+    record = run_review("# PRD", make_design(), "artifact", system_one=passing_system_one)
 
     assert record.result.status is VerificationStatus.BLOCKED
     assert "request build failed" in (record.result.blocked_reason or "")
@@ -167,9 +163,7 @@ def test_run_review_returns_blocked_when_the_call_fails():
 
 
 def test_run_review_returns_blocked_on_empty_answers():
-    record = run_review(
-        "# PRD", make_design(), "artifact", system_one=lambda request: {}
-    )
+    record = run_review("# PRD", make_design(), "artifact", system_one=lambda request: {})
 
     assert record.result.status is VerificationStatus.BLOCKED
     assert record.result.blocked_reason == "Jev returned no answers"
@@ -192,12 +186,8 @@ def test_record_binds_digests_model_and_question_set():
 
 
 def test_question_set_version_is_stable_for_the_same_design():
-    first = run_review(
-        "# PRD", make_design(), "artifact", system_one=passing_system_one
-    )
-    second = run_review(
-        "# PRD", make_design(), "artifact", system_one=passing_system_one
-    )
+    first = run_review("# PRD", make_design(), "artifact", system_one=passing_system_one)
+    second = run_review("# PRD", make_design(), "artifact", system_one=passing_system_one)
 
     assert first.binding.question_set_version == second.binding.question_set_version
 
@@ -216,7 +206,6 @@ def test_run_review_combines_a_structure_failure_with_jev() -> None:
     assert record.result.jev_status is VerificationStatus.PASS
     assert record.result.status is VerificationStatus.FAIL
     assert any(
-        outcome.check_id == "step_1_1_expected"
-        and outcome.status is VerificationStatus.FAIL
+        outcome.check_id == "step_1_1_expected" and outcome.status is VerificationStatus.FAIL
         for outcome in record.result.structure
     )

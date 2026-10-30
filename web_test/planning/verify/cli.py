@@ -11,11 +11,7 @@ from web_test.publishing.github import GitHubAdapter
 
 
 def _read_changed_files(path: Path) -> list[str]:
-    return [
-        line.strip()
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    return [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def _write_output(path: Path | None, lines: list[str]) -> None:

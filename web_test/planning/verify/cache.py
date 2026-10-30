@@ -35,9 +35,7 @@ class VerdictCache:
     # immutable; delete the entry if it keeps reappearing.
     def load(self, key: str) -> CachedVerdict | None:
         try:
-            cached = CachedVerdict.model_validate_json(
-                self.path.read_text(encoding="utf-8")
-            )
+            cached = CachedVerdict.model_validate_json(self.path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             return None
         return cached if cached.payload.external_id == key else None

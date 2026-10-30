@@ -26,7 +26,16 @@ def test_check_write_permission_allows(path: str) -> None:
 
 @pytest.mark.parametrize(
     "path",
-    ["/etc/passwd", "../outside.py", "tests/../secret.py", "web_test/coding_agent.py", "main.py", "pyproject.toml", "tests/notes.txt", ""],
+    [
+        "/etc/passwd",
+        "../outside.py",
+        "tests/../secret.py",
+        "web_test/coding_agent.py",
+        "main.py",
+        "pyproject.toml",
+        "tests/notes.txt",
+        "",
+    ],
 )
 def test_check_write_permission_rejects(path: str) -> None:
     assert not check_write_permission(path).allow
@@ -51,19 +60,14 @@ def test_resolve_workspace_path_allows_nested_paths(tmp_path: Path) -> None:
     target.parent.mkdir(parents=True)
     target.write_text("x = 1\n", encoding="utf-8")
 
-    assert (
-        resolve_workspace_path(tmp_path, "tests/sub/test_a.py", suffix=".py")
-        == target
-    )
+    assert resolve_workspace_path(tmp_path, "tests/sub/test_a.py", suffix=".py") == target
 
 
 @pytest.mark.parametrize(
     "relative",
     ["/etc/passwd", "../escape.py", "", "tests/../escape.py", "tests/missing.py"],
 )
-def test_resolve_workspace_path_rejects_unsafe_or_missing(
-    tmp_path: Path, relative: str
-) -> None:
+def test_resolve_workspace_path_rejects_unsafe_or_missing(tmp_path: Path, relative: str) -> None:
     assert resolve_workspace_path(tmp_path, relative, suffix=".py") is None
 
 

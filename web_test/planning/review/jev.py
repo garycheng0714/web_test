@@ -39,7 +39,9 @@ def typesafe_system_one(request: ReviewRequest) -> dict[str, JevAnswer]:
 
     async def _call() -> SystemOneResponse:
         async with AsyncTypeSafeClient() as client:
-            return await client.system_one(request.subject.model_dump(), request.questions, model=JEV_MODEL)
+            return await client.system_one(
+                request.subject.model_dump(), request.questions, model=JEV_MODEL
+            )
 
     response = run_sync(_call())
     return {name: _normalize(answer) for name, answer in response.answers.items()}

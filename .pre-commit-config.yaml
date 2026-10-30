@@ -7,3 +7,9 @@ repos:
         language: system
         files: ^(web_test|tests)/
         types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude
+        language: system
+        files: ^(web_test|tests)/
+        types: [python]

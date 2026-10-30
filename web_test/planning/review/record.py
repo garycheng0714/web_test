@@ -43,9 +43,7 @@ def _check_outcomes(
     return outcomes
 
 
-def _default_blocked_reason(
-    checks: list[CheckOutcome], blocked_reason: str | None
-) -> str | None:
+def _default_blocked_reason(checks: list[CheckOutcome], blocked_reason: str | None) -> str | None:
     """Give a whole-review failure a readable reason when none was supplied."""
     if blocked_reason is None and (
         not checks or all(check.status is VerificationStatus.BLOCKED for check in checks)

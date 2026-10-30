@@ -59,10 +59,7 @@ def test_default_blocked_reason_keeps_explicit_and_fills_whole_review_failures()
         _default_blocked_reason([_outcome(VerificationStatus.BLOCKED)], None)
         == "No answer was returned for any check."
     )
-    assert (
-        _default_blocked_reason([], None)
-        == "No answer was returned for any check."
-    )
+    assert _default_blocked_reason([], None) == "No answer was returned for any check."
     assert (
         _default_blocked_reason(
             [_outcome(VerificationStatus.PASS), _outcome(VerificationStatus.BLOCKED)],

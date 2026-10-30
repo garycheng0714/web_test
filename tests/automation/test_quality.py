@@ -44,9 +44,7 @@ def _findings(
     workspace = _workspace(tmp_path, files)
     return tuple(
         finding.rule
-        for finding in quality_findings(
-            "register-login", case_text, list(files), workspace
-        )
+        for finding in quality_findings("register-login", case_text, list(files), workspace)
     )
 
 
@@ -119,8 +117,7 @@ def test_test_without_a_case_marker_is_a_finding(tmp_path: Path) -> None:
 def test_non_case_decorator_is_ignored(tmp_path: Path) -> None:
     source = CLEAN_TEST.replace(
         '@pytest.mark.case("register-login", 1)',
-        '@pytest.mark.usefixtures("block_ads")\n'
-        '@pytest.mark.case("register-login", 1)',
+        '@pytest.mark.usefixtures("block_ads")\n@pytest.mark.case("register-login", 1)',
     )
 
     assert _findings(tmp_path, {"tests/test_home.py": source}) == ()
@@ -145,9 +142,7 @@ def test_mark_alias_is_not_recognized(tmp_path: Path) -> None:
         '@pytest.mark.case("register-login", True)',
     ],
 )
-def test_malformed_case_marker_is_treated_as_missing(
-    tmp_path: Path, decorator: str
-) -> None:
+def test_malformed_case_marker_is_treated_as_missing(tmp_path: Path, decorator: str) -> None:
     source = CLEAN_TEST.replace('@pytest.mark.case("register-login", 1)', decorator)
 
     assert _findings(tmp_path, {"tests/test_home.py": source}) == (
@@ -202,9 +197,7 @@ def test_reaching_through_a_page_objects_page_is_a_finding(tmp_path: Path) -> No
         '    home_page.page.locator("#submit").click()',
     )
 
-    assert _findings(tmp_path, {"tests/test_home.py": source}) == (
-        QualityRule.PAGE_OBJECT,
-    )
+    assert _findings(tmp_path, {"tests/test_home.py": source}) == (QualityRule.PAGE_OBJECT,)
 
 
 def test_page_on_and_wait_are_allowed(tmp_path: Path) -> None:
@@ -219,9 +212,7 @@ def test_page_on_and_wait_are_allowed(tmp_path: Path) -> None:
 
 
 def test_generated_test_outside_tests_is_a_finding(tmp_path: Path) -> None:
-    assert _findings(tmp_path, {"pages/test_home.py": CLEAN_TEST}) == (
-        QualityRule.TESTS_LOCATION,
-    )
+    assert _findings(tmp_path, {"pages/test_home.py": CLEAN_TEST}) == (QualityRule.TESTS_LOCATION,)
 
 
 @pytest.mark.parametrize(
@@ -231,12 +222,8 @@ def test_generated_test_outside_tests_is_a_finding(tmp_path: Path) -> None:
         "from components.header import Header",
     ],
 )
-def test_page_object_import_forms_are_allowed(
-    tmp_path: Path, import_line: str
-) -> None:
-    source = CLEAN_TEST.replace(
-        "from pages.home_page import HomePage", import_line
-    )
+def test_page_object_import_forms_are_allowed(tmp_path: Path, import_line: str) -> None:
+    source = CLEAN_TEST.replace("from pages.home_page import HomePage", import_line)
 
     assert _findings(tmp_path, {"tests/test_home.py": source}) == ()
 
@@ -244,9 +231,7 @@ def test_page_object_import_forms_are_allowed(
 def test_generated_test_must_import_page_objects(tmp_path: Path) -> None:
     source = CLEAN_TEST.replace("from pages.home_page import HomePage\n", "")
 
-    assert _findings(tmp_path, {"tests/test_home.py": source}) == (
-        QualityRule.PAGE_OBJECT_IMPORT,
-    )
+    assert _findings(tmp_path, {"tests/test_home.py": source}) == (QualityRule.PAGE_OBJECT_IMPORT,)
 
 
 def test_unparseable_file_is_a_finding(tmp_path: Path) -> None:

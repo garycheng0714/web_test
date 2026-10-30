@@ -31,4 +31,3 @@ def home_page(page: Page, header: Header) -> HomePage:
 @pytest.fixture
 def test_cases_page(page: Page, header: Header) -> TestCasesPage:
     return TestCasesPage(page, header)
-

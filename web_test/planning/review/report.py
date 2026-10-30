@@ -12,7 +12,7 @@ _LABEL_LIMIT = 120
 
 def _text(value: str) -> str:
     text = " ".join(value.split())
-    return text if len(text) <= _LABEL_LIMIT else f"{text[:_LABEL_LIMIT - 1]}…"
+    return text if len(text) <= _LABEL_LIMIT else f"{text[: _LABEL_LIMIT - 1]}…"
 
 
 def _probability(value: float | None) -> str:
@@ -47,7 +47,9 @@ def render_report(record: VerificationRecord) -> str:
     needs_review = [
         _item(check) for check in checks if check.status is VerificationStatus.NEEDS_REVIEW
     ]
-    blocked_checks = [_item(check) for check in checks if check.status is VerificationStatus.BLOCKED]
+    blocked_checks = [
+        _item(check) for check in checks if check.status is VerificationStatus.BLOCKED
+    ]
     blocked = []
     if result.blocked_reason:
         blocked.append(result.blocked_reason)
@@ -62,11 +64,7 @@ def render_report(record: VerificationRecord) -> str:
 
     if result.structure:
         structure_status = worst(outcome.status for outcome in result.structure)
-        passed = sum(
-            1
-            for outcome in result.structure
-            if outcome.status is VerificationStatus.PASS
-        )
+        passed = sum(1 for outcome in result.structure if outcome.status is VerificationStatus.PASS)
         failures = [
             f"- {_text(outcome.label)}: {_text(outcome.detail)}"
             for outcome in result.structure

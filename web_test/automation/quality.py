@@ -76,11 +76,7 @@ def _markers(function: ast.FunctionDef) -> list[tuple[str, int]]:
         if not (isinstance(first, ast.Constant) and isinstance(second, ast.Constant)):
             continue
         file_id, number = first.value, second.value
-        if (
-            isinstance(file_id, str)
-            and isinstance(number, int)
-            and not isinstance(number, bool)
-        ):
+        if isinstance(file_id, str) and isinstance(number, int) and not isinstance(number, bool):
             markers.append((file_id, number))
     return markers
 
@@ -121,9 +117,7 @@ def _imports_page_objects(tree: ast.Module) -> bool:
             if package in _PAGE_OBJECT_PACKAGES:
                 return True
         elif isinstance(node, ast.Import):
-            if any(
-                alias.name.split(".")[0] in _PAGE_OBJECT_PACKAGES for alias in node.names
-            ):
+            if any(alias.name.split(".")[0] in _PAGE_OBJECT_PACKAGES for alias in node.names):
                 return True
     return False
 
@@ -243,8 +237,7 @@ def quality_findings(
         findings.append(
             QualityFinding(
                 QualityRule.CASE_COVERAGE,
-                f"case {number}: no test carries "
-                f"@pytest.mark.case({case_id!r}, {number})",
+                f"case {number}: no test carries @pytest.mark.case({case_id!r}, {number})",
             )
         )
     return tuple(findings)

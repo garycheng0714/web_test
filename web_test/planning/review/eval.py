@@ -54,8 +54,7 @@ def _case_checks(case: ReviewCase) -> list[str]:
     ids = [ac_id(case.index)]
     for step in case.steps:
         ids.extend(
-            step_id(case.index, step.index, dimension)
-            for dimension in STEP_QUALITY_DIMENSIONS
+            step_id(case.index, step.index, dimension) for dimension in STEP_QUALITY_DIMENSIONS
         )
     return ids
 
@@ -152,13 +151,11 @@ def evaluate(
                 dimension=dimension,
                 expected=len(expected_for_dimension),
                 caught=sum(
-                    result.status
-                    in {VerificationStatus.FAIL, VerificationStatus.NEEDS_REVIEW}
+                    result.status in {VerificationStatus.FAIL, VerificationStatus.NEEDS_REVIEW}
                     for result in expected_for_dimension
                 ),
                 hard_fail=sum(
-                    result.status is VerificationStatus.FAIL
-                    for result in expected_for_dimension
+                    result.status is VerificationStatus.FAIL for result in expected_for_dimension
                 ),
                 false_flags=false_flags_for_dimension,
             )
@@ -228,10 +225,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         eval_set = load_eval_set(args.fixtures)
-        reports = [
-            evaluate(eval_set, system_one=typesafe_system_one)
-            for _ in range(args.runs)
-        ]
+        reports = [evaluate(eval_set, system_one=typesafe_system_one) for _ in range(args.runs)]
     except (OSError, ValueError) as error:
         print(f"failed: {error}", file=sys.stderr)
         return 1

@@ -89,9 +89,7 @@ def _deps(*, files: list[str], green: bool) -> tuple[MagicMock, MagicMock, Magic
     git.changed_paths.return_value = list(files)
     pr = MagicMock()
     suite = MagicMock()
-    suite.run.return_value = CommandResult(
-        0 if green else 1, "suite stdout", "suite stderr"
-    )
+    suite.run.return_value = CommandResult(0 if green else 1, "suite stdout", "suite stderr")
     return git, pr, suite
 
 
@@ -185,9 +183,9 @@ def test_automate_keeps_the_run_report_on_a_suite_red(tmp_path: Path) -> None:
     assert outcome.status is AutomationStatus.SUITE_RED
     assert outcome.evidence is not None
     assert outcome.evidence.report is not None
-    assert [
-        test.nodeid for test in outcome.evidence.report.failing
-    ] == ["tests.test_existing::test_old_fail"]
+    assert [test.nodeid for test in outcome.evidence.report.failing] == [
+        "tests.test_existing::test_old_fail"
+    ]
     pr.assert_not_called()
 
 

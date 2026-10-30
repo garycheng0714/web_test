@@ -93,13 +93,10 @@ def _with_adjudication(
     overridden: bool,
 ) -> CheckPayload:
     if overridden:
-        outcome = (
-            "- This override applies to this head only; a new head needs a fresh verdict."
-        )
+        outcome = "- This override applies to this head only; a new head needs a fresh verdict."
     else:
         outcome = (
-            "- Approval ignored: `FAIL` is not overridable; fix the Test Case or the "
-            "question set."
+            "- Approval ignored: `FAIL` is not overridable; fix the Test Case or the question set."
         )
     section = "\n".join(
         (
@@ -115,11 +112,7 @@ def _with_adjudication(
             _reason(reason),
         )
     )
-    title = (
-        "Test Case verification: PASS (adjudicated)"
-        if overridden
-        else payload.title
-    )
+    title = "Test Case verification: PASS (adjudicated)" if overridden else payload.title
     return payload.model_copy(
         update={
             "conclusion": "success" if overridden else payload.conclusion,

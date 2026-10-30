@@ -200,7 +200,9 @@ def automate(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="automate", description="Turn a merged test case into a PR.")
+    parser = argparse.ArgumentParser(
+        prog="automate", description="Turn a merged test case into a PR."
+    )
     parser.add_argument("--case", required=True, help="path to test-case/<id>.md")
     parser.add_argument("--workspace", default=".", help="repository the agent reads and edits")
     args = parser.parse_args(argv)

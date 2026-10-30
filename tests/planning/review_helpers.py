@@ -56,9 +56,7 @@ def review_case(
 ) -> ReviewCase:
     return ReviewCase(
         index=index,
-        requirement_ids=requirement_ids
-        if requirement_ids is not None
-        else ["FR-1"],
+        requirement_ids=requirement_ids if requirement_ids is not None else ["FR-1"],
         module_feature=module_feature,
         test_scenario=scenario,
         preconditions=preconditions if preconditions is not None else [],
@@ -85,9 +83,7 @@ def answers_for(request, **overrides: JevAnswer) -> dict[str, JevAnswer]:
     }
 
 
-def answers_for_subject(
-    subject: ReviewSubject, **overrides: JevAnswer
-) -> dict[str, JevAnswer]:
+def answers_for_subject(subject: ReviewSubject, **overrides: JevAnswer) -> dict[str, JevAnswer]:
     return {
         check.question_id: overrides.get(check.question_id, JevAnswer(0.95))
         for check in expected_checks(subject)

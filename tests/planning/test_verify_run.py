@@ -61,6 +61,7 @@ def test_run_publishes_success_when_nothing_changed() -> None:
     assert payload.external_id == "no-test-case"
     assert payloads == [payload]
 
+
 def test_run_publishes_failure_for_multiple_files() -> None:
     verification_input = PreparedVerification(
         kind=ResolutionKind.MULTIPLE,
@@ -77,8 +78,11 @@ def test_run_publishes_failure_for_multiple_files() -> None:
     assert "test-case-a.md" in payload.summary
     assert payloads == [payload]
 
+
 def test_run_publishes_failure_for_a_missing_prd() -> None:
-    verification_input = PreparedVerification(kind=ResolutionKind.MISSING_PRD, detail="/repo/prd/demo.md")
+    verification_input = PreparedVerification(
+        kind=ResolutionKind.MISSING_PRD, detail="/repo/prd/demo.md"
+    )
     _, publish = sink()
 
     payload = run_payload(
@@ -89,8 +93,11 @@ def test_run_publishes_failure_for_a_missing_prd() -> None:
     assert "missing PRD" in payload.title
     assert "/repo/prd/demo.md" in payload.summary
 
+
 def test_run_publishes_failure_for_an_invalid_artifact() -> None:
-    verification_input = PreparedVerification(kind=ResolutionKind.INVALID, detail="no '## Case N' sections")
+    verification_input = PreparedVerification(
+        kind=ResolutionKind.INVALID, detail="no '## Case N' sections"
+    )
     _, publish = sink()
 
     payload = run_payload(
@@ -100,6 +107,7 @@ def test_run_publishes_failure_for_an_invalid_artifact() -> None:
     assert payload.conclusion == "failure"
     assert "invalid" in payload.title
     assert "no '## Case N' sections" in payload.summary
+
 
 def test_run_publishes_pass(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
@@ -116,6 +124,7 @@ def test_run_publishes_pass(tmp_path: Path) -> None:
     assert payload.external_id == verification_input.cache_key
     assert payloads == [payload]
 
+
 def test_run_publishes_needs_review(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
     _, publish = sink()
@@ -126,6 +135,7 @@ def test_run_publishes_needs_review(tmp_path: Path) -> None:
 
     assert payload.conclusion == "action_required"
     assert payload.title == "Test Case verification: NEEDS_REVIEW"
+
 
 def test_run_publishes_fail(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
@@ -138,6 +148,7 @@ def test_run_publishes_fail(tmp_path: Path) -> None:
     assert payload.conclusion == "failure"
     assert payload.title == "Test Case verification: FAIL"
 
+
 def test_run_publishes_blocked_when_jev_returns_nothing(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
     _, publish = sink()
@@ -149,6 +160,7 @@ def test_run_publishes_blocked_when_jev_returns_nothing(tmp_path: Path) -> None:
     assert payload.conclusion == "failure"
     assert payload.title == "Test Case verification: BLOCKED"
     assert "Blocked" in payload.summary
+
 
 def test_run_propagates_publish_errors(tmp_path: Path) -> None:
     verification_input = ready_input(tmp_path)
@@ -351,9 +363,7 @@ def test_run_uses_a_cached_verdict_with_an_approval(tmp_path: Path) -> None:
 
 
 def test_run_fails_on_a_structure_error_and_ignores_an_approval(tmp_path: Path) -> None:
-    verification_input = ready_input(
-        tmp_path, steps=[{"action": "Go", "expected_result": ""}]
-    )
+    verification_input = ready_input(tmp_path, steps=[{"action": "Go", "expected_result": ""}])
     payloads, publish = sink()
 
     result = run(

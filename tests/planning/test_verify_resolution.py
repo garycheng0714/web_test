@@ -66,9 +66,7 @@ def test_unreadable_prd_is_invalid(tmp_path: Path, monkeypatch) -> None:
     assert str(prd_path) in result.detail
 
 
-def test_a_prd_that_disappears_during_read_is_missing(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_a_prd_that_disappears_during_read_is_missing(tmp_path: Path, monkeypatch) -> None:
     case_path, _ = write_case(tmp_path)
     prd_path = write_prd(tmp_path)
     original_read_text = Path.read_text
