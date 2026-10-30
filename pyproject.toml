@@ -86,8 +86,10 @@ known-first-party = ["web_test", "verify_helpers", "review_helpers"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = ["-m", "not live"]
 markers = [
     "case(id, number): the source test-case id and case number",
+    "live: needs network access to the real automationexercise.com site",
 ]
 
 [tool.basedpyright]

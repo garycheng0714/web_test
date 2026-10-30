@@ -29,7 +29,8 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Designer eval units (local Phoenix): `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/run_eval.py`
 - Export designer labels: `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/export_labels.py --run <run>`
 - Designer eval report: `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/report.py --run <run>`
-- Test: `uv run pytest` (pytest + `pytest-playwright`; one-time `uv run playwright install chromium`)
+- Test: `uv run pytest` (hermetic unit suite; `live` tests are excluded by default)
+- Live browser tests (needs network and the real site): `uv run pytest -m live` (one-time `uv run playwright install chromium`)
 - Typecheck: `uv run basedpyright` (scope: `web_test`, `standard` mode)
 - Lint Python: `uv run ruff check` (rules and scope in `[tool.ruff]`)
 - Format Python: `uv run ruff format` (line length 100)

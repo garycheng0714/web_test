@@ -3,7 +3,7 @@ import pytest
 from components.header import NAV_NAMES
 from pages.home_page import HomePage
 
-pytestmark = pytest.mark.usefixtures("block_ads")
+pytestmark = [pytest.mark.live, pytest.mark.usefixtures("block_ads")]
 
 
 def test_home_header_is_visible(home_page: HomePage):
@@ -14,8 +14,9 @@ def test_home_header_is_visible(home_page: HomePage):
 
 # The Products nav link's accessible name carries a leading private-use glyph,
 # so the exact-name comparison cannot pass. See .scratch/known-issues.md.
-@pytest.mark.skip(
-    reason="known issue: Products nav link has a private-use glyph in its accessible name"
+@pytest.mark.xfail(
+    strict=True,
+    reason="known issue: Products nav link has a private-use glyph in its accessible name",
 )
 def test_home_header_shows_nav_links(home_page: HomePage):
     home_page.open()
