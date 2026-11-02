@@ -11,6 +11,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 OPENCODE_GO_BASE_URL = "https://opencode.ai/inference/go/v1"
 DEFAULT_MODEL = "openai-chat:kimi-k2.7-code"
 DEFAULT_DESIGN_MODEL = "openai-chat:deepseek-v4.1-flash"
+DEFAULT_JUDGE_MODEL = "openai-chat:kimi-k2.7-code"
 
 
 def _profile(model_name: str) -> ModelProfile | None:
@@ -63,3 +64,8 @@ def resolve_model() -> Model | str:
 def resolve_design_model() -> Model | str:
     """The designer model (PRD → test cases)."""
     return _resolve(os.environ.get("WEB_TEST_DESIGN_MODEL") or DEFAULT_DESIGN_MODEL)
+
+
+def resolve_judge_model() -> Model | str:
+    """The semantic judge model (case vs PRD). Defaults to a different family than the designer."""
+    return _resolve(os.environ.get("WEB_TEST_JUDGE_MODEL") or DEFAULT_JUDGE_MODEL)
