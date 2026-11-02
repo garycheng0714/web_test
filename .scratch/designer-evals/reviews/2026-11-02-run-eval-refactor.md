@@ -85,4 +85,5 @@ uv run lint-imports                      5 kept, 0 broken
 - `evals/designer` 已納入 Ruff，pre-commit 的 `files` regex 同步更新。
 - `evals/designer` 已納入 Basedpyright，`evals/designer/phoenix` 的 probes 排除。
 - 14 個 Ruff finding 與 5 個 runtime type error 已修。
-- Phoenix adapter 的測試覆蓋仍 open。
+- Phoenix adapter 已補 fake-client／fake-tracer 測試：agent span 查詢、usage、units parent context、annotation payload。
+- 真正連線 Phoenix 的 ingestion 與 annotation 寫入仍只由手動 smoke 驗證。

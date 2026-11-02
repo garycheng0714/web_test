@@ -2,6 +2,7 @@
 
 import os
 import time
+from collections.abc import Callable
 from datetime import datetime
 from typing import Literal, cast
 
@@ -147,11 +148,19 @@ def fetch_usage(client, project: str, trace_id: str) -> dict[str, int]:
     return sum_usage(spans)
 
 
-def log_code_annotations(client, annotations: list[AnnotationSpec]) -> None:
-    from phoenix.client.resources.spans import SpanAnnotationData
+def log_code_annotations(
+    client,
+    annotations: list[AnnotationSpec],
+    *,
+    factory: Callable[..., object] | None = None,
+) -> None:
+    if factory is None:
+        from phoenix.client.resources.spans import SpanAnnotationData
+
+        factory = SpanAnnotationData
 
     payload = [
-        SpanAnnotationData(
+        factory(
             name=annotation.name,
             annotator_kind="CODE",
             span_id=annotation.span_id,
