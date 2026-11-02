@@ -19,6 +19,35 @@ One-time browser install for the Python Playwright bindings (this is separate fr
 uv run playwright install chromium
 ```
 
+### Optional: pstack for OpenCode
+
+pstack's workflows are not vendored in this repo. Clone the port once per machine and link it
+where OpenCode discovers local plugins:
+
+```bash
+git clone https://github.com/dinhtungdu/pstack-ports.git ~/.local/share/pstack-ports
+mkdir -p .opencode/plugins
+ln -s ~/.local/share/pstack-ports/opencode .opencode/plugins/pstack
+```
+
+The link is gitignored because its target is machine-specific. A missing or dangling link is
+ignored by OpenCode: pstack is unavailable, but the rest of the repo and OpenCode start normally.
+
+Start a session with a goal and a checkable finish condition:
+
+```text
+Use poteto-mode to <goal>. Done when <observable result>.
+```
+
+`poteto-mode` picks a playbook, loads the principles it needs, and tracks the steps in the
+session todo list (enabled by `experimental.todo` in `opencode.json`). This port has no
+`/setup-pstack`; subagents inherit the parent model by default. For a multi-model review panel,
+set `agents.pstack-reviewer` and `agents.pstack-reviewer-alt` to two different `provider/model`
+IDs from `opencode models`.
+
+To use one skill directly, mention it: `@how`, `@why`, `@architect`, `@interrogate`, `@swarm`,
+`@tdd`, `@no-comments`, or `@unslop`. This port has no slash commands.
+
 ## Commands
 
 - Run the agent: `uv run main.py`
