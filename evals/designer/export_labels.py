@@ -3,7 +3,7 @@
 HUMAN annotations are the ground truth; CODE annotations carry the deterministic checks.
 Run from the repository root:
 
-    PYTHONPATH=. uv run --group eval python .scratch/designer-evals/export_labels.py \
+    PYTHONPATH=. uv run --group eval python evals/designer/export_labels.py \
         --run register-login-20261029T070829Z
 """
 
@@ -11,11 +11,13 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 from web_test.paths import REPO_ROOT
 
-RUNS_DIR = REPO_ROOT / ".scratch" / "designer-evals" / "runs"
+RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
 
 
 def _base_url() -> str:
@@ -32,7 +34,7 @@ def _latest_run() -> Path:
 
 def _label_rows(
     units: list[dict],
-    annotations: list[dict],
+    annotations: Sequence[Any],
     run: dict,
     *,
     annotator: str,
@@ -78,7 +80,7 @@ def _label_rows(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Export Phoenix annotations to labels.jsonl.")
-    parser.add_argument("--run", help="run id under .scratch/designer-evals/runs/")
+    parser.add_argument("--run", help="run id under evals/designer/runs/")
     parser.add_argument("--project", help="Phoenix project; defaults to run.json")
     parser.add_argument("--annotator", default="local", help="annotator name for HUMAN rows")
     args = parser.parse_args()

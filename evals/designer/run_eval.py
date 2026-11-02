@@ -11,20 +11,14 @@ Phoenix must be running:
 Then:
 
     PYTHONPATH=. uv run --group eval \
-        python .scratch/designer-evals/run_eval.py
+        python evals/designer/run_eval.py
 """
 
 import argparse
 import os
 import sys
 from collections.abc import Sequence
-from datetime import datetime, timezone
-from pathlib import Path
-
-from web_test.model import DEFAULT_DESIGN_MODEL
-from web_test.paths import REPO_ROOT
-from web_test.planning.cases_writer import render_document, title_from_stem
-from web_test.planning.designer import design_test_cases
+from datetime import UTC, datetime
 
 from designer_eval.annotations import code_annotations
 from designer_eval.artifacts import RunMetadata, write_design, write_results
@@ -40,11 +34,16 @@ from designer_eval.phoenix import (
 from designer_eval.requirements import parse_requirements
 from designer_eval.units import plan_units
 
-RUNS_DIR = REPO_ROOT / ".scratch" / "designer-evals" / "runs"
+from web_test.model import DEFAULT_DESIGN_MODEL
+from web_test.paths import REPO_ROOT
+from web_test.planning.cases_writer import render_document, title_from_stem
+from web_test.planning.designer import design_test_cases
+
+RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
 DEFAULT_PROJECT = "web-test-designer-eval"
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build Phoenix eval units for one designer run.")
     parser.add_argument("--prd", default="prd/register-login.md")
     parser.add_argument("--project", default=DEFAULT_PROJECT)
@@ -57,19 +56,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=5,
         help="Pydantic AI instrumentation format (default: 5)",
     )
-    args = parser.parse_args(argv)
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
 
     prd = (REPO_ROOT / args.prd).resolve()
     prd_text = prd.read_text(encoding="utf-8")
     model = os.environ.get("WEB_TEST_DESIGN_MODEL", DEFAULT_DESIGN_MODEL)
-    run_id = args.run_id or f"{prd.stem}-{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}"
+    run_id = args.run_id or f"{prd.stem}-{datetime.now(UTC):%Y%m%dT%H%M%SZ}"
     run_dir = RUNS_DIR / run_id
 
     provider = create_provider(args.project, run_id, prd.name)
     instrument_designer(provider, args.instrumentation_version)
 
     print(f"running designer for {prd.name}...", file=sys.stderr)
-    run_start = datetime.now(timezone.utc)
+    run_start = datetime.now(UTC)
     design = design_test_cases(prd_text)
     provider.force_flush()
     print(f"designer finished: {len(design.cases)} cases", file=sys.stderr)
@@ -111,7 +114,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             prd=prd,
             model=model,
             project=args.project,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             design=design,
             requirements=requirements,
             units=units,

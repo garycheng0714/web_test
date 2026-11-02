@@ -61,4 +61,4 @@ Phoenix experiment comparison
 
 ## Comments
 
-Created 2026-10-29 from `.scratch/designer-evals/spec.md`.
+Created 2026-10-29 from `evals/designer/spec.md`.

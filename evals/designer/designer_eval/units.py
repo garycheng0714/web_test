@@ -5,9 +5,8 @@ import json
 from dataclasses import dataclass
 from enum import StrEnum
 
-from web_test.planning.schema import Case, DesignOutput
-
 from designer_eval.requirements import Requirement
+from web_test.planning.schema import Case, DesignOutput
 
 
 class UnitKind(StrEnum):

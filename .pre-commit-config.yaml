@@ -5,11 +5,11 @@ repos:
         name: ruff check
         entry: uv run ruff check --fix --exit-non-zero-on-fix --force-exclude
         language: system
-        files: ^(web_test|tests)/
+        files: ^(web_test|tests|evals/designer)/
         types: [python]
       - id: ruff-format
         name: ruff format
         entry: uv run ruff format --force-exclude
         language: system
-        files: ^(web_test|tests)/
+        files: ^(web_test|tests|evals/designer)/
         types: [python]

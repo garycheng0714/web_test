@@ -3,6 +3,7 @@
 import os
 import time
 from datetime import datetime
+from typing import Literal, cast
 
 from designer_eval.annotations import AnnotationSpec
 from designer_eval.units import EvalUnit, UnitSpec
@@ -53,7 +54,11 @@ def instrument_designer(provider, version: int = 5) -> None:
     from pydantic_ai import Agent
     from pydantic_ai.models.instrumented import InstrumentationSettings
 
-    Agent.instrument_all(InstrumentationSettings(version=version, tracer_provider=provider))
+    settings = InstrumentationSettings(
+        version=cast(Literal[2, 5], version),
+        tracer_provider=provider,
+    )
+    Agent.instrument_all(settings)
 
 
 def create_client(base: str | None = None):
@@ -64,11 +69,14 @@ def create_client(base: str | None = None):
 
 def find_agent_span(client, project: str, run_start: datetime) -> dict | None:
     for _ in range(10):
-        spans = client.spans.get_spans(
-            project_identifier=project,
-            start_time=run_start,
-            span_kind="AGENT",
-            limit=10,
+        spans = cast(
+            list[dict],
+            client.spans.get_spans(
+                project_identifier=project,
+                start_time=run_start,
+                span_kind="AGENT",
+                limit=10,
+            ),
         )
         if spans:
             return max(spans, key=lambda span: span["start_time"])

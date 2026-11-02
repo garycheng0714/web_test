@@ -17,7 +17,7 @@ be reproducible from the saved run artifacts, even if Phoenix annotations change
   source, metadata), `RequirementCoverage` (requirement_id, claimed, covered, status,
   claim_ids, case_ids), `CoverageReport`.
 - Boundary: `units.json` + Phoenix annotations -> `labels.jsonl` -> `report.md` under
-  `.scratch/designer-evals/runs/<run_id>/`; eval types are dataclasses, file records are
+  `evals/designer/runs/<run_id>/`; eval types are dataclasses, file records are
   Pydantic.
 - Invariants: a requirement is `covered` when at least one human `claim_alignment` on its
   claims is `pass`; all claims failing means `not_covered`; no claim means `missing`. Missing
@@ -73,7 +73,7 @@ report.md
 
 ## Comments
 
-Created 2026-10-29 from `.scratch/designer-evals/spec.md`. The coverage/report half of the old
+Created 2026-10-29 from `evals/designer/spec.md`. The coverage/report half of the old
 ticket 01.
 
 2026-10-29: `export_labels.py` and `report.py` implemented. Run

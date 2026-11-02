@@ -4,7 +4,7 @@ Uses the existing designer trace and adds one `late-child-check` span under its 
 Run Phoenix separately, then:
 
     uv run --group eval \
-        python .scratch/designer-evals/phoenix/late_child_probe.py
+        python evals/designer/phoenix/late_child_probe.py
 """
 
 import os

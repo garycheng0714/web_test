@@ -44,7 +44,7 @@ uv run lint-imports                      5 kept, 0 broken
 - `units.py` 同時承擔 duplicate detection 與 claim planning，是 Divergent Change。
 - 測試的 `_case` / `Case.model_validate` dict 在 `test_annotations.py` 與 `test_artifacts.py` 重複。
 - `tests/designer_evals/conftest.py` 的 `sys.path.insert` 是手動 hack。
-  `pyproject.toml` 已有 `pythonpath`，可以加 `.scratch/designer-evals` 取代。
+  `pyproject.toml` 已有 `pythonpath`，可以加 `evals/designer` 取代。
 
 ## Spec
 
@@ -79,3 +79,10 @@ uv run lint-imports                      5 kept, 0 broken
   最嚴重的是 Phoenix adapter 幾乎沒有測試。
 
 目前狀態：全部 finding 仍 open，尚未套用修正。
+
+## 後續（2026-11-02）
+
+- `evals/designer` 已納入 Ruff，pre-commit 的 `files` regex 同步更新。
+- `evals/designer` 已納入 Basedpyright，`evals/designer/phoenix` 的 probes 排除。
+- 14 個 Ruff finding 與 5 個 runtime type error 已修。
+- Phoenix adapter 的測試覆蓋仍 open。

@@ -12,7 +12,7 @@ actually tests the requirement it claims. Input: the PRD requirement text + the 
 **Shape:**
 - Types: `ClaimJudgement` (claim_id, requirement_id, case_id, verdict, critique),
   `JudgeReport`.
-- Boundary: judge prompt + JSONL outputs under `.scratch/designer-evals/judge/`; judge results
+- Boundary: judge prompt + JSONL outputs under `evals/designer/judge/`; judge results
   may also be written as `LLM` annotations on the claim spans.
 - Invariants: one failure mode per judge; binary Pass/Fail; critique before result; one
   judgement per claim span; few-shot only from train PRDs; no dev/test leakage; human labels

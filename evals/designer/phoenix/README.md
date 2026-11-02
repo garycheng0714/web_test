@@ -18,7 +18,7 @@ Terminal B:
 ```bash
 cd /Users/garycheng/PycharmProjects/web_test
 PYTHONPATH=. uv run --group eval \
-  python .scratch/designer-evals/phoenix/spike.py
+  python evals/designer/phoenix/spike.py
 ```
 
 Open `http://127.0.0.1:6006` -> project `web-test-designer`.
@@ -26,8 +26,8 @@ Open `http://127.0.0.1:6006` -> project `web-test-designer`.
 Options:
 
 ```bash
-uv run --group eval python .scratch/designer-evals/phoenix/spike.py --prd prd/login-smoke.md
-uv run --group eval python .scratch/designer-evals/phoenix/spike.py --instrumentation-version 2
+uv run --group eval python evals/designer/phoenix/spike.py --prd prd/login-smoke.md
+uv run --group eval python evals/designer/phoenix/spike.py --instrumentation-version 2
 ```
 
 ## What to expect
@@ -79,7 +79,7 @@ original trace instead of starting a new one.
 
 ```bash
 uv run --group eval \
-  python .scratch/designer-evals/phoenix/late_child_probe.py
+  python evals/designer/phoenix/late_child_probe.py
 ```
 
 Result on 2026-10-29:
@@ -100,7 +100,7 @@ the designer run and keep them in the same Phoenix trace.
 
 ```bash
 PYTHONPATH=. uv run --group eval \
-  python .scratch/designer-evals/phoenix/spike_register.py
+  python evals/designer/phoenix/spike_register.py
 ```
 
 It writes to project `web-test-designer-register`.

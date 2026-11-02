@@ -2,9 +2,8 @@
 
 from dataclasses import dataclass
 
-from web_test.planning.schema import DesignOutput
-
 from designer_eval.units import EvalUnit, UnitKind, duplicate_groups
+from web_test.planning.schema import DesignOutput
 
 
 @dataclass(frozen=True)

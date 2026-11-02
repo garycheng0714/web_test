@@ -5,10 +5,9 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-from web_test.planning.schema import DesignOutput
-
 from designer_eval.requirements import Requirement
 from designer_eval.units import EvalUnit
+from web_test.planning.schema import DesignOutput
 
 
 @dataclass(frozen=True)

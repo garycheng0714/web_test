@@ -23,11 +23,11 @@
 ## Out of scope
 - 接 production 監控、CI gate、dashboard
 - RAG 專項評測
-- 特定 eval 框架或供應商的 API 操作（僅約束本課程；專案探索見 `.scratch/designer-evals/`）
+- 特定 eval 框架或供應商的 API 操作（僅約束本課程；專案探索見 `evals/designer/`）
 - 統計理論推導（會用公式，但不證明）
 
 ## Status
 - 2026-10-27：七課 + capstone 完成。
 - Evidence：`lessons/0001`–`0007`、`audit.md`、`toy/tone_lite_metrics.md`（toy rehearsal）。
-- 2026-10-29：課程維持完成狀態；真實專案 follow-up 已移到 `.scratch/designer-evals/`
+- 2026-10-29：課程維持完成狀態；真實專案 follow-up 已移到 `evals/designer/`
   （designer coverage/traceability、semantic judge、Phoenix spike）。本課程仍只涵蓋 toy/離線。

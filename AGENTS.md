@@ -26,9 +26,9 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 ## Commands
 - Run the navigation demo: `uv run main.py`
 - Implement one merged test case: `uv run python -m web_test.automation.entrypoint --case test-case/<id>.md --workspace .`
-- Designer eval units (local Phoenix): `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/run_eval.py`
-- Export designer labels: `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/export_labels.py --run <run>`
-- Designer eval report: `PYTHONPATH=. uv run --group eval python .scratch/designer-evals/report.py --run <run>`
+- Designer eval units (local Phoenix): `PYTHONPATH=. uv run --group eval python evals/designer/run_eval.py`
+- Export designer labels: `PYTHONPATH=. uv run --group eval python evals/designer/export_labels.py --run <run>`
+- Designer eval report: `PYTHONPATH=. uv run --group eval python evals/designer/report.py --run <run>`
 - Test: `uv run pytest` (hermetic unit suite; `live` tests are excluded by default)
 - Live browser tests (needs network and the real site): `uv run pytest -m live` (one-time `uv run playwright install chromium`)
 - Typecheck: `uv run basedpyright` (scope: `web_test`, `standard` mode)
