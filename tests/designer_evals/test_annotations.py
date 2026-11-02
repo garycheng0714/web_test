@@ -1,6 +1,5 @@
-from designer_eval.annotations import code_annotations
-from designer_eval.units import EvalUnit, UnitKind
-
+from evals.designer.designer_eval.annotations import code_annotations
+from evals.designer.designer_eval.units import EvalUnit, UnitKind
 from web_test.planning.schema import Case, DesignOutput
 
 

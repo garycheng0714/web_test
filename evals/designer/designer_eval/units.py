@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass
 from enum import StrEnum
 
-from designer_eval.requirements import Requirement
+from evals.designer.designer_eval.requirements import Requirement
 from web_test.planning.schema import Case, DesignOutput
 
 

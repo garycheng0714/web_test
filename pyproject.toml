@@ -88,11 +88,11 @@ max-positional-args = 5
 "tests/automation/test_report.py" = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["web_test", "verify_helpers", "review_helpers"]
+known-first-party = ["web_test", "evals", "verify_helpers", "review_helpers"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = [".", "evals/designer"]
+pythonpath = ["."]
 addopts = ["-m", "not live", "--strict-markers", "--strict-config"]
 filterwarnings = ["error"]
 faulthandler_timeout = 120

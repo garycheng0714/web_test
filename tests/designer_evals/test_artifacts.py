@@ -2,10 +2,9 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-from designer_eval.artifacts import RunMetadata, write_design, write_results
-from designer_eval.requirements import Requirement
-from designer_eval.units import EvalUnit, UnitKind
-
+from evals.designer.designer_eval.artifacts import RunMetadata, write_design, write_results
+from evals.designer.designer_eval.requirements import Requirement
+from evals.designer.designer_eval.units import EvalUnit, UnitKind
 from web_test.planning.schema import Case, DesignOutput
 
 

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from designer_eval.units import EvalUnit, UnitKind, duplicate_groups
+from evals.designer.designer_eval.units import EvalUnit, UnitKind, duplicate_groups
 from web_test.planning.schema import DesignOutput
 
 

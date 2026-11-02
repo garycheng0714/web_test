@@ -1,4 +1,4 @@
-from designer_eval.phoenix import base_url, endpoint, sum_usage
+from evals.designer.designer_eval.phoenix import base_url, endpoint, sum_usage
 
 
 def test_endpoint_uses_the_default_phoenix_endpoint(monkeypatch):

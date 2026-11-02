@@ -20,9 +20,9 @@ import sys
 from collections.abc import Sequence
 from datetime import UTC, datetime
 
-from designer_eval.annotations import code_annotations
-from designer_eval.artifacts import RunMetadata, write_design, write_results
-from designer_eval.phoenix import (
+from evals.designer.designer_eval.annotations import code_annotations
+from evals.designer.designer_eval.artifacts import RunMetadata, write_design, write_results
+from evals.designer.designer_eval.phoenix import (
     create_client,
     create_provider,
     create_units,
@@ -31,9 +31,8 @@ from designer_eval.phoenix import (
     instrument_designer,
     log_code_annotations,
 )
-from designer_eval.requirements import parse_requirements
-from designer_eval.units import plan_units
-
+from evals.designer.designer_eval.requirements import parse_requirements
+from evals.designer.designer_eval.units import plan_units
 from web_test.model import DEFAULT_DESIGN_MODEL
 from web_test.paths import REPO_ROOT
 from web_test.planning.cases_writer import render_document, title_from_stem

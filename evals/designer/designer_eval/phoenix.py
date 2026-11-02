@@ -5,8 +5,8 @@ import time
 from datetime import datetime
 from typing import Literal, cast
 
-from designer_eval.annotations import AnnotationSpec
-from designer_eval.units import EvalUnit, UnitSpec
+from evals.designer.designer_eval.annotations import AnnotationSpec
+from evals.designer.designer_eval.units import EvalUnit, UnitSpec
 
 DEFAULT_ENDPOINT = "http://127.0.0.1:6006"
 _USAGE_ATTRIBUTES = {
