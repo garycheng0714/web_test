@@ -2,7 +2,7 @@
 
 Run from the repository root after export_labels.py:
 
-    PYTHONPATH=. uv run --group eval python .scratch/designer-evals/report.py \
+    PYTHONPATH=. uv run --group eval python evals/designer/report.py \
         --run register-login-20261029T070829Z
 """
 
@@ -11,13 +11,14 @@ import json
 import math
 import sys
 from pathlib import Path
+from typing import Any
 
 from web_test.paths import REPO_ROOT
 from web_test.planning.review.parser import parse_test_case
 from web_test.planning.review.structure import structure_checks
 from web_test.planning.review.verification import VerificationStatus
 
-RUNS_DIR = REPO_ROOT / ".scratch" / "designer-evals" / "runs"
+RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
 
 
 def wilson_interval(successes: int, total: int, z: float = 1.96) -> tuple[float, float]:
@@ -26,11 +27,7 @@ def wilson_interval(successes: int, total: int, z: float = 1.96) -> tuple[float,
     p = successes / total
     denominator = 1 + z * z / total
     centre = (p + z * z / (2 * total)) / denominator
-    half = (
-        z
-        * math.sqrt(p * (1 - p) / total + z * z / (4 * total * total))
-        / denominator
-    )
+    half = z * math.sqrt(p * (1 - p) / total + z * z / (4 * total * total)) / denominator
     return (max(0.0, centre - half), min(1.0, centre + half))
 
 
@@ -41,19 +38,17 @@ def _latest_run() -> Path:
     return max(runs, key=lambda path: path.stat().st_mtime)
 
 
-def _load_json(path: Path) -> dict:
+def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _load_labels(path: Path) -> list[dict]:
     return [
-        json.loads(line)
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
     ]
 
 
-def requirement_rows(units: list[dict], labels: list[dict]) -> list[dict]:
+def requirement_rows(units: list[dict], labels: list[dict]) -> tuple[list[dict], list[str]]:
     requirements: dict[str, dict] = {}
     invented: list[str] = []
     for unit in units:
@@ -95,9 +90,7 @@ def requirement_rows(units: list[dict], labels: list[dict]) -> list[dict]:
     for requirement_id in sorted(requirements):
         item = requirements[requirement_id]
         relevant = [
-            label
-            for claim_id in item["claim_ids"]
-            for label in claim_labels.get(claim_id, [])
+            label for claim_id in item["claim_ids"] for label in claim_labels.get(claim_id, [])
         ]
         if item["missing"]:
             status = "missing"
@@ -202,9 +195,10 @@ def render_report(
         "| --- | --- | --- | --- |",
     ]
     for row in rows:
-        labels_text = ", ".join(
-            f"{label.get('label')}({label.get('annotator')})" for label in row["labels"]
-        ) or "-"
+        labels_text = (
+            ", ".join(f"{label.get('label')}({label.get('annotator')})" for label in row["labels"])
+            or "-"
+        )
         lines.append(
             f"| {row['requirement_id']} | {', '.join(row['case_ids']) or '-'} | "
             f"{labels_text} | `{row['status']}` |"
@@ -214,16 +208,20 @@ def render_report(
     if not_covered:
         for row in not_covered:
             labels_text = ", ".join(
-                f"{label.get('target_id')}={label.get('label')}"
-                for label in row["labels"]
+                f"{label.get('target_id')}={label.get('label')}" for label in row["labels"]
             )
             lines.append(f"- {row['requirement_id']}: {labels_text}")
     else:
         lines.append("None.")
 
     lines += ["", "## Code checks", ""]
-    lines.append(f"- Invented IDs: {len(invented)}" + (f" ({', '.join(invented)})" if invented else ""))
-    lines.append(f"- Empty requirement_ids: {len(empty_cases)}" + (f" ({', '.join(empty_cases)})" if empty_cases else ""))
+    lines.append(
+        f"- Invented IDs: {len(invented)}" + (f" ({', '.join(invented)})" if invented else "")
+    )
+    lines.append(
+        f"- Empty requirement_ids: {len(empty_cases)}"
+        + (f" ({', '.join(empty_cases)})" if empty_cases else "")
+    )
     lines.append(
         f"- Duplicate cases: {len(duplicate_cases)}"
         + (f" ({', '.join(duplicate_cases)})" if duplicate_cases else "")
@@ -232,11 +230,11 @@ def render_report(
     for error in structure_errors:
         lines.append(f"  - {error}")
     if missing:
-        lines.append(f"- Missing requirements: {', '.join(row['requirement_id'] for row in missing)}")
+        missing_ids = ", ".join(row["requirement_id"] for row in missing)
+        lines.append(f"- Missing requirements: {missing_ids}")
     if unlabeled:
         lines.append(
-            "- Unlabeled requirements: "
-            + ", ".join(row["requirement_id"] for row in unlabeled)
+            "- Unlabeled requirements: " + ", ".join(row["requirement_id"] for row in unlabeled)
         )
 
     lines += [
@@ -244,7 +242,7 @@ def render_report(
         "## Limits",
         "",
         "- Small PRD sample; the Wilson CI is wide.",
-        "- Coverage treats unlabeled requirements as not covered; finish labeling before trusting the number.",
+        "- Coverage treats unlabeled requirements as uncovered; finish labeling first.",
         "- A case claiming multiple requirements produces multiple claim labels.",
     ]
     return "\n".join(lines) + "\n"
@@ -252,7 +250,7 @@ def render_report(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Report designer eval coverage.")
-    parser.add_argument("--run", help="run id under .scratch/designer-evals/runs/")
+    parser.add_argument("--run", help="run id under evals/designer/runs/")
     args = parser.parse_args()
 
     try:

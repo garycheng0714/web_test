@@ -40,7 +40,7 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - 每個 PRD 用 `design_test_cases` 跑一次；pin `WEB_TEST_DESIGN_MODEL`
   （預設 `openai-chat:deepseek-v4.1-flash`），記錄 model id 與 usage。
 - 現有 `test-case/` 檔案只當 baseline／seed，不當 validation。
-- 每次 run 存到 `.scratch/designer-evals/runs/<run_id>/`：
+- 每次 run 存到 `evals/designer/runs/<run_id>/`：
   `design.json`、`run.json`、`units.json`、rendered markdown。
 - Phoenix project：`web-test-designer-eval`。每次 run 是一條 designer trace，底下有
   claim 與 missing requirement 的 `EVALUATOR` spans。
@@ -73,7 +73,7 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 ## Integration
 
 - 第一版只做 report-only，不改 `plan.py`、不改 `verify-test-case`。
-- 工作檔案放 `.scratch/designer-evals/`；驗證後再考慮 productionize 成
+- 工作檔案放 `evals/designer/`；驗證後再考慮 productionize 成
   `web_test/planning/eval/`。
 - Phoenix 只在本機跑；late child `EVALUATOR` spans 已驗證可掛回原 designer trace。
 - Phoenix/eval 工具在 `eval` dependency group；用 `uv run --group eval` 執行，版本由
@@ -103,15 +103,15 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 
 ## Ticket map
 
-- [01](issues/01-eval-trace-and-units.md) — eval trace 與 claim／missing requirement 單位（unblocked）
-- [02](issues/02-labels-and-coverage-report.md) — labels export 與 coverage report（blocked by 01）
-- [03](issues/03-semantic-case-quality-judge.md) — semantic judge（blocked by 02）
-- [04](issues/04-phoenix-experiments.md) — Phoenix experiments 比較多次 run（blocked by 01；02 可選）
+- [01](../../.scratch/designer-evals/issues/01-eval-trace-and-units.md) — eval trace 與 claim／missing requirement 單位（unblocked）
+- [02](../../.scratch/designer-evals/issues/02-labels-and-coverage-report.md) — labels export 與 coverage report（blocked by 01）
+- [03](../../.scratch/designer-evals/issues/03-semantic-case-quality-judge.md) — semantic judge（blocked by 02）
+- [04](../../.scratch/designer-evals/issues/04-phoenix-experiments.md) — Phoenix experiments 比較多次 run（blocked by 01；02 可選）
 - 05 — report-only CI：deferred，暫不開票
 
 ## Decisions
 
-- 工作目錄：`.scratch/designer-evals/`
+- 工作目錄：`evals/designer/`
 - Ticket status：`needs-triage`
 - `OPENCODE_API_KEY` 可用
 - Phoenix 是人類標註 UI；`labels.jsonl` 是 metrics 的 source of truth

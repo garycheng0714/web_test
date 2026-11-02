@@ -5,14 +5,14 @@ Run Phoenix separately:
 
 Then:
     OPENCODE_API_KEY=... PYTHONPATH=. uv run --group eval \
-        python .scratch/designer-evals/phoenix/spike.py
+        python evals/designer/phoenix/spike.py
 """
 
 import argparse
 import os
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from openinference.instrumentation.pydantic_ai import OpenInferenceSpanProcessor
 from opentelemetry import trace
@@ -122,7 +122,7 @@ def main() -> int:
         )
     )
 
-    run_start = datetime.now(timezone.utc)
+    run_start = datetime.now(UTC)
     design = design_test_cases(prd.read_text(encoding="utf-8"))
     provider.force_flush()
 

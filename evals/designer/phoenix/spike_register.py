@@ -9,7 +9,7 @@ Run Phoenix separately:
 
 Then:
     PYTHONPATH=. uv run --group eval \
-        python .scratch/designer-evals/phoenix/spike_register.py
+        python evals/designer/phoenix/spike_register.py
 """
 
 import argparse
@@ -46,9 +46,7 @@ def _provider(project: str):
     # `register()` installs its exporter as the default processor and its TracerProvider
     # does not know about the Pydantic AI translator. Replace the default with the
     # translator, then append the exporter after it.
-    provider.add_span_processor(
-        OpenInferenceSpanProcessor(), replace_default_processor=True
-    )
+    provider.add_span_processor(OpenInferenceSpanProcessor(), replace_default_processor=True)
     provider.add_span_processor(
         SimpleSpanProcessor(OTLPSpanExporter(endpoint=_endpoint())),
         replace_default_processor=False,

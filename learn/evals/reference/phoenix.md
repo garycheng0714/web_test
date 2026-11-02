@@ -143,7 +143,7 @@ log_evaluation() → 自訂 annotation
   要自己挑最新 span。
 - 在 agent span 結束後補建 child span（`EVALUATOR`）仍會落在同一條 trace，`parent_id`
   也正確；因此 claim／missing requirement eval spans 可以直接掛回原 trace，不必另開 trace。
-- Runbook 與本 repo 專屬細節：`.scratch/designer-evals/phoenix/README.md`。
+- Runbook 與本 repo 專屬細節：`evals/designer/phoenix/README.md`。
 
 ## 尚未驗證
 

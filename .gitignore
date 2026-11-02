@@ -30,3 +30,6 @@ test-results/
 
 # Machine-local OpenCode plugin links
 .opencode/plugins/pstack
+
+# Local eval run artifacts
+evals/designer/runs/

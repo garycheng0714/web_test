@@ -15,7 +15,7 @@ annotate; it is not the coverage report yet.
   (run_id, prd, model, usage, design, units). `DesignOutput` stays the existing Pydantic
   model; run/unit records written to JSON are Pydantic, in-memory eval types are dataclasses.
 - Boundary: Phoenix project `web-test-designer-eval`; files under
-  `.scratch/designer-evals/runs/<run_id>/`.
+  `evals/designer/runs/<run_id>/`.
 - Invariants: every claimed (requirement, case) pair has exactly one claim span; every
   requirement with no claim has exactly one missing-requirement span; invented IDs get claim
   spans with `claim.requirement_exists=false`; eval spans share the designer trace and have the
@@ -77,11 +77,11 @@ units.json
 
 ## Comments
 
-Created 2026-10-29 from `.scratch/designer-evals/spec.md`. Replaces the code-only half of the
+Created 2026-10-29 from `evals/designer/spec.md`. Replaces the code-only half of the
 old coverage ticket; the report moves to ticket 02.
 
-2026-10-29: parser + claim units implemented in `.scratch/designer-evals/run_eval.py`.
+2026-10-29: parser + claim units implemented in `evals/designer/run_eval.py`.
 Claim-centric run `register-login-20261029T070829Z` produced 7 `claim` spans, 14 CODE
 annotations, and usage `{prompt: 8992, completion: 6023, total: 15015, cache_read: 3840}`
 in project `web-test-designer-eval`. Artifacts are under
-`.scratch/designer-evals/runs/register-login-20261029T070829Z/`.
+`evals/designer/runs/register-login-20261029T070829Z/`.
