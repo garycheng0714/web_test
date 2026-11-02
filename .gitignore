@@ -27,3 +27,6 @@ test-results/
 # Phoenix CLI config and coding sidecars (may contain credentials)
 .env.phoenix
 .px/
+
+# Machine-local OpenCode plugin links
+.opencode/plugins/pstack
