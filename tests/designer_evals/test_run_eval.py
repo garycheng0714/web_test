@@ -1,15 +1,8 @@
-import importlib.util
-from pathlib import Path
-
 import pytest
+from designer_eval.requirements import Requirement, parse_requirements
+from designer_eval.units import duplicate_groups, plan_units
 
 from web_test.planning.schema import Case, DesignOutput
-
-_MODULE_PATH = Path(__file__).parents[2] / ".scratch" / "designer-evals" / "run_eval.py"
-_SPEC = importlib.util.spec_from_file_location("designer_run_eval", _MODULE_PATH)
-assert _SPEC is not None and _SPEC.loader is not None
-run_eval = importlib.util.module_from_spec(_SPEC)
-_SPEC.loader.exec_module(run_eval)
 
 
 def _case(requirement_ids: list[str], scenario: str) -> Case:
@@ -40,7 +33,7 @@ def test_parse_requirements_stops_at_the_next_section():
 - not a requirement
 """
 
-    requirements = run_eval.parse_requirements(prd)
+    requirements = parse_requirements(prd)
 
     assert [requirement.id for requirement in requirements] == ["FR-ACC-01", "FR-ACC-02"]
     assert requirements[0].title == "First requirement"
@@ -51,13 +44,13 @@ def test_parse_requirements_stops_at_the_next_section():
 
 def test_parse_requirements_requires_an_fr_heading():
     with pytest.raises(ValueError, match="no FR-\\* requirements"):
-        run_eval.parse_requirements("# PRD\n\n## 1. Scope\n- nothing")
+        parse_requirements("# PRD\n\n## 1. Scope\n- nothing")
 
 
 def test_plan_units_creates_one_claim_per_pair_and_flags_invented_ids():
     requirements = [
-        run_eval.Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
-        run_eval.Requirement(id="FR-2", title="Two", text="### FR-2 Two\n- detail"),
+        Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
+        Requirement(id="FR-2", title="Two", text="### FR-2 Two\n- detail"),
     ]
     design = DesignOutput(
         cases=[
@@ -66,7 +59,7 @@ def test_plan_units_creates_one_claim_per_pair_and_flags_invented_ids():
         ]
     )
 
-    units = run_eval.plan_units(
+    units = plan_units(
         prd_name="register-login.md",
         design=design,
         requirements=requirements,
@@ -89,12 +82,12 @@ def test_plan_units_creates_one_claim_per_pair_and_flags_invented_ids():
 
 def test_plan_units_adds_a_span_for_a_missing_requirement():
     requirements = [
-        run_eval.Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
-        run_eval.Requirement(id="FR-2", title="Two", text="### FR-2 Two\n- detail"),
+        Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
+        Requirement(id="FR-2", title="Two", text="### FR-2 Two\n- detail"),
     ]
     design = DesignOutput(cases=[_case(["FR-1"], "Register")])
 
-    units = run_eval.plan_units(
+    units = plan_units(
         prd_name="register-login.md",
         design=design,
         requirements=requirements,
@@ -110,11 +103,11 @@ def test_plan_units_adds_a_span_for_a_missing_requirement():
 
 def test_plan_units_deduplicates_requirement_ids():
     requirements = [
-        run_eval.Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
+        Requirement(id="FR-1", title="One", text="### FR-1 One\n- detail"),
     ]
     design = DesignOutput(cases=[_case(["FR-1", "FR-1"], "Register")])
 
-    units = run_eval.plan_units(
+    units = plan_units(
         prd_name="register-login.md",
         design=design,
         requirements=requirements,
@@ -133,33 +126,6 @@ def test_duplicate_groups_detects_identical_cases():
         ]
     )
 
-    groups = run_eval.duplicate_groups(design)
+    groups = duplicate_groups(design)
 
     assert list(groups.values()) == [["case-1", "case-2"]]
-
-
-def test_sum_usage_adds_llm_token_counts():
-    spans = [
-        {
-            "attributes": {
-                "llm.token_count.prompt": 10,
-                "llm.token_count.completion": 2,
-                "llm.token_count.total": 12,
-                "llm.token_count.prompt_details.cache_read": 7,
-            }
-        },
-        {
-            "attributes": {
-                "llm.token_count.prompt": 20,
-                "llm.token_count.completion": 3,
-                "llm.token_count.total": 23,
-            }
-        },
-    ]
-
-    assert run_eval._sum_usage(spans) == {
-        "prompt": 30,
-        "completion": 5,
-        "total": 35,
-        "cache_read": 7,
-    }
