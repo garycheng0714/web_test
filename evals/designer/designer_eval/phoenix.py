@@ -154,13 +154,14 @@ def log_code_annotations(
     *,
     factory: Callable[..., object] | None = None,
 ) -> None:
-    if factory is None:
+    resolved_factory = factory
+    if resolved_factory is None:
         from phoenix.client.resources.spans import SpanAnnotationData
 
-        factory = SpanAnnotationData
+        resolved_factory = SpanAnnotationData
 
     payload = [
-        factory(
+        resolved_factory(
             name=annotation.name,
             annotator_kind="CODE",
             span_id=annotation.span_id,

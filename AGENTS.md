@@ -31,7 +31,7 @@ inlines any `references/` it needs. Current: `.agents/libraries/test_case_design
 - Designer eval report: `PYTHONPATH=. uv run --group eval python evals/designer/report.py --run <run>`
 - Test: `uv run pytest` (hermetic unit suite; `live` tests are excluded by default)
 - Live browser tests (needs network and the real site): `uv run pytest -m live` (one-time `uv run playwright install chromium`)
-- Typecheck: `uv run basedpyright` (scope: `web_test`, `standard` mode)
+- Typecheck: `uv run --group eval basedpyright` (scope: `web_test` and `evals/designer`; Phoenix probes excluded)
 - Lint Python: `uv run ruff check` (rules and scope in `[tool.ruff]`)
 - Format Python: `uv run ruff format` (line length 100)
 - Install the pre-commit hook (one-time per clone): `uv run pre-commit install`
