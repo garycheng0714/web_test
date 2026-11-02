@@ -1,8 +1,8 @@
 """Run one designer eval and build Phoenix eval units.
 
-This is ticket 01: parse the PRD, run the designer, attach one EVALUATOR claim span per
-(requirement, case) pair plus missing-requirement spans under the designer agent trace, and
-save the run artifacts.
+This is ticket 01: parse the PRD, run the designer, attach one requirement span per PRD
+requirement and one claim span per (case, valid requirement) pair under it, and save the run
+artifacts.
 
 Phoenix must be running:
 
@@ -32,7 +32,7 @@ from evals.designer.designer_eval.phoenix import (
     log_code_annotations,
 )
 from evals.designer.designer_eval.requirements import parse_requirements
-from evals.designer.designer_eval.units import plan_units
+from evals.designer.designer_eval.units import UnitKind, plan_units
 from web_test.model import DEFAULT_DESIGN_MODEL
 from web_test.paths import REPO_ROOT
 from web_test.planning.cases_writer import render_document, title_from_stem
@@ -95,33 +95,36 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     trace_id = agent_span["context"]["trace_id"]
     requirements = parse_requirements(prd_text)
-    specs = plan_units(
+    plan = plan_units(
         prd_name=prd.name,
         design=design,
         requirements=requirements,
         run_id=run_id,
     )
-    print(f"creating {len(specs)} eval units...", file=sys.stderr)
-    units = create_units(provider, agent_span, specs)
+    print(f"creating {len(plan.units)} eval units...", file=sys.stderr)
+    units = create_units(provider, agent_span, plan.units)
     print("eval units created", file=sys.stderr)
 
     usage = fetch_usage(client, args.project, trace_id)
+    annotations = code_annotations(units, design)
     write_results(
         run_dir,
         RunMetadata(
             run_id=run_id,
             prd=prd,
+            prd_text=prd_text,
             model=model,
             project=args.project,
             created_at=datetime.now(UTC),
             design=design,
             requirements=requirements,
             units=units,
+            findings=plan.findings,
             usage=usage,
+            annotations=len(annotations),
         ),
     )
 
-    annotations = code_annotations(units, design)
     try:
         log_code_annotations(client, annotations)
     except Exception as error:
@@ -135,6 +138,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"requirements: {len(requirements)}")
     print(f"cases: {len(design.cases)}")
     print(f"units: {len(units)}")
+    print(f"claims: {sum(unit.kind == UnitKind.CLAIM for unit in units)}")
     print(f"annotations: {len(annotations)}")
     print(f"usage: {usage}")
     print(f"artifacts: {run_dir.relative_to(REPO_ROOT)}")

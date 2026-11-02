@@ -3,8 +3,8 @@
 import re
 from dataclasses import dataclass
 
-_REQUIREMENT = re.compile(r"^###\s+(FR-[A-Z]+-\d+)\s*(.*)$")
-_HEADING = re.compile(r"^#{2,3}\s")
+_REQUIREMENT = re.compile(r"^#{3,4}\s+(FR-[A-Z]+-\d+)\s*(.*)$")
+_HEADING = re.compile(r"^#{2,4}\s")
 
 
 @dataclass(frozen=True)
@@ -15,7 +15,7 @@ class Requirement:
 
 
 def parse_requirements(prd_text: str) -> list[Requirement]:
-    """Extract `### FR-*` sections, stopping at the next `##` or `###` heading."""
+    """Extract `###`/`####` FR-* sections, stopping at the next `##`-`####` heading."""
     requirements: list[Requirement] = []
     current_id: str | None = None
     current_title = ""

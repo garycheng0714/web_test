@@ -4,7 +4,7 @@
 > **URL**：https://automationexercise.com
 > **說明**：極簡單一需求 PRD，讓單一 case 的 Test Case PR 能通過驗證並觸發 automation 的
 > red-run evidence 路徑（`.scratch/agent-in-ci/issues/07-red-run-evidence.md`）。內容取自
-> `prd/register-login.md` 的 FR-ACC-01。
+> `prd/register-login.md` 的 FR-ACC-01 第一條 AC。
 
 ## 1. 範圍
 
@@ -20,7 +20,7 @@
 
 ## 3. 功能需求
 
-### FR-ACC-01 註冊 Step 1：Name + Email
+### FR-ACC-01 註冊（只涵蓋送出 Signup）
 
 - `/login` 的 `New User Signup!` 區塊含 Name、Email Address 欄位與 `Signup` 按鈕。
 - **AC**

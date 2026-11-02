@@ -16,7 +16,8 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 回答兩個問題：
 
 1. 對一份 PRD，designer 是否為每個 requirement 產生至少一個 case？
-2. 這些 case 是否**真的**測到它宣稱的 requirement，而不只是 `requirement_ids` 填了 ID？
+2. 這些 case 是否**真的**測到它宣稱的 requirement，且每個行為斷言都能從 PRD 推導出來，而不
+   只是 `requirement_ids` 填了 ID？
 
 ## Failure modes
 
@@ -28,10 +29,22 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - 重複／near-duplicate case
 - 格式問題（重用 `web_test/planning/review/structure.py`）
 
-**Semantic judge（ticket 03）**
+**Semantic labels（人類標註；ticket 03 judge 只預測 pass/fail）**
 
-- case 沒有真的測到它宣稱的 requirement（AC alignment）
-- 其他候選（expected result 不可觀察、step 引用 PRD 沒有的 control）留到後續 ticket
+- `wrong_scenario_to_requirement`：case 的 steps 根本不在做它 claim 的 FR（scenario 是別的
+  requirement，或是不存在的需求）。
+- `undefined_behavior`：某個行為斷言無法用 PRD 判定——整份 PRD 沒寫（含第 11 章明列未定義
+  者），或 assertion 本身太模糊（兩個 tester 會給不同答案，例如「商品與搜尋字相關」而 PRD
+  沒給比對規則）。根因寫進 `claim_reason`，才分得出是 PRD 缺漏還是 assertion 模糊。
+- `wrong_assertion_to_requirement`：某個行為斷言在 PRD 有依據，但推不出該 claim 的正文／AC，
+  通常是驗了別的 FR 的行為。修法通常是換 assertion 或補 `requirement_ids`，不是刪步驟。
+- `duplicated`：claim 的 FR 沒有自己的 scenario，只是搭在另一個 FR 的 case 上；同一組步驟
+  同時服務兩個 FR，自動化會重複驗證且無法隔離失敗。修法是**拆 case**，不是刪斷言。
+
+判定順序 `wrong_scenario` -> `undefined` -> `wrong_assertion` -> `duplicated`，先中先停；任一
+成立，`claim_alignment` 即 `fail`。「斷言」只算會決定功能對錯的 `expected_result`；輸入被接受、
+元件存在、欄位呈現這類前置／UI 細節不算；`no error`／`no blank state` 這類附加語也不算，
+除非它本身就是該步要驗的結果。
 
 ## Data
 
@@ -42,32 +55,51 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - 現有 `test-case/` 檔案只當 baseline／seed，不當 validation。
 - 每次 run 存到 `evals/designer/runs/<run_id>/`：
   `design.json`、`run.json`、`units.json`、rendered markdown。
-- Phoenix project：`web-test-designer-eval`。每次 run 是一條 designer trace，底下有
-  claim 與 missing requirement 的 `EVALUATOR` spans。
+- Phoenix project：house run 用 `web-test-designer-eval`；old-skill probe 用
+  `web-test-designer-eval-old-skill`，避免兩套 skill 的 trace 混在一起。每次 run 是一條
+  designer trace，底下有 requirement 與 claim 的 `EVALUATOR` spans。
 
 ## Labels
 
-- Claim level：`claim_alignment` = `pass` / `fail`，記在 claim span（requirement × case）。
+- Claim level：`claim_alignment` = `pass` / `fail`（CATEGORICAL，`pass=1.0`、`fail=0.0`），
+  每個 claim span（requirement × case）一筆。這是 judge 的目標與 coverage 的來源。
+- `claim_failure_mode`：`wrong_scenario_to_requirement` / `undefined_behavior` /
+  `wrong_assertion_to_requirement` / `duplicated`（CATEGORICAL，無 score，optimization
+  direction `NONE`）；只在 `claim_alignment = fail` 時填。Phoenix UI 無法清空已選的值，所以
+  `export_labels.py` 會丟掉非 fail claim 上的 mode。
+- `claim_reason`：自由文字（FREEFORM）；fail 的 claim 記錄根因，pass 的 claim 也可以當註記
+  （例如「teardown 待 ticket 29」）。
+- Grounding 範圍是整份 PRD：§3 資訊架構、§6 文案、§7 資料模型都算「有描述」。
 - Missing requirement：`requirement_covered` = `not_covered`，記在 requirement span。
-- Code annotation：`requirement_exists`、`case_duplicate`；coverage 由 claim 結果推導。
-- 人類標註在 Phoenix UI 進行；`labels.jsonl` 是 metrics 的 source of truth。
+- Code annotation：`case_duplicate`；MSG/ROLE 與未知 `FR-*` 列 report，不建 claim。
+- 人類標註在 Phoenix UI 進行；`labels.jsonl` 是 metrics 的 source of truth。它是 long
+  format：一個 claim 最多三列，per-claim 統計前要先 pivot。
 - 現在只有一位 annotator；identifier 先預留 annotator，之後可加第二人。
 - 每次 export 產生一份 snapshot，避免 Phoenix annotation 變動讓舊報告不可重現。
 
 ## Evaluators
 
 - Code first：coverage、invented IDs、empty IDs、duplicates、structure。
-- Semantic judge（ticket 03）：PRD requirement 文字 + case，binary Pass/Fail，critique 要引用
-  缺少的 step／assertion；結果以 `LLM` annotation 或 JSONL 保存。
+- Semantic judge（ticket 03）：**整份 PRD + case**（`undefined_behavior` 需要整份 PRD 才知
+  有沒有寫；`wrong_assertion_to_requirement` 需要該 FR 的正文／AC），binary Pass/Fail，
+  critique 要引用缺少或錯置的 step／assertion。模型由 `WEB_TEST_JUDGE_MODEL` 指定（預設
+  `openai-chat:kimi-k2.7-code`，與 designer 不同家族）；輸入不含人類標籤；輸出 JSONL + report
+  到 `evals/designer/judge/runs/`。
+- 目前只有一份帶負例的 PRD，judge 只能做 dev（claim-level）；by-PRD split 等更多 PRD。
+- `claim_failure_mode`／`claim_reason` 是人類分析欄位，不是 judge 的輸出，也不進 TPR/TNR。
 - **不要用 Jev verifier 當 ground truth**：它同時是 gate，會循環。人類標籤才是 ground truth。
 
 ## Validation
 
-- Coverage rate + Wilson 95% CI；per PRD。
-- Coverage：requirement 有任一 claim pass 即 `covered`；全部 claim fail 即 `not_covered`；
-  沒有 claim 即 `missing`。
+- Coverage rate + Wilson 95% CI；per PRD。報兩個數字：`tested`（至少有一個 claim）與
+  `clean`（至少有一個 pass claim）。
+- `clean`：requirement 有任一 claim pass 即 `covered`；全部 claim fail 即 `not_clean`；
+  沒有 claim 即 `missing`。`clean` 比 `tested` 嚴：一張 case 多驗一個斷言，就會讓它的
+  requirement 不再是 clean。
 - 比較 claimed coverage 與 human `claim_alignment`，報告 false tags。
 - Semantic judge：TPR/TNR + CI；split **by PRD**，避免同一個 PRD 的 cases 同時進 dev 與 test。
+- 依 `claim_failure_mode` 分組計數，分母是已標的 claim（不是 failure_mode 的列數）。
+  `undefined_behavior` 比例高時，先分清是 PRD 缺漏還是 skill 過度外推，再決定補 PRD 或調 skill。
 - 樣本小時 report-only，不宣稱統計顯著。
 
 ## Integration
@@ -100,13 +132,18 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - Missing requirement 只有一個 requirement span；不要用它取代 claim 標註。
 - 每次 designer run 有模型成本。
 - 不要用 Jev verifier 當 evaluator，否則量到的是 gate 的自己。
+- `wrong_scenario_to_requirement` 在 automationexercise PRD 只有 3 例（2 例來自同一張
+  case）；這一類的 TPR 不可用，需要其他 PRD 或合成負例。
+- Label 同時量 alignment 與 grounding；只看總 fail 率會把兩者混在一起，必須按 mode 分開看。
+- `clean` coverage 會把「有測到但多驗一步」的 requirement 算成 not_clean；解讀時要跟 `tested`
+  一起看，否則會誤以為 designer 漏了需求。
 
 ## Ticket map
 
-- [01](../../.scratch/designer-evals/issues/01-eval-trace-and-units.md) — eval trace 與 claim／missing requirement 單位（unblocked）
-- [02](../../.scratch/designer-evals/issues/02-labels-and-coverage-report.md) — labels export 與 coverage report（blocked by 01）
-- [03](../../.scratch/designer-evals/issues/03-semantic-case-quality-judge.md) — semantic judge（blocked by 02）
-- [04](../../.scratch/designer-evals/issues/04-phoenix-experiments.md) — Phoenix experiments 比較多次 run（blocked by 01；02 可選）
+- [01](issues/01-eval-trace-and-units.md) — eval trace 與 claim／missing requirement 單位（unblocked）
+- [02](issues/02-labels-and-coverage-report.md) — labels export 與 coverage report（blocked by 01）
+- [03](issues/03-semantic-case-quality-judge.md) — semantic judge（blocked by 02）
+- [04](issues/04-phoenix-experiments.md) — Phoenix experiments 比較多次 run（blocked by 01；02 可選）
 - 05 — report-only CI：deferred，暫不開票
 
 ## Decisions
@@ -118,5 +155,20 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - Phoenix project：`web-test-designer-eval`
 - Late child spans 驗證成功（2026-10-29），可直接掛回 designer trace
 - CI 先不做；ticket 05 deferred
-- Claim-centric：每個 requirement × case 一個 claim span；missing requirement 另開 span
+- ID policy：PRD heading 的 `FR-*` 是 authoritative；`FR-*-ACn` normalize 到 parent；
+  `MSG-*`／`ROLE-*` 等非 PRD ID 仍算 invented
+- Claim-centric：每個 requirement 一個 parent span；每個 case × valid FR 一個 claim span；missing requirement 另開 span
+- Case ID：`case-{index}-{test_type}`，例如 `case-1-ui`、`case-6-data-persistence`
+- 非 requirement 或未知 ID 不建 claim，只在 report 列出；multi-FR case 建 claims 並標 finding
+- Label 三欄：`claim_alignment`、`claim_failure_mode`、`claim_reason`；mode 只在 fail 時填，
+  reason 也可以當 pass 的註記
+- Grounding 以整份 PRD 為準；failure mode 優先序 `wrong_scenario` -> `undefined` ->
+  `wrong_assertion`
+- Coverage 報 `tested`（有 claim）與 `clean`（有 pass claim）兩個數字
+- 只把會決定功能對錯的 `expected_result` 當行為斷言；`no error`／`no blank state` 這類附加語不算
+- Judge 目標維持 `claim_alignment`；`claim_failure_mode` 不進 TPR/TNR
+- Old-skill probe 用獨立 project `web-test-designer-eval-old-skill`
+- `labeling-worksheet.md` 是提案 artifact，不是 ground truth；由 run 產生、供人類在 UI 套用
+- 一個 FR 一個 scenario：多 FR case 的次要 claim 若沒有獨立 scenario，標 `duplicated`
+- 匯出時 `claim_failure_mode` 只保留在 fail claim 上；`claim_reason` 可保留在 pass 當註記
 - 第一版不改 production gate

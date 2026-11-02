@@ -1,9 +1,11 @@
 # PRD:Automation Exercise 線上電商網站
 
-> **版本**:v0.2(Reverse-engineered,依 26 個 Test Case 的完整步驟反推)
+> **版本**:v0.3(Reverse-engineered,依 26 個 Test Case 的完整步驟反推)
 > **來源**:Test Case 1 ~ 26(含逐步操作與驗證點)
 > **URL**:http://automationexercise.com
 > **說明**:本版相較 v0.1,補上了「UI 元件與文案」「頁面狀態」「步驟級追溯」。Test Case 未明講的部分一律列入第 11 章,不自行編造。
+> **v0.3 調整**:合併 FR-ACC-01/02 為單一「註冊」需求;FR-ENG-02 只涵蓋首頁訂閱,購物車頁由
+> FR-CART-05 負責;移除 FR-UI-02(「每個 TC 從首頁開始」是來源測試套件的慣例,不是產品需求)。
 
 ---
 
@@ -89,19 +91,16 @@
 
 ### 4.1 會員 (ACC)
 
-#### FR-ACC-01 註冊 Step 1:Name + Email
+#### FR-ACC-01 註冊
 - Login 頁左側 `New User Signup!` 區塊含 Name、Email、`Signup` 按鈕。
-- **AC**
-  1. 輸入 Name 與未註冊的 Email,點 `Signup` → 進入 `ENTER ACCOUNT INFORMATION` 頁。(TC1-S5~S8)
-
-#### FR-ACC-02 註冊 Step 2:帳號詳細資料
-- 欄位:
+- 送出後進入 `ENTER ACCOUNT INFORMATION` 頁,欄位:
   - **帳號資訊**:Title、Name、Email、Password、Date of birth
   - **Checkbox**:`Sign up for our newsletter!`、`Receive special offers from our partners!`
   - **地址資訊**:First name、Last name、Company、Address、Address2、Country、State、City、Zipcode、Mobile Number
 - **AC**
-  1. 點 `Create Account` → 顯示 `ACCOUNT CREATED!`。(TC1-S13~S14)
-  2. 點 `Continue` → 回到已登入狀態,Header 顯示 `Logged in as <username>`。(TC1-S15~S16)
+  1. 輸入 Name 與未註冊的 Email,點 `Signup` → 進入 `ENTER ACCOUNT INFORMATION` 頁。(TC1-S5~S8)
+  2. 填完帳號資訊與地址資訊,點 `Create Account` → 顯示 `ACCOUNT CREATED!`。(TC1-S13~S14)
+  3. 點 `Continue` → 回到已登入狀態,Header 顯示 `Logged in as <username>`。(TC1-S15~S16)
 
 #### FR-ACC-03 重複 Email 防護
 - **AC**:以已註冊 Email 點 `Signup` → 顯示錯誤 `Email Address already exist!`,且不進入詳細資料頁。(TC5-S6~S8)
@@ -217,9 +216,10 @@
   2. 顯示 `Success! Your details have been submitted successfully.`(TC6-S10)
   3. 點 `Home` 回到首頁。(TC6-S11)
 
-#### FR-ENG-02 電子報訂閱
-- Footer 的 `SUBSCRIPTION`:輸入 Email → 點箭頭按鈕。
-- **AC**:顯示 `You have been successfully subscribed!`。須在 **首頁**(TC10)與 **購物車頁**(TC11)皆可用。
+#### FR-ENG-02 電子報訂閱(首頁)
+- 首頁 Footer 的 `SUBSCRIPTION`:輸入 Email → 點箭頭按鈕。
+- **AC**:顯示 `You have been successfully subscribed!`。(TC10)
+- 購物車頁的同一個行為屬 FR-CART-05。(TC11)
 
 #### FR-ENG-03 Test Cases 頁
 - **AC**:Header 點 `Test Cases` → 成功導向 Test Cases 頁。(TC7)
@@ -233,9 +233,6 @@
   1. 向下捲動至頁底可見 `SUBSCRIPTION`。(TC25-S4~S5、TC26-S4~S5)
   2. 點右下角箭頭,頁面回到頂端,可見 `Full-Fledged practice website for Automation Engineers`。(TC25-S6~S7)
   3. 不使用箭頭,以一般捲動回到頂端,同樣可見該標語。(TC26-S6~S7)
-
-#### FR-UI-02 首頁可達性
-- 每個 TC 起始皆驗證「首頁成功顯示」,首頁須能在輸入網址後正常載入。
 
 ---
 
@@ -343,7 +340,7 @@ stateDiagram-v2
 
 | TC | 名稱 | 對應 FR |
 |---|---|---|
-| 1 | Register User | ACC-01, 02, 06 |
+| 1 | Register User | ACC-01, 06 |
 | 2 | Login correct | ACC-04, 06 |
 | 3 | Login incorrect | ACC-04 |
 | 4 | Logout | ACC-04, 05 |
@@ -353,11 +350,11 @@ stateDiagram-v2
 | 8 | Products & detail | PRD-01, 02 |
 | 9 | Search | PRD-03 |
 | 10 | Subscription (Home) | ENG-02 |
-| 11 | Subscription (Cart) | ENG-02, CART-05 |
+| 11 | Subscription (Cart) | CART-05 |
 | 12 | Add to cart | CART-01, PRD-01 |
 | 13 | Quantity | CART-02, PRD-02 |
-| 14 | Order: register while checkout | ORD-01~03, ACC-02, 06 |
-| 15 | Order: register before checkout | ORD-01~03, ACC-02, 06 |
+| 14 | Order: register while checkout | ORD-01~03, ACC-01, 06 |
+| 15 | Order: register before checkout | ORD-01~03, ACC-01, 06 |
 | 16 | Order: login before checkout | ORD-01~03, ACC-04, 06 |
 | 17 | Remove from cart | CART-03 |
 | 18 | Category | PRD-04 |
@@ -365,8 +362,8 @@ stateDiagram-v2
 | 20 | Search + cart after login | PRD-03, CART-04, ACC-04 |
 | 21 | Review | PRD-06 |
 | 22 | Recommended | PRD-07, CART-01 |
-| 23 | Address verify | ORD-01, 02, ACC-02 |
-| 24 | Invoice | ORD-01~04, ACC-02 |
+| 23 | Address verify | ORD-01, 02, ACC-01 |
+| 24 | Invoice | ORD-01~04, ACC-01 |
 | 25 | Scroll up (arrow) | UI-01 |
 | 26 | Scroll up (no arrow) | UI-01 |
 

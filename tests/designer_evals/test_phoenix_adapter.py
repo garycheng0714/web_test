@@ -87,8 +87,8 @@ def test_fetch_usage_sums_the_trace_spans():
 
 
 class _FakeSpan:
-    def __init__(self, span_id: int):
-        self._context = SimpleNamespace(span_id=span_id)
+    def __init__(self, span_id: int, trace_id: int = int("0" * 31 + "1", 16)):
+        self._context = SimpleNamespace(span_id=span_id, trace_id=trace_id)
 
     def get_span_context(self):
         return self._context
@@ -103,10 +103,13 @@ class _FakeSpan:
 class _FakeTracer:
     def __init__(self):
         self.calls: list[tuple[str, object, dict[str, str]]] = []
+        self._next_span_id = 0xABC
 
     def start_as_current_span(self, name: str, *, context, attributes):
         self.calls.append((name, context, attributes))
-        return _FakeSpan(0xABC)
+        span = _FakeSpan(self._next_span_id)
+        self._next_span_id += 1
+        return span
 
 
 class _FakeProvider:
@@ -147,6 +150,40 @@ def test_create_units_uses_the_agent_span_as_parent(monkeypatch):
     parent = otel_trace.get_current_span(context).get_span_context()
     assert parent.trace_id == int("0" * 31 + "1", 16)
     assert parent.span_id == int("0" * 15 + "1", 16)
+
+
+def test_create_units_nests_claims_under_their_requirement_span(monkeypatch):
+    tracer = _FakeTracer()
+    monkeypatch.setattr("opentelemetry.trace.get_tracer", lambda _: tracer)
+    provider = _FakeProvider()
+    specs = [
+        UnitSpec(
+            kind=UnitKind.REQUIREMENT,
+            target_id="FR-1",
+            name="requirement FR-1",
+            attributes={"requirement.id": "FR-1"},
+        ),
+        UnitSpec(
+            kind=UnitKind.CLAIM,
+            target_id="case-1-functional->FR-1",
+            name="claim case-1-functional -> FR-1",
+            attributes={"claim.requirement_id": "FR-1"},
+            parent_target_id="FR-1",
+        ),
+    ]
+    agent_span = {
+        "context": {
+            "trace_id": "0" * 31 + "1",
+            "span_id": "0" * 15 + "1",
+        }
+    }
+
+    units = phoenix.create_units(provider, agent_span, specs)
+
+    assert units[0].parent_span_id == "0" * 15 + "1"
+    assert units[1].parent_span_id == units[0].span_id
+    claim_parent = otel_trace.get_current_span(tracer.calls[1][1]).get_span_context()
+    assert claim_parent.span_id == int(units[0].span_id, 16)
 
 
 def test_instrument_designer_passes_the_version_and_provider(monkeypatch):

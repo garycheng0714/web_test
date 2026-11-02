@@ -19,11 +19,17 @@ be reproducible from the saved run artifacts, even if Phoenix annotations change
 - Boundary: `units.json` + Phoenix annotations -> `labels.jsonl` -> `report.md` under
   `evals/designer/runs/<run_id>/`; eval types are dataclasses, file records are
   Pydantic.
-- Invariants: a requirement is `covered` when at least one human `claim_alignment` on its
-  claims is `pass`; all claims failing means `not_covered`; no claim means `missing`. Missing
-  requirement spans may carry `requirement_covered` as confirmation, but they do not replace
-  claim labels. Invented IDs are reported, not silently accepted; the report includes sample
-  size and CI.
+- Invariants: a requirement is `clean` when at least one human `claim_alignment` on its claims
+  is `pass`; all claims failing means `not_clean`; no claim means `missing`; `tested` counts
+  requirements with at least one claim. Missing requirement spans may carry
+  `requirement_covered` as confirmation, but they do not replace claim labels. Invented IDs are
+  reported, not silently accepted; the report includes sample size and CI. Claim spans carry
+  three HUMAN configs: `claim_alignment` (pass/fail), `claim_failure_mode` (only on fail;
+  `wrong_scenario_to_requirement`, `undefined_behavior`, `wrong_assertion_to_requirement`,
+  `duplicated`), and `claim_reason` (freeform; a note is allowed on a pass). The exporter drops
+  `claim_failure_mode` on claims that are not `fail`, because the Phoenix UI cannot clear an
+  annotation. Only `claim_alignment` feeds coverage, and HUMAN label counts must not count the
+  other two.
 
 ## Tasks
 
@@ -35,11 +41,17 @@ be reproducible from the saved run artifacts, even if Phoenix annotations change
       explanation, and span id.
 - [x] Compute per-PRD coverage rate + Wilson 95% CI from claim labels.
 - [x] Report false tags: claimed by `requirement_ids` but no claim passes.
-- [x] Report missing requirements, invented IDs, empty IDs, and duplicate cases.
+- [x] Report missing requirements, invalid/non-requirement IDs, empty IDs, and duplicate cases.
 - [x] Reuse `web_test/planning/review/structure.py` for structural checks.
 - [x] Add tests for Wilson CI, label export, coverage, false tags, and a synthetic fake fail.
 - [x] Run `uv run pytest`, `uv run basedpyright`, `uv run lint-imports`,
       `uv run ruff check --select F401`.
+- [x] Count HUMAN labels on `claim_alignment` only; `claim_failure_mode` and `claim_reason`
+      are separate rows in `labels.jsonl` and must not inflate the label count.
+- [x] Report failure modes grouped by `claim_failure_mode`, with labeled claims as the
+      denominator (not the number of failure-mode rows).
+- [x] Report `tested` and `clean` coverage separately, plus a per-claim label table.
+- [x] Drop `claim_failure_mode` on non-failing claims during export.
 
 ## Out of scope
 

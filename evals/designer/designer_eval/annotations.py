@@ -25,22 +25,7 @@ def code_annotations(units: list[EvalUnit], design: DesignOutput) -> list[Annota
     for unit in units:
         if unit.kind != UnitKind.CLAIM:
             continue
-        requirement_id = unit.attributes["claim.requirement_id"]
         cid = unit.attributes["claim.case_id"]
-        exists = unit.attributes["claim.requirement_exists"] == "true"
-        annotations.append(
-            AnnotationSpec(
-                name="requirement_exists",
-                span_id=unit.span_id,
-                label="valid" if exists else "invented",
-                score=1.0 if exists else 0.0,
-                metadata={
-                    "claim_id": unit.target_id,
-                    "requirement_id": requirement_id,
-                    "case_id": cid,
-                },
-            )
-        )
         duplicates = duplicate_by_case.get(cid, [])
         annotations.append(
             AnnotationSpec(

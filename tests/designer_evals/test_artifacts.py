@@ -1,10 +1,10 @@
 import json
 from datetime import UTC, datetime
-from pathlib import Path
 
 from evals.designer.designer_eval.artifacts import RunMetadata, write_design, write_results
 from evals.designer.designer_eval.requirements import Requirement
-from evals.designer.designer_eval.units import EvalUnit, UnitKind
+from evals.designer.designer_eval.units import EvalUnit, RunFindings, UnitKind
+from web_test.paths import REPO_ROOT
 from web_test.planning.schema import Case, DesignOutput
 
 
@@ -27,26 +27,28 @@ def _design() -> DesignOutput:
     )
 
 
-def _metadata(run_dir: Path) -> RunMetadata:
-    design = _design()
+def _metadata() -> RunMetadata:
     return RunMetadata(
         run_id="run-1",
-        prd=Path("prd/register-login.md"),
+        prd=REPO_ROOT / "prd" / "register-login.md",
+        prd_text="# PRD\n",
         model="openai-chat:deepseek-v4.1-flash",
         project="web-test-designer-eval",
         created_at=datetime(2026, 10, 29, 7, 9, 4, tzinfo=UTC),
-        design=design,
+        design=_design(),
         requirements=[Requirement(id="FR-1", title="One", text="### FR-1 One")],
         units=[
             EvalUnit(
                 kind=UnitKind.CLAIM,
-                target_id="FR-1<-case-1",
+                target_id="case-1-functional->FR-1",
                 span_id="span-1",
-                name="claim FR-1 <- case-1",
+                name="claim case-1-functional -> FR-1",
                 attributes={"claim.requirement_id": "FR-1"},
             )
         ],
+        findings=RunFindings(multi_requirement_cases=["case-1-functional"]),
         usage={"prompt": 10, "completion": 2, "total": 12, "cache_read": 0},
+        annotations=1,
     )
 
 
@@ -60,9 +62,9 @@ def test_write_design_writes_design_and_rendered_markdown(tmp_path):
     assert (tmp_path / "run" / "test-case.md").read_text() == "# rendered\n"
 
 
-def test_write_results_writes_units_and_run_metadata(tmp_path):
+def test_write_results_writes_units_run_metadata_and_prd(tmp_path):
     run_dir = tmp_path / "run"
-    metadata = _metadata(run_dir)
+    metadata = _metadata()
 
     write_results(run_dir, metadata)
 
@@ -72,20 +74,28 @@ def test_write_results_writes_units_and_run_metadata(tmp_path):
     assert units == [
         {
             "kind": "claim",
-            "target_id": "FR-1<-case-1",
+            "target_id": "case-1-functional->FR-1",
             "span_id": "span-1",
-            "name": "claim FR-1 <- case-1",
+            "name": "claim case-1-functional -> FR-1",
             "attributes": {"claim.requirement_id": "FR-1"},
+            "parent_span_id": None,
         }
     ]
+    assert (run_dir / "prd.md").read_text() == "# PRD\n"
     assert run == {
         "run_id": "run-1",
         "prd": "register-login.md",
+        "prd_path": "prd/register-login.md",
         "model": "openai-chat:deepseek-v4.1-flash",
         "project": "web-test-designer-eval",
         "created_at": "2026-10-29T07:09:04+00:00",
         "requirements": 1,
         "cases": 1,
+        "claims": 1,
         "units": 1,
+        "annotations": 1,
         "usage": {"prompt": 10, "completion": 2, "total": 12, "cache_read": 0},
+        "non_requirement_ids": {},
+        "invalid_requirement_ids": {},
+        "multi_requirement_cases": ["case-1-functional"],
     }
