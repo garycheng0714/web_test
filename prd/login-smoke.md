@@ -23,10 +23,8 @@
 
 - `/login` 頁面的 `Login to your account` 區塊含 Email Address、Password 欄位與 `Login` 按鈕。
 
-**AC**
-
-1. 輸入正確的 Email 與 Password，點 `Login` → Header 顯示 `Logged in as <name>`。
-2. 輸入錯誤的 Email 或 Password，點 `Login` → 顯示錯誤訊息 `Your email or password is incorrect!`，並停留在 `/login`。
+- **AC-1**: 輸入正確的 Email 與 Password，點 `Login` → Header 顯示 `Logged in as <name>`。
+- **AC-2**: 輸入錯誤的 Email 或 Password，點 `Login` → 顯示錯誤訊息 `Your email or password is incorrect!`，並停留在 `/login`。
 
 ## 4. 訊息文案清單（Verbatim）
 

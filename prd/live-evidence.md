@@ -23,8 +23,7 @@
 ### FR-ACC-01 註冊（只涵蓋送出 Signup）
 
 - `/login` 的 `New User Signup!` 區塊含 Name、Email Address 欄位與 `Signup` 按鈕。
-- **AC**
-  1. 輸入 Name 與**未註冊**的 Email，點 `Signup` → 進入 `Enter Account Information` 頁。
+- **AC-1**: 輸入 Name 與**未註冊**的 Email，點 `Signup` → 進入 `Enter Account Information` 頁。
 
 ## 4. 訊息文案清單（Verbatim）
 

@@ -83,6 +83,44 @@ def test_parse_requirements_requires_an_fr_heading():
         parse_requirements("# PRD\n\n## 1. Scope\n- nothing")
 
 
+def test_parse_requirements_reads_acceptance_criteria():
+    prd = """# PRD
+
+#### FR-CART-01 Add to cart
+- **AC-1**: two products stay in the cart.
+- **AC-2**: each row shows price and quantity, and the
+  total price equals price x quantity.
+- note that is not a criterion.
+
+#### FR-CART-02 Set quantity
+- **AC-1**: the cart quantity equals the value set on the detail page.
+"""
+
+    requirements = parse_requirements(prd)
+
+    assert [ac.id for ac in requirements[0].acceptance_criteria] == [
+        "FR-CART-01-AC1",
+        "FR-CART-01-AC2",
+    ]
+    assert [ac.index for ac in requirements[0].acceptance_criteria] == [1, 2]
+    assert requirements[0].acceptance_criteria[1].text == (
+        "each row shows price and quantity, and the total price equals price x quantity."
+    )
+    assert [ac.id for ac in requirements[1].acceptance_criteria] == ["FR-CART-02-AC1"]
+
+
+def test_parse_requirements_rejects_a_repeated_acceptance_criterion_number():
+    prd = """# PRD
+
+#### FR-CART-01 Add to cart
+- **AC-1**: first.
+- **AC-1**: second.
+"""
+
+    with pytest.raises(ValueError, match="repeats acceptance criterion numbers"):
+        parse_requirements(prd)
+
+
 def test_case_id_uses_index_and_test_type():
     assert case_id(1, CaseType.UI) == "case-1-ui"
     assert case_id(6, CaseType.DATA_PERSISTENCE) == "case-6-data-persistence"

@@ -37,26 +37,24 @@
     - Email 由 signup 帶入且**唯讀（disabled）**。
     - Mail opt-in checkbox：`Sign up for our newsletter!`、`Receive special offers from our partners!`。
   - **地址資訊**：First name、Last name、Company、Address、Address 2、Country（下拉）、State、City、Zipcode、Mobile Number。
-- **AC**
-  1. 輸入 Name 與**未註冊**的 Email，點 `Signup` → 進入 `Enter Account Information` 頁。(TCr1-S4~S7)
-  2. 點 `Create Account` → 顯示 `Account Created!` 頁（含 `Congratulations! Your new account has been successfully created!`）。(TCr1-S9~S14)
-  3. 點 `Continue` → 回到已登入狀態，Header 顯示 `Logged in as <name>`。(TCr1-S15~S16)
+- **AC-1**: 輸入 Name 與**未註冊**的 Email，點 `Signup` → 進入 `Enter Account Information` 頁。(TCr1-S4~S7)
+- **AC-2**: 點 `Create Account` → 顯示 `Account Created!` 頁（含 `Congratulations! Your new account has been successfully created!`）。(TCr1-S9~S14)
+- **AC-3**: 點 `Continue` → 回到已登入狀態，Header 顯示 `Logged in as <name>`。(TCr1-S15~S16)
 
 ### FR-ACC-03 重複 Email 防護
-- **AC**：以已註冊 Email 於 `New User Signup!` 點 `Signup` → 顯示錯誤 `Email Address already exist!`，且**不**進入帳號資訊頁。(TCr5-S4~S8)
+- **AC-1**: 以已註冊 Email 於 `New User Signup!` 點 `Signup` → 顯示錯誤 `Email Address already exist!`，且**不**進入帳號資訊頁。(TCr5-S4~S8)
 
 ### FR-ACC-04 登入
 - `/login` 的 `Login to your account` 區塊含 Email Address、Password 與 `Login` 按鈕。
-- **AC**
-  1. 正確帳密 → Header 顯示 `Logged in as <name>`。(TCr2-S4~S8、TCr4-S4~S8)
-  2. 錯誤帳密 → 顯示錯誤 `Your email or password is incorrect!`，停留在 `/login`。(TCr3-S4~S8)
+- **AC-1**: 正確帳密 → Header 顯示 `Logged in as <name>`。(TCr2-S4~S8、TCr4-S4~S8)
+- **AC-2**: 錯誤帳密 → 顯示錯誤 `Your email or password is incorrect!`，停留在 `/login`。(TCr3-S4~S8)
 
 ### FR-ACC-05 登出
-- **AC**：點 Header 的 `Logout` → 回到 `/login`（可見 `Login to your account` / `New User Signup!`），狀態為訪客。(TCr4-S9~S10)
+- **AC-1**: 點 Header 的 `Logout` → 回到 `/login`（可見 `Login to your account` / `New User Signup!`），狀態為訪客。(TCr4-S9~S10)
 
 ### FR-ACC-06 刪除帳號
 - 會員可於 Header 點 `Delete Account`。
-- **AC**：顯示 `Account Deleted!` 頁（含 `Your account has been permanently deleted!`），點 `Continue` 後離開已登入狀態（Header 再現 `Signup / Login`）。(TCr1-S17~S18、TCr2-S9~S10)
+- **AC-1**: 顯示 `Account Deleted!` 頁（含 `Your account has been permanently deleted!`），點 `Continue` 後離開已登入狀態（Header 再現 `Signup / Login`）。(TCr1-S17~S18、TCr2-S9~S10)
 
 ## 5. 關鍵流程
 
