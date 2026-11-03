@@ -1,11 +1,13 @@
 # PRD:Automation Exercise 線上電商網站
 
-> **版本**:v0.3(Reverse-engineered,依 26 個 Test Case 的完整步驟反推)
+> **版本**:v0.4(Reverse-engineered,依 26 個 Test Case 的完整步驟反推)
 > **來源**:Test Case 1 ~ 26(含逐步操作與驗證點)
 > **URL**:http://automationexercise.com
 > **說明**:本版相較 v0.1,補上了「UI 元件與文案」「頁面狀態」「步驟級追溯」。Test Case 未明講的部分一律列入第 11 章,不自行編造。
 > **v0.3 調整**:合併 FR-ACC-01/02 為單一「註冊」需求;FR-ENG-02 只涵蓋首頁訂閱,購物車頁由
 > FR-CART-05 負責;移除 FR-UI-02(「每個 TC 從首頁開始」是來源測試套件的慣例,不是產品需求)。
+> **v0.4 調整**:`FR-PRD-04` 的兩條 AC 合併為一條(同一情境的兩個面向);分類頁標題改為實站的
+> Title Case(`Men - Tshirts Products`),並把「只顯示該子分類的商品」寫進 AC。
 
 ---
 
@@ -73,7 +75,7 @@
 | Account Deleted | `ACCOUNT DELETED!` + Continue | 1、2、14~16、23、24 |
 | Products | `ALL PRODUCTS`、搜尋框 + 搜尋按鈕、左側 Brands、商品列表 | 8、9、12、19、20、21 |
 | Searched Products | `SEARCHED PRODUCTS` | 9、20 |
-| Category 頁 | 例:`WOMEN - TOPS PRODUCTS` | 18 |
+| Category 頁 | 例:`Men - Tshirts Products` | 18 |
 | Brand 頁 | 該品牌商品列表 | 19 |
 | Product Detail | 名稱、分類、價格、Availability、Condition、Brand、數量輸入、Add to cart、`Write Your Review` | 8、13、21 |
 | Cart | 商品列表(價格 / 數量 / 總價)、`X` 刪除、`Proceed To Checkout`、Footer 訂閱 | 11~14、17、20、22 |
@@ -137,9 +139,9 @@
 
 #### FR-PRD-04 分類瀏覽
 - 首頁左側顯示 Category,含 `Women`、`Men` 等主分類,各主分類可展開子分類。
-- **AC**
-  1. 點主分類展開子分類 → 點子分類 → 顯示分類頁標題,格式如 `WOMEN - TOPS PRODUCTS`。(TC18-S4~S6)
-  2. 在側邊欄點 `Men` 下任一子分類 → 導向對應分類頁。(TC18-S7~S8)
+- **AC**:從側邊欄展開主分類 → 點子分類 → 導向對應分類頁;頁面標題為
+  `<主分類> - <子分類> Products`(例如 `Men - Tshirts Products`),且列表只顯示該子分類的商品
+  (例如 `Men Tshirt`)。(TC18-S4~S8)
 
 #### FR-PRD-05 品牌瀏覽
 - Products 頁左側顯示 Brands 清單。
@@ -165,6 +167,7 @@
 - **AC**
   1. 連續加入兩項商品後,購物車內兩者皆存在。(TC12-S9)
   2. 購物車每列顯示 **price、quantity、total price**。(TC12-S10)
+  3. 每列 `total price` = 該列 `price` × `quantity`。(TC13-S6~S9)
 
 #### FR-CART-02 指定數量
 - 詳情頁提供數量輸入,可調整(TC13 以 4 為例)後再 `Add to cart`。
@@ -296,7 +299,7 @@ stateDiagram-v2
 | Contact 成功 | `Success! Your details have been submitted successfully.` |
 | 商品列表頁 | `ALL PRODUCTS` |
 | 搜尋結果 | `SEARCHED PRODUCTS` |
-| 分類頁(例) | `WOMEN - TOPS PRODUCTS` |
+| 分類頁(例) | `Men - Tshirts Products` |
 | 訂閱區 | `SUBSCRIPTION` |
 | 訂閱成功 | `You have been successfully subscribed!` |
 | 評論區 | `Write Your Review` |
@@ -304,6 +307,11 @@ stateDiagram-v2
 | 推薦區 | `RECOMMENDED ITEMS` |
 | 下單成功 | `Your order has been placed successfully!` |
 | 首頁標語 | `Full-Fledged practice website for Automation Engineers` |
+
+> 註:本表的大小寫以**畫面渲染結果**為準。部分標題的 DOM 文字是 Title Case,畫面由 CSS
+> `text-transform` 轉為全大寫,例如 `ENTER ACCOUNT INFORMATION`、`ACCOUNT CREATED!`、
+> `ACCOUNT DELETED!`(見 `prd/register-login.md` §6 的實測註記)。自動化斷言建議忽略大小寫,
+> 或改用可及名稱。分類頁標題的文字為 Title Case,例如 `Men - Tshirts Products`。
 
 ---
 
@@ -383,7 +391,7 @@ stateDiagram-v2
 ## 11. 假設、矛盾與待確認事項
 
 ### 11.1 Test Case 內部不一致(建議釐清)
-1. **TC18**:Step 5 寫「點 Women 下的 *Dress*」,Step 6 卻驗證 `WOMEN - TOPS PRODUCTS`。兩者不一致,PRD 以「標題格式為 `<主分類> - <子分類> PRODUCTS`」為準。
+1. **TC18**:Step 5 寫「點 Women 下的 *Dress*」,Step 6 卻驗證 `WOMEN - TOPS PRODUCTS`。兩者不一致,且全大寫與實站不符;實站標題為 Title Case 的 `<主分類> - <子分類> Products`(例如 `Men - Tshirts Products`),PRD 以此為準,來源 TC 的全大寫視為筆誤。
 2. **TC4**:登出前提需「已存在帳號」,TC 未說明測試帳號從何而來。
 3. **TC2、TC16**:同樣依賴既有帳號,但結尾執行 `Delete Account`,下一次執行將無帳號可用 → 測試資料管理問題。
 4. **TC14 / TC24**:Step 12 為 `12.Click` 缺空格(筆誤,無影響)。
