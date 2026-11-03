@@ -75,8 +75,11 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - Grounding 範圍是整份 PRD：§3 資訊架構、§6 文案、§7 資料模型都算「有描述」。
 - Missing requirement：`requirement_covered` = `not_covered`，記在 requirement span。
 - Code annotation：`case_duplicate`；MSG/ROLE 與未知 `FR-*` 列 report，不建 claim。
-- 人類標註在 Phoenix UI 進行；`labels.jsonl` 是 metrics 的 source of truth。它是 long
-  format：一個 claim 最多三列，per-claim 統計前要先 pivot。
+- 人類標註在 Phoenix UI 進行；`labels.jsonl` 是單次 run 的匯出快照，coverage report 用它。它是
+  long format：一個 claim 最多三列，per-claim 統計前要先 pivot。
+- **judge 的 source of truth 是 `evals/designer/judge/data/` 底下 committed 的資料集**，不是
+  Phoenix。原因：標籤在 review 之後有過修正（v0.4 對齊、邊界改判），Phoenix 仍持有原始值，
+  重新 export 會靜默蓋掉修正。Phoenix 只是新 run 的標註 UI。
 - 現在只有一位 annotator；identifier 先預留 annotator，之後可加第二人。
 - 每次 export 產生一份 snapshot，避免 Phoenix annotation 變動讓舊報告不可重現。
 
@@ -141,7 +144,7 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - 只有 3–4 個 PRD，CI 會很寬。
 - 單一 annotator；需要 delayed self-review 或第二人。
 - `requirement_ids` 可以被亂填；human labels 才是 ground truth。
-- Phoenix annotations 與 `labels.jsonl` 可能漂移；用 export snapshot 固定。
+- Phoenix annotations 與 committed fixture 會漂移；fixture 是 judge 的真相，export 只用於新 run。
 - Claim-centric 會讓 many-to-many 產生多個 claim spans；labels 必須用 claim id join。
 - Missing requirement 只有一個 requirement span；不要用它取代 claim 標註。
 - 每次 designer run 有模型成本。
@@ -168,7 +171,8 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - 工作目錄：`evals/designer/`
 - Ticket status：`needs-triage`
 - `OPENCODE_API_KEY` 可用
-- Phoenix 是人類標註 UI；`labels.jsonl` 是 metrics 的 source of truth
+- Phoenix 是人類標註 UI；`labels.jsonl` 是單次 run 的匯出快照
+- judge 的 source of truth 是 `judge/data/` 底下 committed 的資料集；Phoenix 重 export 會蓋掉修正
 - Phoenix project：`web-test-designer-eval`
 - Late child spans 驗證成功（2026-10-29），可直接掛回 designer trace
 - CI 先不做；ticket 05 deferred

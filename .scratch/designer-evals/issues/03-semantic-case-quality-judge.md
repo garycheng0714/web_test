@@ -281,10 +281,9 @@ Three runs on the corrected set (21 fail, 29 pass):
    disagreements) until a fresh baseline replaces it. Then re-run the designer on the updated PRD
    (FR-CART-01 AC3, the merged FR-PRD-04) and label that run; that is the only way to see the PRD
    fix itself.
-6. **Replace the Phoenix annotations.** The fixture now disagrees with Phoenix on
-   `case-13 -> FR-PRD-04` (pass here, fail there), `case-21 -> FR-CART-02` and
-   `case-30 -> FR-ORD-02` (fail here, pass there). Until they are replaced, re-exporting those runs
-   reverts the correction.
+6. **Phoenix annotations (closed 2026-11-03).** The committed dataset is now the judge's source of
+   truth, so Phoenix replacement is not required. Phoenix keeps the original values and stays the
+   labeling UI for new runs; do not rebuild `judge/data/` from it.
 7. **Confirm before spending.** Do not start a judge run without agreeing the model, the number of
    runs, and the call budget with the operator first. A three-run measurement is 150 calls.
 

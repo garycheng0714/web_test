@@ -47,8 +47,13 @@ verdict:
   dropped. One single-requirement row was remapped from `FR-ACC-02` to `FR-ACC-01`; its case yaml
   still cites the pre-merge id, because the case is the artifact under test and is not rewritten.
 
-Phoenix still holds the original annotations, so re-exporting these runs would revert every change
-above until the Phoenix annotations are replaced.
+## Source of truth
+
+The committed dataset in this directory is the source of truth for the judge, not Phoenix. The
+labels were corrected in review after they were first annotated (the v0.4 alignment, the boundary
+ruling), and Phoenix still holds the original values. Re-exporting either historical run rebuilds a
+`labels.jsonl` that would silently revert those corrections, so do not rebuild this directory from
+Phoenix. Phoenix remains the labeling UI for new runs.
 
 The run directories themselves stay local (`evals/designer/runs/` and `evals/designer/judge/runs/`
 are gitignored).
