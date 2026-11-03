@@ -1,6 +1,6 @@
 # PRD:Automation Exercise 線上電商網站
 
-> **版本**:v0.5(Reverse-engineered,依 26 個 Test Case 的完整步驟反推)
+> **版本**:v0.6(Reverse-engineered,依 26 個 Test Case 的完整步驟反推;TC26 為瀏覽器行為,不構成需求)
 > **來源**:Test Case 1 ~ 26(含逐步操作與驗證點)
 > **URL**:http://automationexercise.com
 > **說明**:本版相較 v0.1,補上了「UI 元件與文案」「頁面狀態」「步驟級追溯」。Test Case 未明講的部分一律列入第 11 章,不自行編造。
@@ -11,6 +11,10 @@
 > **v0.5 調整**:文案表與分類頁標題以**渲染後文字**為準。分類頁標題的 DOM 文字是 Title Case,
 > 由 CSS `h2.title` 轉為全大寫,所以斷言值為 `MEN - TSHIRTS PRODUCTS`;`FR-PRD-01`、
 > `FR-CART-03`、`FR-PRD-03` 補上實站已具備的內容;`FR-ORD-04` 明訂只驗下載完成。
+> **v0.6 調整**:AC 的單位改為「一段旅程」——一個起始狀態、產品擁有的動作、一個可觀察的結束
+> 狀態。同一段旅程的連續階段收成一條 AC(`FR-ACC-01`、`FR-ENG-01`、`FR-CART-01`、
+> `FR-PRD-03`、`FR-PRD-05`、`FR-ORD-02`);手動捲動是瀏覽器行為,TC26 與 `FR-UI-01` 的第三條
+> AC 移除;`FR-ACC-04` 的失敗分支補上「仍為訪客」。AC 由 38 條減為 27 條,編號只刪不重排。
 
 ---
 
@@ -92,7 +96,10 @@
 
 ## 4. 功能需求
 
-> 編號 `FR-<模組>-<序號>`;AC = Acceptance Criteria。括號內為對應 TC 與步驟編號(例:TC1-S14 = Test Case 1 第 14 步)。
+> 編號 `FR-<模組>-<序號>`;AC = 一段**旅程**:一個起始狀態、產品擁有的動作、一個可觀察的
+> 結束狀態。同一段旅程的連續階段是同一條 AC 的驗證點,不另立 AC;共用同一個 fixture 的兩個
+> 分支(例如登入成功 / 失敗)是兩條 AC。瀏覽器行為(例如手動捲動)不構成 AC。括號內為對應
+> TC 與步驟編號(例:TC1-S14 = Test Case 1 第 14 步)。
 
 ### 4.1 會員 (ACC)
 
@@ -102,9 +109,9 @@
   - **帳號資訊**:Title、Name、Email、Password、Date of birth
   - **Checkbox**:`Sign up for our newsletter!`、`Receive special offers from our partners!`
   - **地址資訊**:First name、Last name、Company、Address、Address2、Country、State、City、Zipcode、Mobile Number
-- **AC-1**: 輸入 Name 與未註冊的 Email,點 `Signup` → 進入 `ENTER ACCOUNT INFORMATION` 頁。(TC1-S5~S8)
-- **AC-2**: 填完帳號資訊與地址資訊,點 `Create Account` → 顯示 `ACCOUNT CREATED!`。(TC1-S13~S14)
-- **AC-3**: 點 `Continue` → 回到已登入狀態,Header 顯示 `Logged in as <username>`。(TC1-S15~S16)
+- **AC-1**: 訪客以未註冊的 Email 完成註冊並保持登入:輸入 Name 與未註冊的 Email、點 `Signup`
+  → 進入 `ENTER ACCOUNT INFORMATION` 頁;填完帳號資訊與地址資訊、點 `Create Account` → 顯示
+  `ACCOUNT CREATED!`;點 `Continue` → Header 顯示 `Logged in as <username>`。(TC1-S5~S16)
 
 #### FR-ACC-03 重複 Email 防護
 - **AC-1**: 以已註冊 Email 點 `Signup` → 顯示錯誤 `Email Address already exist!`,且不進入詳細資料頁。(TC5-S6~S8)
@@ -112,7 +119,8 @@
 #### FR-ACC-04 登入
 - Login 頁右側 `Login to your account` 區塊含 Email、Password、`Login` 按鈕。
 - **AC-1**: 正確帳密 → 顯示 `Logged in as <username>`。(TC2-S6~S8、TC4-S6~S8、TC16-S5~S6)
-- **AC-2**: 錯誤帳密 → 顯示 `Your email or password is incorrect!`。(TC3-S6~S8)
+- **AC-2**: 錯誤帳密 → 顯示 `Your email or password is incorrect!`,且仍為訪客(Header 仍顯示
+  `Signup / Login`)。(TC3-S6~S8)
 
 #### FR-ACC-05 登出
 - **AC-1**: 點 `Logout` → 導向 Login 頁(可見 `Login to your account`)。(TC4-S9~S10)
@@ -136,8 +144,8 @@
 - **AC-1**: 點 `View Product` 進入詳情頁,可見:**product name、category、price、availability、condition、brand**。(TC8-S7~S9)
 
 #### FR-PRD-03 搜尋
-- **AC-1**: 在 Products 頁輸入商品名稱並點搜尋按鈕 → 顯示 `SEARCHED PRODUCTS`。(TC9-S6~S7)
-- **AC-2**: 列出的商品名稱皆包含搜尋字。(TC9-S8)
+- **AC-1**: 在 Products 頁輸入商品名稱並點搜尋按鈕 → 顯示 `SEARCHED PRODUCTS`,且列出的商品名稱
+  皆包含搜尋字。(TC9-S6~S8)
 
 #### FR-PRD-04 分類瀏覽
 - 首頁左側顯示 Category,含 `Women`、`Men` 等主分類,各主分類可展開子分類。
@@ -147,8 +155,8 @@
 
 #### FR-PRD-05 品牌瀏覽
 - Products 頁左側顯示 Brands 清單。
-- **AC-1**: 點任一品牌 → 導向品牌頁並顯示該品牌商品。(TC19-S5~S6)
-- **AC-2**: 點另一品牌 → 切換並顯示該品牌商品。(TC19-S7~S8)
+- **AC-1**: 點任一品牌 → 導向品牌頁並顯示該品牌商品;點另一品牌 → 切換並顯示該品牌商品。
+  (TC19-S5~S8)
 
 #### FR-PRD-06 商品評論
 - 詳情頁含 `Write Your Review` 區塊:Name、Email、Review、`Submit`。
@@ -165,9 +173,9 @@
 #### FR-CART-01 加入購物車與提示 Modal
 - 於列表 / 搜尋結果 / 品牌頁 / 推薦區 / 詳情頁均可加入購物車。
 - 加入後出現 Modal,提供 `Continue Shopping` 與 `View Cart`。(TC12-S6~S8)
-- **AC-1**: 連續加入兩項商品後,購物車內兩者皆存在。(TC12-S9)
-- **AC-2**: 購物車每列顯示 **price、quantity、total price**。(TC12-S10)
-- **AC-3**: 每列 `total price` = 該列 `price` × `quantity`。(TC13-S6~S9)
+- **AC-1**: 連續加入兩項商品(數量可在詳情頁設定,見 FR-CART-02)後,購物車內兩者皆存在;每列
+  顯示 **price、quantity、total price**,且每列 `total price` = 該列 `price` × `quantity`。
+  (TC12-S9~S10、TC13-S6~S9)
 
 #### FR-CART-02 指定數量
 - 詳情頁提供數量輸入,可調整(TC13 以 4 為例)後再 `Add to cart`。
@@ -201,8 +209,8 @@
 
 #### FR-ORD-02 Checkout 頁內容
 - 顯示 **Address Details** 與 **Review Your Order**,並提供 Comment 文字區與 `Place Order`。(TC14-S14~S15)
-- **AC-1**: Delivery address 與 Billing address 皆須與註冊時填寫的地址一致。(TC23-S12~S13)
-- **AC-2**: 可輸入備註後點 `Place Order`。(TC14-S15)
+- **AC-1**: 在 Checkout 頁,Delivery address 與 Billing address 皆與註冊時填寫的地址一致,且可
+  輸入備註後點 `Place Order`。(TC23-S12~S13、TC14-S15)
 
 #### FR-ORD-03 付款
 - 欄位:Name on Card、Card Number、CVC、Expiration date。
@@ -220,9 +228,8 @@
 #### FR-ENG-01 Contact Us
 - Header `Contact Us` → 顯示 `GET IN TOUCH`。
 - 欄位:Name、Email、Subject、Message、**檔案上傳**、`Submit`。
-- **AC-1**: 點 `Submit` 後出現確認彈窗,需點 `OK`。(TC6-S8~S9)
-- **AC-2**: 顯示 `Success! Your details have been submitted successfully.`(TC6-S10)
-- **AC-3**: 點 `Home` 回到首頁。(TC6-S11)
+- **AC-1**: 填完並送出 Contact Us 表單後出現確認彈窗,點 `OK` → 顯示
+  `Success! Your details have been submitted successfully.`;點 `Home` → 回到首頁。(TC6-S8~S11)
 
 #### FR-ENG-02 電子報訂閱(首頁)
 - 首頁 Footer 的 `SUBSCRIPTION`:輸入 Email → 點箭頭按鈕。
@@ -237,9 +244,8 @@
 ### 4.6 全站 UI (UI)
 
 #### FR-UI-01 捲動與 Scroll Up
-- **AC-1**: 向下捲動至頁底可見 `SUBSCRIPTION`。(TC25-S4~S5、TC26-S4~S5)
-- **AC-2**: 點右下角箭頭,頁面回到頂端,可見 `Full-Fledged practice website for Automation Engineers`。(TC25-S6~S7)
-- **AC-3**: 不使用箭頭,以一般捲動回到頂端,同樣可見該標語。(TC26-S6~S7)
+- **AC-1**: 向下捲動至頁底可見 `SUBSCRIPTION`;點右下角箭頭,頁面回到頂端,可見
+  `Full-Fledged practice website for Automation Engineers`。(TC25-S4~S7)
 
 ---
 
@@ -378,7 +384,6 @@ stateDiagram-v2
 | 23 | Address verify | ORD-01, 02, ACC-01 |
 | 24 | Invoice | ORD-01~04, ACC-01 |
 | 25 | Scroll up (arrow) | UI-01 |
-| 26 | Scroll up (no arrow) | UI-01 |
 
 ---
 

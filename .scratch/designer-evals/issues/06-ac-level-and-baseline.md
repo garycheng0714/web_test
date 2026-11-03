@@ -5,7 +5,8 @@
 criterion alone. This removes the whole class of "the case asserts one step beyond its FR" disputes
 by construction.
 
-**Blocked by:** nothing to start the decision. The schema work waits on that decision.
+**Blocked by:** 07, which rewrites the PRD's criteria and rebuilds the fixture at
+`(case, requirement)` granularity. The schema work waits on that.
 
 **Status:** needs-triage
 
@@ -74,3 +75,11 @@ by construction.
 Opened at the end of the session that produced the PRD v0.4/v0.5 corrections, the judge metric
 rename, and the data invariant tests. The decision it waits on is a product one: whether a test
 suite should be one journey per requirement or one check per criterion.
+
+2026-11-03: the unit decision landed. An AC is one journey (a start state, product-owned actions,
+one observable end state); a shared fixture may split, a shared sequence may not. The working PRD
+goes from 38 criteria to 27 (TC26 is a browser action, so `FR-UI-01` keeps one AC), which makes
+`FR` and `AC` the same thing for 23 of 25 requirements. The schema, the skill's AC traceability,
+and the AC-level claims are deferred: ticket 07 fixes the PRD and rebuilds the fixture at
+`(case, requirement)` granularity first. The 49 existing labels are an FR-level snapshot; the 27
+new rows will re-key mechanically because the mapping is 1:1.
