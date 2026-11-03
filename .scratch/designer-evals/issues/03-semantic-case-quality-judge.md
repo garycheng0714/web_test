@@ -33,7 +33,7 @@ Report-only; no gate.
       PRDs only, and structured output with critique first. Few-shot is still blocked: there is
       no train PRD.
 - [ ] Build a claim-level train/dev/test split by PRD. Blocked: only one labeled PRD; the dev run
-      uses the 50 single-requirement claims (18 fail, 32 pass) from both source runs.
+      uses the 49 single-requirement claims (18 fail, 31 pass) from both source runs.
 - [x] Run on dev; measure fail recall / pass specificity + Wilson CI; inspect disagreements.
 - [ ] Iterate on dev; run test once. Blocked on label stability (see the dev run below).
 - [x] Write judge results as JSONL; `LLM` annotations are still optional. Export them alongside
@@ -63,7 +63,8 @@ Report-only; no gate.
   scenario inside a multi-FR case. The fix is to split the case (ticket 30).
 - The judge may repeat the designer's blind spots; human labels are required.
 - Model cost per run.
-- Judge annotations can drift from the exported JSONL; treat the snapshot as the metric input.
+- Judge annotations can drift from the exported JSONL; treat the committed dev set as the metric
+  input, and note that Phoenix still holds the pre-alignment labels.
 
 ## Evidence from the first labeled run (2026-10-29)
 
@@ -171,10 +172,27 @@ failure modes   undefined 9     undefined 1
   right fix is that the designer must not assert them, which is the skill self-check ticket below,
   not a PRD edit.
 - The cart total was the one genuine PRD gap. FR-CART-01 now has AC3 (`total price = price x
-  quantity`). The fixture PRD stays the pre-fix snapshot, so its labels remain correct for the PRD
-  that generated those cases; a designer re-run is what measures the change.
+  quantity`). The fixture PRD was later aligned to v0.4, and the two `total` claims stay `fail` as
+  `wrong_assertion_to_requirement`: the value is now defined, but it still does not verify
+  FR-CART-02. A designer re-run is what measures the PRD change itself.
 - Expect the next measurement to move: 3 relabels raise fail recall on those rows, and the
   prompt tolerance should remove 2 false alarms.
+
+### PRD v0.4 alignment (2026-11-03)
+
+The fixture PRD and every row's `requirement_text` now match the working PRD v0.4, so the dev set
+describes the same product the designer reads. 82 rows remain (49 single-requirement, 18 fail).
+
+- Dropped: `case-43 -> FR-UI-02` (requirement removed in v0.3), and the two multi-requirement
+  `FR-ACC-02` rows whose case already had a merged `FR-ACC-01` claim.
+- Remapped: one single-requirement row from `FR-ACC-02` to `FR-ACC-01`; its case yaml still cites the
+  pre-merge id because the case is the artifact under test.
+- Flipped to `pass`: `case-13 -> FR-PRD-04`, `case-14 -> FR-PRD-04`, because v0.4 states that the
+  category page lists only the selected subcategory's products.
+- Mode changed, verdict unchanged: `case-14 -> FR-CART-02`, `case-21 -> FR-CART-02` moved from
+  `undefined_behavior` to `wrong_assertion_to_requirement`.
+
+Phoenix still holds the original annotations, so a re-export reverts all of the above.
 
 ### Stability at temperature 0 (2026-11-03)
 
@@ -239,15 +257,19 @@ Three runs on the corrected set (21 fail, 29 pass):
    report-only: write it, run it, but do not publish TPR/TNR or gate on it.
 4. **Label boundary (resolved 2026-11-03).** The "assertion the PRD never states" rule is strict:
    relabel and fail. Two exceptions are written into the spec and the prompt: repeating a stated
-   rule with a new input, and a parenthetical rationale. Three claims were relabeled in the
-   fixture (`case-14 -> FR-PRD-04`, `case-21 -> FR-CART-02`, `case-30 -> FR-ORD-02`); Phoenix still
-   holds the old `pass` values, so a re-export would revert them.
+   rule with a new input, and a parenthetical rationale. `case-21 -> FR-CART-02` and
+   `case-30 -> FR-ORD-02` were relabeled to fail; `case-14 -> FR-PRD-04` was relabeled and then
+   returned to pass when the PRD v0.4 alignment made the assertion grounded.
 5. **Re-measure.** Next comparison uses the 2026-11-03 floor (recall 0.05, specificity 0.04, 6 to 8
-   disagreements). Then re-run the designer on the updated PRD (FR-CART-01 AC3) and label that run;
-   that is the only way to see the PRD fix itself.
-6. **Replace the Phoenix annotations.** Three fixture labels no longer match Phoenix
-   (`case-14 -> FR-PRD-04`, `case-21 -> FR-CART-02`, `case-30 -> FR-ORD-02`). Until they are
-   replaced, re-exporting those runs reverts the correction.
+   disagreements) until a fresh baseline replaces it. Then re-run the designer on the updated PRD
+   (FR-CART-01 AC3, the merged FR-PRD-04) and label that run; that is the only way to see the PRD
+   fix itself.
+6. **Replace the Phoenix annotations.** The fixture now disagrees with Phoenix on
+   `case-13 -> FR-PRD-04` (pass here, fail there), `case-21 -> FR-CART-02` and
+   `case-30 -> FR-ORD-02` (fail here, pass there). Until they are replaced, re-exporting those runs
+   reverts the correction.
+7. **Confirm before spending.** Do not start a judge run without agreeing the model, the number of
+   runs, and the call budget with the operator first. A three-run measurement is 150 calls.
 
 ## Comments
 
