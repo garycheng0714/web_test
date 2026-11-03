@@ -5,9 +5,14 @@ directory with the PRD text and one row per HUMAN-labeled claim:
 
 ```text
 <dataset>/prd.md       # the PRD text the labels are judged against
-<dataset>/claims.jsonl # claim_id, requirement_id, case_id, requirement_text, case_markdown,
+<dataset>/claims.jsonl # claim_id, requirement_id, case_id, case_markdown,
                        # human_label, human_mode, human_reason, source_run
 ```
+
+The requirement text is not stored per row: `load_examples` reads it from the PRD by
+`requirement_id`, so editing a PRD cannot leave a row holding stale text. The working dataset
+(`automationexercise`) has no `prd.md` of its own; `dataset_prd` reads the repo's
+`.scratch/automationexercise/prd.md` instead. Every other dataset keeps a snapshot.
 
 ## Provenance
 
@@ -16,7 +21,7 @@ them come from the runs as generated; the PRD has since been aligned to v0.4 (se
 
 | dataset | source runs | claims | fails |
 | --- | --- | --- | --- |
-| `automationexercise` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 31 |
+| `automationexercise` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
 | `register-login` | `register-login-20261029T070829Z` | 7 | 0 |
 
 Both datasets use the same automationexercise PRD in the first case, so this is a **dev set only**:
@@ -25,7 +30,7 @@ check one class but not the other.
 
 Most automationexercise rows predate ticket 30 (one case per requirement), so `load_examples` skips
 multi-requirement cases unless `--include-multi-fr` is passed. The 49 single-requirement rows are the
-current target: 18 fail, 31 pass.
+current target: 17 fail, 32 pass.
 
 ## Label history
 
@@ -34,8 +39,8 @@ relabeled `fail` (`undefined_behavior`): `case-14 -> FR-PRD-04`, `case-21 -> FR-
 `case-30 -> FR-ORD-02`. The rule lives in `evals/designer/spec.md`.
 
 **2026-11-03, PRD v0.4 alignment.** `prd.md` now matches the working PRD v0.4, and every row's
-`requirement_text` was refreshed from it. Labels changed only where the new text decides the
-verdict:
+requirement text was refreshed from it (the per-row copy has since been dropped: the PRD is read by
+id). Labels changed only where the new text decides the verdict:
 
 - `case-13 -> FR-PRD-04` and `case-14 -> FR-PRD-04` became `pass`: v0.4 states that the category
   page lists only the selected subcategory's products.

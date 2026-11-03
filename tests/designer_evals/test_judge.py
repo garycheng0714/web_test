@@ -67,13 +67,12 @@ def test_build_prompt_contains_the_prd_requirement_and_case():
 
 
 def test_load_examples_reads_the_dataset(tmp_path: Path):
-    (tmp_path / "prd.md").write_text("# PRD\n", encoding="utf-8")
+    (tmp_path / "prd.md").write_text("#### FR-ACC-01 sign up\n\n- **AC-1**: a user can sign up.\n")
     row = {
         "source_run": "run-1",
-        "claim_id": "case-1-functional->FR-1",
-        "requirement_id": "FR-1",
+        "claim_id": "case-1-functional->FR-ACC-01",
+        "requirement_id": "FR-ACC-01",
         "case_id": "case-1-functional",
-        "requirement_text": "### FR-1",
         "case_markdown": "## Case 1",
         "human_label": "fail",
         "human_mode": "duplicated",
@@ -84,29 +83,48 @@ def test_load_examples_reads_the_dataset(tmp_path: Path):
     examples = load_examples(tmp_path)
 
     assert len(examples) == 1
-    assert examples[0].data.prd_text == "# PRD\n"
+    assert examples[0].data.prd_text.startswith("#### FR-ACC-01")
+    assert examples[0].data.requirement_text.startswith("#### FR-ACC-01 sign up")
     assert examples[0].human_label == "fail"
     assert examples[0].human_mode == "duplicated"
 
 
+def test_load_examples_rejects_a_requirement_the_prd_does_not_define(tmp_path: Path):
+    _write_claims(
+        tmp_path,
+        [
+            {
+                "source_run": "run-1",
+                "claim_id": "case-1-functional->FR-ACC-99",
+                "requirement_id": "FR-ACC-99",
+                "case_id": "case-1-functional",
+                "case_markdown": "## Case 1: sign up",
+                "human_label": "pass",
+            }
+        ],
+    )
+
+    with pytest.raises(ValueError, match="FR-ACC-99"):
+        load_examples(tmp_path)
+
+
 def _write_claims(tmp_path: Path, rows: list[dict[str, object]]) -> None:
-    (tmp_path / "prd.md").write_text("# PRD\n", encoding="utf-8")
+    (tmp_path / "prd.md").write_text("#### FR-ACC-01 sign up\n\n- **AC-1**: a user can sign up.\n")
     (tmp_path / "claims.jsonl").write_text(
         "".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8"
     )
 
 
 def test_load_examples_skips_multi_requirement_cases(tmp_path: Path):
-    case = "## Case 1: sign up\n\n```yaml\nrequirement_ids: [FR-1, FR-2]\n```\n"
+    case = "## Case 1: sign up\n\n```yaml\nrequirement_ids: [FR-ACC-01, FR-ACC-02]\n```\n"
     _write_claims(
         tmp_path,
         [
             {
                 "source_run": "run-1",
-                "claim_id": "case-1-functional->FR-1",
-                "requirement_id": "FR-1",
+                "claim_id": "case-1-functional->FR-ACC-01",
+                "requirement_id": "FR-ACC-01",
                 "case_id": "case-1-functional",
-                "requirement_text": "### FR-1",
                 "case_markdown": case,
                 "human_label": "fail",
             }
@@ -123,10 +141,9 @@ def test_load_examples_rejects_an_unknown_label(tmp_path: Path):
         [
             {
                 "source_run": "run-1",
-                "claim_id": "case-1-functional->FR-1",
-                "requirement_id": "FR-1",
+                "claim_id": "case-1-functional->FR-ACC-01",
+                "requirement_id": "FR-ACC-01",
                 "case_id": "case-1-functional",
-                "requirement_text": "### FR-1",
                 "case_markdown": "## Case 1: sign up",
                 "human_label": "Not quite",
             }
