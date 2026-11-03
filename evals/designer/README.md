@@ -46,7 +46,7 @@ passes when the human passes), each with a Wilson interval and the confusion cou
 class with no human examples reads `n/a`. These are the TNR and TPR of `validate-evaluator`,
 which names the passing class positive.
 
-`WEB_TEST_JUDGE_MODEL` pins the judge model (default `openai-chat:deepseek-v4-pro`). The data is
+`WEB_TEST_JUDGE_MODEL` pins the judge model (default `openai-chat:kimi-k2.7-code`). The data is
 one PRD only, so this is a dev set: do not publish these rates as a general estimate yet.
 
 ## Layout

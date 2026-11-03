@@ -219,6 +219,23 @@ Method: the 7 claims that flipped across the three v4 runs, judged three more ti
 - Decision: keep the provider default temperature. Report a majority of three runs instead of one.
   `--temperature` and `--claim-id` stay in the CLI for experiments.
 
+### Model choice (2026-11-03)
+
+Compared on the pre-alignment 50-claim set, before the v0.4 label change:
+
+| model | runs | fail recall | pass specificity | stable errors |
+| --- | --- | --- | --- | --- |
+| `deepseek-v4-pro` | 3 | 0.81 to 0.86 | 0.86 to 0.90 | 3 |
+| `kimi-k2.7-code` | 2 | 0.81 | 0.83 to 0.86 | 6 |
+
+`kimi` did not fix anything `deepseek` got wrong; its stable errors were a strict superset (the same
+three plus `case-8`, `case-15` and `case-20-ui`). All three shared errors are the claims already
+known to be label or PRD problems, so they say nothing about the model.
+
+Decision: the default still moves to `kimi-k2.7-code`, because the judge must come from a different
+family than the designer and the measured gap sits inside the noise floor. This is a choice for the
+family rule, not evidence that kimi judges better. Revisit if a second labeled PRD shows a real gap.
+
 ### Strict rule applied, re-measurement (2026-11-03)
 
 Rubric: an assertion must be derivable from the claimed FR's body or AC. Repeating a stated rule

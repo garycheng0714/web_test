@@ -86,7 +86,7 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - Semantic judge（ticket 03）：**整份 PRD + case**（`undefined_behavior` 需要整份 PRD 才知
   有沒有寫；`wrong_assertion_to_requirement` 需要該 FR 的正文／AC），binary Pass/Fail，
   critique 要引用缺少或錯置的 step／assertion。模型由 `WEB_TEST_JUDGE_MODEL` 指定（預設
-  `openai-chat:deepseek-v4-pro`，與 designer 不同家族）；輸入不含人類標籤；輸出 JSONL + report
+  `openai-chat:kimi-k2.7-code`，與 designer 不同家族）；輸入不含人類標籤；輸出 JSONL + report
   到 `evals/designer/judge/runs/`。
 - 一個 judge 只判一個準則：case 的每個行為斷言都在 PRD 有依據，且驗的是它宣稱的 FR。
   `duplicated` 由 CODE 的 `case_duplicate` 判，不進 judge；per-mode 只用來診斷。
@@ -151,7 +151,7 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - Label 同時量 alignment 與 grounding；只看總 fail 率會把兩者混在一起，必須按 mode 分開看。
 - `clean` coverage 會把「有測到但多驗一步」的 requirement 算成 not_clean；解讀時要跟 `tested`
   一起看，否則會誤以為 designer 漏了需求。
-- Judge 的 default 是浮動 alias（`deepseek-v4-pro`），provider 更新會讓舊數字漂；要比較版本時
+- Judge 的 default 是浮動 alias（`kimi-k2.7-code`），provider 更新會讓舊數字漂；要比較版本時
   先固定 snapshot。
 - 標籤的容差（teardown 不算 assertion、`e.g.` 不算）仍是情境判斷，換 PRD 可能漂。
 
