@@ -164,6 +164,7 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - [02](issues/02-labels-and-coverage-report.md) — labels export 與 coverage report（blocked by 01）
 - [03](issues/03-semantic-case-quality-judge.md) — semantic judge（blocked by 02）
 - [04](issues/04-phoenix-experiments.md) — Phoenix experiments 比較多次 run（blocked by 01；02 可選）
+- [06](issues/06-ac-level-and-baseline.md) — claim 單位改成 AC、重建基線（needs-triage）
 - 05 — report-only CI：deferred，暫不開票
 
 ## Decisions
