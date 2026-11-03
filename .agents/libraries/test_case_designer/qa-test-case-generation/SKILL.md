@@ -49,8 +49,9 @@ Use **Coverage**, **Boundary and edge**, and **Deduplication** (below) as the ch
 
 ### 3. Traceability
 
-Every case must be traceable to the requirement id(s) it covers (`requirement_ids`). When the PRD
-has no ids, reference the requirement text in `notes`.
+Every case must be traceable to the one requirement it covers: `requirement_ids` has a single
+entry. When the PRD has no ids, reference the requirement text in `notes`. If the case needs state
+produced by another requirement, record it in `preconditions`, not as a second id.
 
 ## Coverage
 
@@ -61,6 +62,16 @@ requirement:
 2. **At most one** negative/validation case, only when the PRD states a validation rule.
 3. **A boundary case only when the PRD states a limit or rule that the happy-path case does not
    already exercise.**
+
+One FR per case. A case has one `test_scenario` and exactly one requirement id; it verifies that
+FR's scenario and acceptance criteria only. Do not claim a general FR and its specific FR in the
+same case: claim the specific one (for example the Cart placement, not "subscription works on Home
+and Cart"). Do not claim an FR whose scenario is only a precondition for the case (for example "the
+home page loads"). When a second FR's scenario starts where the first one ends, split it into its
+own case and move the first case's result into the second's `preconditions`. Two placements of the
+same behaviour (Home vs Cart), two entry points (product list vs search), and two roles are
+separate scenarios: each gets its own case. "Dense" means no duplicate cases, not one case per
+behaviour cluster.
 
 Do not derive cases from the PRD's grounding or observation notes: observed option sets, default
 values, disabled/read-only fields, or unselected-by-default controls are for automation, not
@@ -82,6 +93,9 @@ Put undefined behaviour under `open_questions`.
 
 Apply before finalizing.
 
+Duplicates mean identical cases, not distinct scenarios. Do not merge cases whose page, entry
+point, role, or workflow stage differs, even when the expected message is the same.
+
 - Treat cases as duplicates when they share feature/module, role or permission context,
   preconditions, action under test, input category, and expected result. Different wording alone
   does not justify a separate case.
@@ -102,7 +116,7 @@ Return the test cases and the open questions.
 
 Each case records:
 
-- `requirement_ids`: the requirement id(s) it covers.
+- `requirement_ids`: the single requirement id it covers.
 - `module_feature`, `test_scenario`, `preconditions`, `notes`.
 - `steps`: a list where each step is an `action` with its own `expected_result`.
 - `priority`: `High`, `Medium`, or `Low`.

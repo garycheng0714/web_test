@@ -1,9 +1,16 @@
 # PRD:Automation Exercise 線上電商網站
 
-> **版本**:v0.2(Reverse-engineered,依 26 個 Test Case 的完整步驟反推)
+> **版本**:v0.5(Reverse-engineered,依 26 個 Test Case 的完整步驟反推)
 > **來源**:Test Case 1 ~ 26(含逐步操作與驗證點)
 > **URL**:http://automationexercise.com
 > **說明**:本版相較 v0.1,補上了「UI 元件與文案」「頁面狀態」「步驟級追溯」。Test Case 未明講的部分一律列入第 11 章,不自行編造。
+> **v0.3 調整**:合併 FR-ACC-01/02 為單一「註冊」需求;FR-ENG-02 只涵蓋首頁訂閱,購物車頁由
+> FR-CART-05 負責;移除 FR-UI-02(「每個 TC 從首頁開始」是來源測試套件的慣例,不是產品需求)。
+> **v0.4 調整**:`FR-PRD-04` 的兩條 AC 合併為一條(同一情境的兩個面向),並把「只顯示該子分類的
+> 商品」寫進 AC。
+> **v0.5 調整**:文案表與分類頁標題以**渲染後文字**為準。分類頁標題的 DOM 文字是 Title Case,
+> 由 CSS `h2.title` 轉為全大寫,所以斷言值為 `MEN - TSHIRTS PRODUCTS`;`FR-PRD-01`、
+> `FR-CART-03`、`FR-PRD-03` 補上實站已具備的內容;`FR-ORD-04` 明訂只驗下載完成。
 
 ---
 
@@ -71,7 +78,7 @@
 | Account Deleted | `ACCOUNT DELETED!` + Continue | 1、2、14~16、23、24 |
 | Products | `ALL PRODUCTS`、搜尋框 + 搜尋按鈕、左側 Brands、商品列表 | 8、9、12、19、20、21 |
 | Searched Products | `SEARCHED PRODUCTS` | 9、20 |
-| Category 頁 | 例:`WOMEN - TOPS PRODUCTS` | 18 |
+| Category 頁 | 例:`MEN - TSHIRTS PRODUCTS` | 18 |
 | Brand 頁 | 該品牌商品列表 | 19 |
 | Product Detail | 名稱、分類、價格、Availability、Condition、Brand、數量輸入、Add to cart、`Write Your Review` | 8、13、21 |
 | Cart | 商品列表(價格 / 數量 / 總價)、`X` 刪除、`Proceed To Checkout`、Footer 訂閱 | 11~14、17、20、22 |
@@ -89,35 +96,30 @@
 
 ### 4.1 會員 (ACC)
 
-#### FR-ACC-01 註冊 Step 1:Name + Email
+#### FR-ACC-01 註冊
 - Login 頁左側 `New User Signup!` 區塊含 Name、Email、`Signup` 按鈕。
-- **AC**
-  1. 輸入 Name 與未註冊的 Email,點 `Signup` → 進入 `ENTER ACCOUNT INFORMATION` 頁。(TC1-S5~S8)
-
-#### FR-ACC-02 註冊 Step 2:帳號詳細資料
-- 欄位:
+- 送出後進入 `ENTER ACCOUNT INFORMATION` 頁,欄位:
   - **帳號資訊**:Title、Name、Email、Password、Date of birth
   - **Checkbox**:`Sign up for our newsletter!`、`Receive special offers from our partners!`
   - **地址資訊**:First name、Last name、Company、Address、Address2、Country、State、City、Zipcode、Mobile Number
-- **AC**
-  1. 點 `Create Account` → 顯示 `ACCOUNT CREATED!`。(TC1-S13~S14)
-  2. 點 `Continue` → 回到已登入狀態,Header 顯示 `Logged in as <username>`。(TC1-S15~S16)
+- **AC-1**: 輸入 Name 與未註冊的 Email,點 `Signup` → 進入 `ENTER ACCOUNT INFORMATION` 頁。(TC1-S5~S8)
+- **AC-2**: 填完帳號資訊與地址資訊,點 `Create Account` → 顯示 `ACCOUNT CREATED!`。(TC1-S13~S14)
+- **AC-3**: 點 `Continue` → 回到已登入狀態,Header 顯示 `Logged in as <username>`。(TC1-S15~S16)
 
 #### FR-ACC-03 重複 Email 防護
-- **AC**:以已註冊 Email 點 `Signup` → 顯示錯誤 `Email Address already exist!`,且不進入詳細資料頁。(TC5-S6~S8)
+- **AC-1**: 以已註冊 Email 點 `Signup` → 顯示錯誤 `Email Address already exist!`,且不進入詳細資料頁。(TC5-S6~S8)
 
 #### FR-ACC-04 登入
 - Login 頁右側 `Login to your account` 區塊含 Email、Password、`Login` 按鈕。
-- **AC**
-  1. 正確帳密 → 顯示 `Logged in as <username>`。(TC2-S6~S8、TC4-S6~S8、TC16-S5~S6)
-  2. 錯誤帳密 → 顯示 `Your email or password is incorrect!`。(TC3-S6~S8)
+- **AC-1**: 正確帳密 → 顯示 `Logged in as <username>`。(TC2-S6~S8、TC4-S6~S8、TC16-S5~S6)
+- **AC-2**: 錯誤帳密 → 顯示 `Your email or password is incorrect!`。(TC3-S6~S8)
 
 #### FR-ACC-05 登出
-- **AC**:點 `Logout` → 導向 Login 頁(可見 `Login to your account`)。(TC4-S9~S10)
+- **AC-1**: 點 `Logout` → 導向 Login 頁(可見 `Login to your account`)。(TC4-S9~S10)
 
 #### FR-ACC-06 刪除帳號
 - 會員可由 Header 點 `Delete Account`。
-- **AC**:顯示 `ACCOUNT DELETED!`,點 `Continue` 後離開已登入狀態。(TC1-S17~S18、TC2-S9~S10 等)
+- **AC-1**: 顯示 `ACCOUNT DELETED!`,點 `Continue` 後離開已登入狀態。(TC1-S17~S18、TC2-S9~S10 等)
 - 備註:此功能於 TC 中同時作為測試資料清理手段,見第 11 章。
 
 ---
@@ -127,34 +129,34 @@
 #### FR-PRD-01 商品列表
 - 點 Header `Products` → 顯示 `ALL PRODUCTS` 頁與商品列表。(TC8-S4~S6)
 - 每個商品具 `View Product` 與 `Add to cart`(hover 時顯示,見 TC12-S5)。
+- **AC-1**: 點 Header `Products` → 顯示 `ALL PRODUCTS` 頁與商品列表;每張商品卡含商品圖片、
+  名稱與價格,並提供 `View Product` 與 hover 時顯示的 `Add to cart`。(TC8-S4~S6、TC12-S5)
 
 #### FR-PRD-02 商品詳情
-- **AC**:點 `View Product` 進入詳情頁,可見:**product name、category、price、availability、condition、brand**。(TC8-S7~S9)
+- **AC-1**: 點 `View Product` 進入詳情頁,可見:**product name、category、price、availability、condition、brand**。(TC8-S7~S9)
 
 #### FR-PRD-03 搜尋
-- **AC**
-  1. 在 Products 頁輸入商品名稱並點搜尋按鈕 → 顯示 `SEARCHED PRODUCTS`。(TC9-S6~S7)
-  2. 列出的商品皆與搜尋字相關。(TC9-S8)
+- **AC-1**: 在 Products 頁輸入商品名稱並點搜尋按鈕 → 顯示 `SEARCHED PRODUCTS`。(TC9-S6~S7)
+- **AC-2**: 列出的商品名稱皆包含搜尋字。(TC9-S8)
 
 #### FR-PRD-04 分類瀏覽
 - 首頁左側顯示 Category,含 `Women`、`Men` 等主分類,各主分類可展開子分類。
-- **AC**
-  1. 點主分類展開子分類 → 點子分類 → 顯示分類頁標題,格式如 `WOMEN - TOPS PRODUCTS`。(TC18-S4~S6)
-  2. 在側邊欄點 `Men` 下任一子分類 → 導向對應分類頁。(TC18-S7~S8)
+- **AC-1**: 從側邊欄展開主分類 → 點子分類 → 導向對應分類頁;頁面標題渲染為
+  `<主分類> - <子分類> PRODUCTS`(例如 `MEN - TSHIRTS PRODUCTS`;DOM 文字為 Title Case,
+  由 CSS `h2.title` 轉全大寫),且列表只顯示該子分類的商品(例如 `Men Tshirt`)。(TC18-S4~S8)
 
 #### FR-PRD-05 品牌瀏覽
 - Products 頁左側顯示 Brands 清單。
-- **AC**
-  1. 點任一品牌 → 導向品牌頁並顯示該品牌商品。(TC19-S5~S6)
-  2. 點另一品牌 → 切換並顯示該品牌商品。(TC19-S7~S8)
+- **AC-1**: 點任一品牌 → 導向品牌頁並顯示該品牌商品。(TC19-S5~S6)
+- **AC-2**: 點另一品牌 → 切換並顯示該品牌商品。(TC19-S7~S8)
 
 #### FR-PRD-06 商品評論
 - 詳情頁含 `Write Your Review` 區塊:Name、Email、Review、`Submit`。
-- **AC**:送出後顯示 `Thank you for your review.`(TC21-S6~S9)
+- **AC-1**: 送出後顯示 `Thank you for your review.`(TC21-S6~S9)
 
 #### FR-PRD-07 推薦商品
 - 首頁底部顯示 `RECOMMENDED ITEMS`,每項具 `Add To Cart`。
-- **AC**:點 `Add To Cart` → 點 `View Cart` → 該商品出現在購物車。(TC22-S3~S7)
+- **AC-1**: 點 `Add To Cart` → 點 `View Cart` → 該商品出現在購物車。(TC22-S3~S7)
 
 ---
 
@@ -163,23 +165,25 @@
 #### FR-CART-01 加入購物車與提示 Modal
 - 於列表 / 搜尋結果 / 品牌頁 / 推薦區 / 詳情頁均可加入購物車。
 - 加入後出現 Modal,提供 `Continue Shopping` 與 `View Cart`。(TC12-S6~S8)
-- **AC**
-  1. 連續加入兩項商品後,購物車內兩者皆存在。(TC12-S9)
-  2. 購物車每列顯示 **price、quantity、total price**。(TC12-S10)
+- **AC-1**: 連續加入兩項商品後,購物車內兩者皆存在。(TC12-S9)
+- **AC-2**: 購物車每列顯示 **price、quantity、total price**。(TC12-S10)
+- **AC-3**: 每列 `total price` = 該列 `price` × `quantity`。(TC13-S6~S9)
 
 #### FR-CART-02 指定數量
 - 詳情頁提供數量輸入,可調整(TC13 以 4 為例)後再 `Add to cart`。
-- **AC**:購物車中該商品數量 = 詳情頁設定值。(TC13-S6~S9)
+- **AC-1**: 購物車中該商品數量 = 詳情頁設定值。(TC13-S6~S9)
 
 #### FR-CART-03 移除商品
 - 每列提供 `X` 按鈕。
-- **AC**:點擊後該商品不再顯示於購物車。(TC17-S7~S8)
+- **AC-1**: 點擊後該商品不再顯示於購物車,其他商品仍保留。(TC17-S7~S8)
 
 #### FR-CART-04 登入後購物車保留
-- **AC**:訪客加入的商品,在登入後再次進入 Cart,仍然顯示。(TC20-S8~S12)
+- **AC-1**: 訪客加入的商品,在登入後再次進入 Cart,仍然顯示。(TC20-S8~S12)
 
 #### FR-CART-05 購物車頁訂閱
 - 購物車頁 Footer 具備 `SUBSCRIPTION` 區塊,行為同 FR-ENG-02。(TC11)
+- **AC-1**: 購物車頁 Footer 的 `SUBSCRIPTION` 輸入 Email → 點箭頭按鈕 → 顯示
+  `You have been successfully subscribed!`。(TC11)
 
 ---
 
@@ -190,20 +194,24 @@
   - **已登入** → 進入 Checkout 頁。(TC15-S11、TC16-S10、TC23-S11)
   - **未登入** → 顯示含 `Register / Login` 的提示,點擊進入 Signup / Login 頁。(TC14-S7~S8、TC24-S7~S8)
 - 註冊完成後,使用者須再次點 `Cart` → `Proceed To Checkout` 才進入 Checkout。(TC14-S12~S13、TC24-S12~S13)
+- **AC-1**: 已登入時點 `Proceed To Checkout` → 進入 Checkout 頁。(TC15-S11、TC16-S10、TC23-S11)
+- **AC-2**: 未登入時點 `Proceed To Checkout` → 顯示含 `Register / Login` 的提示,點擊進入
+  Signup / Login 頁;註冊完成後須再次點 `Cart` → `Proceed To Checkout` 才進入 Checkout。
+  (TC14-S7~S8、TC14-S12~S13、TC24-S7~S8、TC24-S12~S13)
 
 #### FR-ORD-02 Checkout 頁內容
 - 顯示 **Address Details** 與 **Review Your Order**,並提供 Comment 文字區與 `Place Order`。(TC14-S14~S15)
-- **AC**
-  1. Delivery address 與 Billing address 皆須與註冊時填寫的地址一致。(TC23-S12~S13)
-  2. 可輸入備註後點 `Place Order`。(TC14-S15)
+- **AC-1**: Delivery address 與 Billing address 皆須與註冊時填寫的地址一致。(TC23-S12~S13)
+- **AC-2**: 可輸入備註後點 `Place Order`。(TC14-S15)
 
 #### FR-ORD-03 付款
 - 欄位:Name on Card、Card Number、CVC、Expiration date。
-- **AC**:點 `Pay and Confirm Order` → 顯示 `Your order has been placed successfully!`。(TC14-S16~S18)
+- **AC-1**: 點 `Pay and Confirm Order` → 顯示 `Your order has been placed successfully!`。(TC14-S16~S18)
 
 #### FR-ORD-04 下載發票
 - 訂單完成頁提供 `Download Invoice` 與 `Continue`。
-- **AC**:點 `Download Invoice` → 發票成功下載;點 `Continue` 離開該頁。(TC24-S19~S20)
+- 驗收範圍只到「下載完成」:檔案格式與內容屬第 11 章未定義事項,不算驗收條件。
+- **AC-1**: 點 `Download Invoice` → 發票成功下載;點 `Continue` 離開該頁。(TC24-S19~S20)
 
 ---
 
@@ -212,30 +220,26 @@
 #### FR-ENG-01 Contact Us
 - Header `Contact Us` → 顯示 `GET IN TOUCH`。
 - 欄位:Name、Email、Subject、Message、**檔案上傳**、`Submit`。
-- **AC**
-  1. 點 `Submit` 後出現確認彈窗,需點 `OK`。(TC6-S8~S9)
-  2. 顯示 `Success! Your details have been submitted successfully.`(TC6-S10)
-  3. 點 `Home` 回到首頁。(TC6-S11)
+- **AC-1**: 點 `Submit` 後出現確認彈窗,需點 `OK`。(TC6-S8~S9)
+- **AC-2**: 顯示 `Success! Your details have been submitted successfully.`(TC6-S10)
+- **AC-3**: 點 `Home` 回到首頁。(TC6-S11)
 
-#### FR-ENG-02 電子報訂閱
-- Footer 的 `SUBSCRIPTION`:輸入 Email → 點箭頭按鈕。
-- **AC**:顯示 `You have been successfully subscribed!`。須在 **首頁**(TC10)與 **購物車頁**(TC11)皆可用。
+#### FR-ENG-02 電子報訂閱(首頁)
+- 首頁 Footer 的 `SUBSCRIPTION`:輸入 Email → 點箭頭按鈕。
+- **AC-1**: 顯示 `You have been successfully subscribed!`。(TC10)
+- 購物車頁的同一個行為屬 FR-CART-05。(TC11)
 
 #### FR-ENG-03 Test Cases 頁
-- **AC**:Header 點 `Test Cases` → 成功導向 Test Cases 頁。(TC7)
+- **AC-1**: Header 點 `Test Cases` → 成功導向 Test Cases 頁。(TC7)
 
 ---
 
 ### 4.6 全站 UI (UI)
 
 #### FR-UI-01 捲動與 Scroll Up
-- **AC**
-  1. 向下捲動至頁底可見 `SUBSCRIPTION`。(TC25-S4~S5、TC26-S4~S5)
-  2. 點右下角箭頭,頁面回到頂端,可見 `Full-Fledged practice website for Automation Engineers`。(TC25-S6~S7)
-  3. 不使用箭頭,以一般捲動回到頂端,同樣可見該標語。(TC26-S6~S7)
-
-#### FR-UI-02 首頁可達性
-- 每個 TC 起始皆驗證「首頁成功顯示」,首頁須能在輸入網址後正常載入。
+- **AC-1**: 向下捲動至頁底可見 `SUBSCRIPTION`。(TC25-S4~S5、TC26-S4~S5)
+- **AC-2**: 點右下角箭頭,頁面回到頂端,可見 `Full-Fledged practice website for Automation Engineers`。(TC25-S6~S7)
+- **AC-3**: 不使用箭頭,以一般捲動回到頂端,同樣可見該標語。(TC26-S6~S7)
 
 ---
 
@@ -299,7 +303,7 @@ stateDiagram-v2
 | Contact 成功 | `Success! Your details have been submitted successfully.` |
 | 商品列表頁 | `ALL PRODUCTS` |
 | 搜尋結果 | `SEARCHED PRODUCTS` |
-| 分類頁(例) | `WOMEN - TOPS PRODUCTS` |
+| 分類頁(例) | `MEN - TSHIRTS PRODUCTS` |
 | 訂閱區 | `SUBSCRIPTION` |
 | 訂閱成功 | `You have been successfully subscribed!` |
 | 評論區 | `Write Your Review` |
@@ -307,6 +311,12 @@ stateDiagram-v2
 | 推薦區 | `RECOMMENDED ITEMS` |
 | 下單成功 | `Your order has been placed successfully!` |
 | 首頁標語 | `Full-Fledged practice website for Automation Engineers` |
+
+> 註:本表的大小寫以**畫面渲染結果**為準。部分標題的 DOM 文字是 Title Case,畫面由 CSS
+> `text-transform` 轉為全大寫,例如 `ENTER ACCOUNT INFORMATION`、`ACCOUNT CREATED!`、
+> `ACCOUNT DELETED!`,以及分類頁標題(`h2.title` 設 `text-transform: uppercase`,DOM 文字為
+> `Men - Tshirts Products`,渲染為 `MEN - TSHIRTS PRODUCTS`)。斷言以渲染後文字為準;若測試改用
+> 可及名稱或 `text_content`,對應值要改成 Title Case。
 
 ---
 
@@ -343,7 +353,7 @@ stateDiagram-v2
 
 | TC | 名稱 | 對應 FR |
 |---|---|---|
-| 1 | Register User | ACC-01, 02, 06 |
+| 1 | Register User | ACC-01, 06 |
 | 2 | Login correct | ACC-04, 06 |
 | 3 | Login incorrect | ACC-04 |
 | 4 | Logout | ACC-04, 05 |
@@ -353,11 +363,11 @@ stateDiagram-v2
 | 8 | Products & detail | PRD-01, 02 |
 | 9 | Search | PRD-03 |
 | 10 | Subscription (Home) | ENG-02 |
-| 11 | Subscription (Cart) | ENG-02, CART-05 |
+| 11 | Subscription (Cart) | CART-05 |
 | 12 | Add to cart | CART-01, PRD-01 |
 | 13 | Quantity | CART-02, PRD-02 |
-| 14 | Order: register while checkout | ORD-01~03, ACC-02, 06 |
-| 15 | Order: register before checkout | ORD-01~03, ACC-02, 06 |
+| 14 | Order: register while checkout | ORD-01~03, ACC-01, 06 |
+| 15 | Order: register before checkout | ORD-01~03, ACC-01, 06 |
 | 16 | Order: login before checkout | ORD-01~03, ACC-04, 06 |
 | 17 | Remove from cart | CART-03 |
 | 18 | Category | PRD-04 |
@@ -365,8 +375,8 @@ stateDiagram-v2
 | 20 | Search + cart after login | PRD-03, CART-04, ACC-04 |
 | 21 | Review | PRD-06 |
 | 22 | Recommended | PRD-07, CART-01 |
-| 23 | Address verify | ORD-01, 02, ACC-02 |
-| 24 | Invoice | ORD-01~04, ACC-02 |
+| 23 | Address verify | ORD-01, 02, ACC-01 |
+| 24 | Invoice | ORD-01~04, ACC-01 |
 | 25 | Scroll up (arrow) | UI-01 |
 | 26 | Scroll up (no arrow) | UI-01 |
 
@@ -386,7 +396,7 @@ stateDiagram-v2
 ## 11. 假設、矛盾與待確認事項
 
 ### 11.1 Test Case 內部不一致(建議釐清)
-1. **TC18**:Step 5 寫「點 Women 下的 *Dress*」,Step 6 卻驗證 `WOMEN - TOPS PRODUCTS`。兩者不一致,PRD 以「標題格式為 `<主分類> - <子分類> PRODUCTS`」為準。
+1. **TC18**:Step 5 寫「點 Women 下的 *Dress*」,Step 6 卻驗證 `WOMEN - TOPS PRODUCTS`。兩者不一致,但全大寫與畫面的渲染結果相符(`h2.title` 為 `text-transform: uppercase`;DOM 文字是 `Women - Tops Products`)。PRD 以渲染後的 `<主分類> - <子分類> PRODUCTS` 為準。
 2. **TC4**:登出前提需「已存在帳號」,TC 未說明測試帳號從何而來。
 3. **TC2、TC16**:同樣依賴既有帳號,但結尾執行 `Delete Account`,下一次執行將無帳號可用 → 測試資料管理問題。
 4. **TC14 / TC24**:Step 12 為 `12.Click` 缺空格(筆誤,無影響)。

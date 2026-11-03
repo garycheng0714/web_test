@@ -1,6 +1,8 @@
 """Export Phoenix annotations for one designer eval run to labels.jsonl.
 
-HUMAN annotations are the ground truth; CODE annotations carry the deterministic checks.
+HUMAN annotations are the ground truth; CODE annotations carry the deterministic checks. A
+`claim_failure_mode` on a passing claim is dropped: the mode is only meaningful on a failure,
+and Phoenix cannot clear one.
 Run from the repository root:
 
     PYTHONPATH=. uv run --group eval python evals/designer/export_labels.py \
@@ -32,6 +34,14 @@ def _latest_run() -> Path:
     return max(runs, key=lambda path: path.stat().st_mtime)
 
 
+def _alignment_by_span(annotations: Sequence[Any]) -> dict[str, str | None]:
+    return {
+        annotation["span_id"]: (annotation.get("result") or {}).get("label")
+        for annotation in annotations
+        if annotation["annotator_kind"] == "HUMAN" and annotation["name"] == "claim_alignment"
+    }
+
+
 def _label_rows(
     units: list[dict],
     annotations: Sequence[Any],
@@ -43,10 +53,19 @@ def _label_rows(
     for annotation in annotations:
         by_span.setdefault(annotation["span_id"], []).append(annotation)
 
+    alignment = _alignment_by_span(annotations)
     rows = []
     for unit in units:
         for annotation in by_span.get(unit["span_id"], []):
             kind = annotation["annotator_kind"]
+            # A failure mode is only meaningful on a failing claim; the Phoenix UI cannot clear
+            # one, so an old value on a passing claim is dropped here.
+            if (
+                kind == "HUMAN"
+                and annotation["name"] == "claim_failure_mode"
+                and alignment.get(unit["span_id"]) != "fail"
+            ):
+                continue
             result = annotation.get("result") or {}
             rows.append(
                 {
@@ -80,13 +99,19 @@ def _label_rows(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Export Phoenix annotations to labels.jsonl.")
-    parser.add_argument("--run", help="run id under evals/designer/runs/")
+    parser.add_argument("--run", help="run id under .scratch/designer-evals/runs/")
+    parser.add_argument("--run-dir", help="explicit run directory (e.g. old-skill-runs/...)")
     parser.add_argument("--project", help="Phoenix project; defaults to run.json")
     parser.add_argument("--annotator", default="local", help="annotator name for HUMAN rows")
     args = parser.parse_args()
 
     try:
-        run_dir = RUNS_DIR / args.run if args.run else _latest_run()
+        if args.run_dir:
+            run_dir = Path(args.run_dir)
+        elif args.run:
+            run_dir = RUNS_DIR / args.run
+        else:
+            run_dir = _latest_run()
         run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
         units = json.loads((run_dir / "units.json").read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:

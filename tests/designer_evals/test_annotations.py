@@ -3,7 +3,7 @@ from evals.designer.designer_eval.units import EvalUnit, UnitKind
 from web_test.planning.schema import Case, DesignOutput
 
 
-def _case(requirement_ids: list[str], scenario: str) -> Case:
+def _case(requirement_ids: list[str], scenario: str = "Register") -> Case:
     return Case.model_validate(
         {
             "requirement_ids": requirement_ids,
@@ -18,14 +18,7 @@ def _case(requirement_ids: list[str], scenario: str) -> Case:
     )
 
 
-def _claim(
-    target_id: str,
-    span_id: str,
-    *,
-    requirement_id: str,
-    case_id: str,
-    exists: bool = True,
-) -> EvalUnit:
+def _claim(target_id: str, span_id: str, *, requirement_id: str, case_id: str) -> EvalUnit:
     return EvalUnit(
         kind=UnitKind.CLAIM,
         target_id=target_id,
@@ -34,58 +27,53 @@ def _claim(
         attributes={
             "claim.requirement_id": requirement_id,
             "claim.case_id": case_id,
-            "claim.requirement_exists": "true" if exists else "false",
         },
     )
 
 
-def test_code_annotations_marks_valid_claims():
-    design = DesignOutput(cases=[_case(["FR-1"], "Register")])
-    units = [
-        _claim("FR-1<-case-1", "span-1", requirement_id="FR-1", case_id="case-1"),
-    ]
-
-    annotations = code_annotations(units, design)
-
-    assert [(item.name, item.label, item.score) for item in annotations] == [
-        ("requirement_exists", "valid", 1.0),
-        ("case_duplicate", "unique", 1.0),
-    ]
-    assert annotations[0].metadata == {
-        "claim_id": "FR-1<-case-1",
-        "requirement_id": "FR-1",
-        "case_id": "case-1",
-    }
-
-
-def test_code_annotations_marks_invented_ids():
-    design = DesignOutput(cases=[_case(["FR-9"], "Register")])
+def test_code_annotations_marks_unique_claims():
+    design = DesignOutput(cases=[_case(["FR-1"])])
     units = [
         _claim(
-            "FR-9<-case-1",
-            "span-9",
-            requirement_id="FR-9",
-            case_id="case-1",
-            exists=False,
+            "case-1-functional->FR-1",
+            "span-1",
+            requirement_id="FR-1",
+            case_id="case-1-functional",
         ),
     ]
 
     annotations = code_annotations(units, design)
 
-    requirement_exists = next(item for item in annotations if item.name == "requirement_exists")
-    assert (requirement_exists.label, requirement_exists.score) == ("invented", 0.0)
+    assert [(item.name, item.label, item.score) for item in annotations] == [
+        ("case_duplicate", "unique", 1.0)
+    ]
+    assert annotations[0].metadata == {
+        "claim_id": "case-1-functional->FR-1",
+        "case_id": "case-1-functional",
+        "duplicate_with": [],
+    }
 
 
 def test_code_annotations_marks_duplicate_cases():
     design = DesignOutput(
         cases=[
-            _case(["FR-1"], "Register"),
-            _case(["FR-2"], "Register"),
+            _case(["FR-1"]),
+            _case(["FR-2"]),
         ]
     )
     units = [
-        _claim("FR-1<-case-1", "span-1", requirement_id="FR-1", case_id="case-1"),
-        _claim("FR-2<-case-2", "span-2", requirement_id="FR-2", case_id="case-2"),
+        _claim(
+            "case-1-functional->FR-1",
+            "span-1",
+            requirement_id="FR-1",
+            case_id="case-1-functional",
+        ),
+        _claim(
+            "case-2-functional->FR-2",
+            "span-2",
+            requirement_id="FR-2",
+            case_id="case-2-functional",
+        ),
     ]
 
     annotations = code_annotations(units, design)
@@ -93,21 +81,21 @@ def test_code_annotations_marks_duplicate_cases():
     duplicate = next(
         item
         for item in annotations
-        if item.name == "case_duplicate" and item.metadata["case_id"] == "case-1"
+        if item.name == "case_duplicate" and item.metadata["case_id"] == "case-1-functional"
     )
     assert (duplicate.label, duplicate.score) == ("duplicate", 0.0)
-    assert duplicate.metadata["duplicate_with"] == ["case-2"]
+    assert duplicate.metadata["duplicate_with"] == ["case-2-functional"]
 
 
-def test_code_annotations_skips_missing_requirement_spans():
-    design = DesignOutput(cases=[_case(["FR-1"], "Register")])
+def test_code_annotations_skips_requirement_spans():
+    design = DesignOutput(cases=[_case(["FR-1"])])
     units = [
         EvalUnit(
             kind=UnitKind.REQUIREMENT,
-            target_id="FR-2",
-            span_id="span-2",
-            name="requirement FR-2 (missing)",
-            attributes={"requirement.missing": "true"},
+            target_id="FR-1",
+            span_id="span-1",
+            name="requirement FR-1",
+            attributes={"requirement.id": "FR-1"},
         )
     ]
 

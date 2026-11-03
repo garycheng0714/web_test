@@ -4,10 +4,10 @@ import os
 import time
 from collections.abc import Callable
 from datetime import datetime
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 from evals.designer.designer_eval.annotations import AnnotationSpec
-from evals.designer.designer_eval.units import EvalUnit, UnitSpec
+from evals.designer.designer_eval.units import EvalUnit, UnitKind, UnitSpec
 
 DEFAULT_ENDPOINT = "http://127.0.0.1:6006"
 _USAGE_ATTRIBUTES = {
@@ -85,30 +85,70 @@ def find_agent_span(client, project: str, run_start: datetime) -> dict | None:
     return None
 
 
-def create_units(provider, agent_span: dict, specs: list[UnitSpec]) -> list[EvalUnit]:
-    from opentelemetry import trace
+def _context_for(trace_id_hex: str, span_id_hex: str):
     from opentelemetry.trace import (
         NonRecordingSpan,
         SpanContext,
         TraceFlags,
-        format_span_id,
         set_span_in_context,
     )
 
-    context = agent_span["context"]
-    parent_context = set_span_in_context(
+    return set_span_in_context(
         NonRecordingSpan(
             SpanContext(
-                trace_id=int(context["trace_id"], 16),
-                span_id=int(context["span_id"], 16),
+                trace_id=int(trace_id_hex, 16),
+                span_id=int(span_id_hex, 16),
                 is_remote=True,
                 trace_flags=TraceFlags(TraceFlags.SAMPLED),
             )
         )
     )
+
+
+def create_units(provider, agent_span: dict, specs: list[UnitSpec]) -> list[EvalUnit]:
+    from opentelemetry import trace
+    from opentelemetry.trace import format_span_id, format_trace_id
+
+    context = agent_span["context"]
+    agent_trace_id = context["trace_id"]
+    agent_span_id = context["span_id"]
+    agent_context = _context_for(agent_trace_id, agent_span_id)
     tracer = trace.get_tracer("designer-eval")
     units: list[EvalUnit] = []
+    requirement_contexts: dict[str, Any] = {}
+    requirement_span_ids: dict[str, str] = {}
+
     for spec in specs:
+        if spec.kind != UnitKind.REQUIREMENT:
+            continue
+        with tracer.start_as_current_span(
+            spec.name,
+            context=agent_context,
+            attributes=spec.attributes,
+        ) as span:
+            span_context = span.get_span_context()
+            span_id = format_span_id(span_context.span_id)
+            requirement_contexts[spec.target_id] = _context_for(
+                format_trace_id(span_context.trace_id),
+                span_id,
+            )
+            requirement_span_ids[spec.target_id] = span_id
+        units.append(
+            EvalUnit(
+                kind=spec.kind,
+                target_id=spec.target_id,
+                span_id=span_id,
+                name=spec.name,
+                attributes=spec.attributes,
+                parent_span_id=agent_span_id,
+            )
+        )
+
+    for spec in specs:
+        if spec.kind != UnitKind.CLAIM:
+            continue
+        parent_id = spec.parent_target_id or ""
+        parent_context = requirement_contexts.get(parent_id, agent_context)
         with tracer.start_as_current_span(
             spec.name,
             context=parent_context,
@@ -122,8 +162,10 @@ def create_units(provider, agent_span: dict, specs: list[UnitSpec]) -> list[Eval
                 span_id=span_id,
                 name=spec.name,
                 attributes=spec.attributes,
+                parent_span_id=requirement_span_ids.get(parent_id, agent_span_id),
             )
         )
+
     provider.force_flush()
     return units
 

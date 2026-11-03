@@ -33,3 +33,6 @@ test-results/
 
 # Local eval run artifacts
 evals/designer/runs/
+
+# Local judge runs
+evals/designer/judge/runs/
