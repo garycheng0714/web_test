@@ -45,17 +45,6 @@ def test_every_claim_points_at_a_requirement_in_the_dataset_prd(dataset: Path):
 
 
 @pytest.mark.parametrize("dataset", DATASETS, ids=_dataset_id)
-def test_every_requirement_has_an_acceptance_criterion(dataset: Path):
-    requirements = parse_requirements(dataset_prd(dataset).read_text(encoding="utf-8"))
-
-    without = [
-        requirement.id for requirement in requirements if not requirement.acceptance_criteria
-    ]
-
-    assert without == [], f"{dataset.name} requirements without an AC: {without}"
-
-
-@pytest.mark.parametrize("dataset", DATASETS, ids=_dataset_id)
 def test_a_claim_id_is_unique_within_its_source_run(dataset: Path):
     keys = [(row.source_run, row.claim_id) for row in _rows(dataset)]
 

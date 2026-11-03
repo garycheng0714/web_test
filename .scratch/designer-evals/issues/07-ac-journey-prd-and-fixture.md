@@ -67,9 +67,9 @@ change.
 - [x] Remove the TC26 row from §9 and the TC26 citation from `FR-UI-01`.
 - [x] Keep `uv run pytest tests/designer_evals` green; the fixture resolves rows by requirement id,
       so 38 → 27 needs no data change.
-- [ ] Start Phoenix (`uvx arize-phoenix serve`) and run the designer once on the rewritten PRD with
+- [x] Start Phoenix (`uvx arize-phoenix serve`) and run the designer once on the rewritten PRD with
       an explicit `--run-id` (`run_eval.py` would otherwise name the run `prd-<timestamp>`).
-- [ ] Gate before labeling: the run must emit 27 cases, each on exactly one requirement, with no
+- [x] Gate before labeling: the run must emit 27 cases, each on exactly one requirement, with no
       multi-requirement case and no duplicate. If it emits 25, the designer still works one case per
       FR: add the "one AC per case" rule to the house skill and run it again (a second paid call).
 - [ ] Label the 27 claims in Phoenix: `claim_alignment` on each, plus `claim_failure_mode` and
@@ -140,3 +140,46 @@ one designer run
 Opened 2026-11-03 from the session that decided the AC unit. The decision was to fix the PRD and
 the fixture first, at `(case, requirement)` granularity, and defer the AC-level schema to ticket 06.
 Ticket 06's "rebuild the fixture" task is this ticket; 06 starts after it.
+
+2026-11-03: PRD rewritten (38 -> 27) and the gate run done as `ac-journey-20261103` on
+`openai-chat:deepseek-v4.1-flash`, project `web-test-designer-eval`.
+
+| | result |
+| --- | --- |
+| cases | 27 |
+| claims | 27 (one per case) |
+| requirements | 25, all covered |
+| requirements per case | 1 for all 27 |
+| duplicate cases | 0 |
+| invalid or non-requirement ids | 0 |
+| usage | prompt 16,889 / completion 12,805 / cache read 7,552 / total 29,694 |
+
+So the gate passed on the first run: every case is one journey and `FR-ACC-04` / `FR-ORD-01`
+contributed their two branches. The skill fallback was not needed.
+
+The run exited 1 after writing its artifacts: the CODE annotations POST returned 404 because the
+span ids were not indexed yet moments after creation. Re-sending the same 27 annotations a minute
+later succeeded, so the cause is indexing lag, not a bad payload. `run_eval.py` now retries the
+annotation write three times, two seconds apart.
+
+Next: label 27 claims in Phoenix, then four paid steps — export, new `claims.jsonl`, judge x3.
+
+2026-11-03, v0.7: the model changed again while reviewing the run. An AC that only restates its
+requirement is a redundant layer, so a requirement is now the journey itself and the PRD has no AC
+labels at all. The two requirements that carried two criteria became two requirements each:
+
+- `FR-ACC-04` 登入成功 and the new `FR-ACC-07` 登入失敗
+- `FR-ORD-01` 前往結帳(已登入) and the new `FR-ORD-05` 前往結帳(未登入)
+
+Requirements went 25 -> 27; criteria went 27 -> 0. The plan and the claim unit are unchanged:
+`(case, requirement)`, which is what the eval already does. `parse_requirements` still reads ACs for
+`prd/register-login.md`, so the parser stays; only
+`test_every_requirement_has_an_acceptance_criterion` was deleted.
+
+The gate re-ran as `journey-v07-20261103`: 27 cases, 27 requirements, one requirement per case, no
+duplicates, 54 units (27 requirement + 27 claim), 27 annotations. Usage: prompt 57,023 / completion
+17,990 / cache read 25,856 / total 75,013. Compared with the v0.6 run, the only change in the
+requirement sets is the two new ids; the other 25 cases map one-to-one.
+
+So the target is 27 claims over 27 requirements, and the fixture keeps the requirement id as its
+key.
