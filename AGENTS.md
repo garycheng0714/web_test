@@ -118,6 +118,9 @@ answer, but labels it as an answer and says whether it rests on a concrete trade
 agent never writes the human's plan. Ticket implementation then proceeds normally. Full agreement
 in `learn/NOTES.md`.
 
+Three actions wait for a yes in every mode: a paid model run, an edit to a ground-truth label, and a
+data deletion. Everything reversible proceeds without asking.
+
 ## Agent skills
 
 ### Issue tracker

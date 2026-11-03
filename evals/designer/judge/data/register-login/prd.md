@@ -1,6 +1,6 @@
 # PRD：Automation Exercise 會員流程（Register / Login / Logout）
 
-> **版本**：v0.1（Reverse-engineered）
+> **版本**：v0.2（Reverse-engineered；合併 FR-ACC-01/02 為單一註冊需求）
 > **來源**：5 個 Test Case 的逐步操作——Register User、Login correct、Login incorrect、Logout、Register existing email
 > **URL**：http://automationexercise.com
 > **觀察**：2026-10-14 以 `playwright-cli` 對 live 站逐流程走查（含實際建立再刪除一個臨時帳號），截圖見 `../screenshots/`
@@ -30,35 +30,31 @@
 
 > 編號沿用 `prd.md` 的 `FR-ACC-*`；`TCr-Sn` 指本檔來源清單第 r 個 Test Case 的第 n 步。
 
-### FR-ACC-01 註冊 Step 1：Name + Email
+### FR-ACC-01 註冊
 - `/login` 的 `New User Signup!` 區塊含 Name、Email Address 欄位與 `Signup` 按鈕。
-- **AC**
-  1. 輸入 Name 與**未註冊**的 Email，點 `Signup` → 進入 `Enter Account Information` 頁。(TCr1-S4~S7)
-
-### FR-ACC-02 註冊 Step 2：帳號資訊 + 地址資訊
-- **帳號資訊**：Title（`Mr.` / `Mrs.` radio）、Name、Email、Password、Date of Birth（Day / Month / Year 三個下拉）。
-  - Email 由 Step 1 帶入且**唯讀（disabled）**。
-  - Mail opt-in checkbox：`Sign up for our newsletter!`、`Receive special offers from our partners!`。
-- **地址資訊**：First name、Last name、Company、Address、Address 2、Country（下拉）、State、City、Zipcode、Mobile Number。
-- **AC**
-  1. 點 `Create Account` → 顯示 `Account Created!` 頁（含 `Congratulations! Your new account has been successfully created!`）。(TCr1-S9~S14)
-  2. 點 `Continue` → 回到已登入狀態，Header 顯示 `Logged in as <name>`。(TCr1-S15~S16)
+- 送出後進入 `Enter Account Information` 頁：
+  - **帳號資訊**：Title（`Mr.` / `Mrs.` radio）、Name、Email、Password、Date of Birth（Day / Month / Year 三個下拉）。
+    - Email 由 signup 帶入且**唯讀（disabled）**。
+    - Mail opt-in checkbox：`Sign up for our newsletter!`、`Receive special offers from our partners!`。
+  - **地址資訊**：First name、Last name、Company、Address、Address 2、Country（下拉）、State、City、Zipcode、Mobile Number。
+- **AC-1**: 輸入 Name 與**未註冊**的 Email，點 `Signup` → 進入 `Enter Account Information` 頁。(TCr1-S4~S7)
+- **AC-2**: 點 `Create Account` → 顯示 `Account Created!` 頁（含 `Congratulations! Your new account has been successfully created!`）。(TCr1-S9~S14)
+- **AC-3**: 點 `Continue` → 回到已登入狀態，Header 顯示 `Logged in as <name>`。(TCr1-S15~S16)
 
 ### FR-ACC-03 重複 Email 防護
-- **AC**：以已註冊 Email 於 `New User Signup!` 點 `Signup` → 顯示錯誤 `Email Address already exist!`，且**不**進入帳號資訊頁。(TCr5-S4~S8)
+- **AC-1**: 以已註冊 Email 於 `New User Signup!` 點 `Signup` → 顯示錯誤 `Email Address already exist!`，且**不**進入帳號資訊頁。(TCr5-S4~S8)
 
 ### FR-ACC-04 登入
 - `/login` 的 `Login to your account` 區塊含 Email Address、Password 與 `Login` 按鈕。
-- **AC**
-  1. 正確帳密 → Header 顯示 `Logged in as <name>`。(TCr2-S4~S8、TCr4-S4~S8)
-  2. 錯誤帳密 → 顯示錯誤 `Your email or password is incorrect!`，停留在 `/login`。(TCr3-S4~S8)
+- **AC-1**: 正確帳密 → Header 顯示 `Logged in as <name>`。(TCr2-S4~S8、TCr4-S4~S8)
+- **AC-2**: 錯誤帳密 → 顯示錯誤 `Your email or password is incorrect!`，停留在 `/login`。(TCr3-S4~S8)
 
 ### FR-ACC-05 登出
-- **AC**：點 Header 的 `Logout` → 回到 `/login`（可見 `Login to your account` / `New User Signup!`），狀態為訪客。(TCr4-S9~S10)
+- **AC-1**: 點 Header 的 `Logout` → 回到 `/login`（可見 `Login to your account` / `New User Signup!`），狀態為訪客。(TCr4-S9~S10)
 
 ### FR-ACC-06 刪除帳號
 - 會員可於 Header 點 `Delete Account`。
-- **AC**：顯示 `Account Deleted!` 頁（含 `Your account has been permanently deleted!`），點 `Continue` 後離開已登入狀態（Header 再現 `Signup / Login`）。(TCr1-S17~S18、TCr2-S9~S10)
+- **AC-1**: 顯示 `Account Deleted!` 頁（含 `Your account has been permanently deleted!`），點 `Continue` 後離開已登入狀態（Header 再現 `Signup / Login`）。(TCr1-S17~S18、TCr2-S9~S10)
 
 ## 5. 關鍵流程
 
@@ -125,7 +121,7 @@ stateDiagram-v2
 
 | 來源 TC | 名稱 | 對應 FR |
 |---|---|---|
-| 1 | Register User | ACC-01, 02, 06 |
+| 1 | Register User | ACC-01, 06 |
 | 2 | Login correct | ACC-04, 06 |
 | 3 | Login incorrect | ACC-04 |
 | 4 | Logout | ACC-04, 05 |
@@ -150,6 +146,6 @@ stateDiagram-v2
 以 TypeSafe Jev（`--provider typesafe`，model `jev-1.13.0`）對本檔做兩次判斷；Jev 只回標籤，最終文字仍由人撰寫：
 
 1. **文案選取（choice ×8）**：8 條訊息文案全部選中與實測一致的字串（機率 ≥ 0.97），確認未被改寫。
-2. **條文對證據（noul ×8）**：FR-ACC-01~06 的敘述全部判為 supported（機率 ≥ 0.98）。
+2. **條文對證據（noul ×8）**：FR-ACC-01、03~06 的敘述全部判為 supported（機率 ≥ 0.98）。
 
 Jev 為輔助判斷、非授權或安全邊界，可能誤判；上表仍以 live 實測與截圖為準。
