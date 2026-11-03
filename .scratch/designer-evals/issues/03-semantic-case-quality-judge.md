@@ -25,14 +25,16 @@ Report-only; no gate.
 ## Tasks
 
 - [x] Pin the judged criterion: fail when the case's steps are off-scenario, when a behaviour
-      assertion is absent from the whole PRD or cannot be decided at all, when it does not verify
-      the claimed FR's body or AC, or when the claimed FR has no scenario of its own and only
-      rides on another FR's case (`duplicated`). The judge does not predict the mode.
+      assertion is absent from the whole PRD or cannot be decided at all, or when it does not
+      verify the claimed FR's body or AC. `duplicated` moved to CODE (`case_duplicate`), because
+      it is a structural property of the case, not a semantic judgement. The judge does not
+      predict the mode.
 - [x] Write the judge prompt with criterion, Pass/Fail definitions, few-shot from train
-      PRDs only, and structured output with critique first.
+      PRDs only, and structured output with critique first. Few-shot is still blocked: there is
+      no train PRD.
 - [ ] Build a claim-level train/dev/test split by PRD. Blocked: only one labeled PRD; the dev run
-      uses the 31 house claims as a claim-level sample.
-- [x] Run on dev; measure TPR/TNR + Wilson/bootstrap CI; inspect disagreements.
+      uses the 50 single-requirement claims (18 fail, 32 pass) from both source runs.
+- [x] Run on dev; measure fail recall / pass specificity + Wilson CI; inspect disagreements.
 - [ ] Iterate on dev; run test once. Blocked on label stability (see the dev run below).
 - [x] Write judge results as JSONL; `LLM` annotations are still optional. Export them alongside
       human labels.
@@ -134,6 +136,96 @@ failure modes   undefined 9     undefined 1
 - Next: write one explicit rule per failure mode, re-label the 31 house claims, then tune the
   prompt. The current dev metrics are not a reliable judge estimate.
 
+## Criterion revision and noise floor (2026-11-03)
+
+- Prompt: one criterion (every behaviour assertion is stated in the PRD and verifies the claimed
+  FR), step audit kept, `duplicated` moved to CODE, teardown and logout steps named as non-assertions.
+- Input: the 50 single-requirement claims (18 fail, 32 pass). Model `openai-chat:deepseek-v4-pro`.
+- Same prompt, three runs:
+
+| run | fail recall | pass specificity | disagreements |
+| --- | --- | --- | --- |
+| 1 | 0.78 [0.55, 0.91] | 0.75 [0.58, 0.87] | 12 |
+| 2 | 0.78 [0.55, 0.91] | 0.72 [0.55, 0.84] | 13 |
+| 3 | 0.72 [0.49, 0.88] | 0.81 [0.65, 0.91] | 11 |
+
+- Noise floor: fail recall moves 0.06 across runs, pass specificity 0.09, disagreements span 11 to
+  13. A prompt change smaller than that is not attributable to the prompt. The earlier 0.33 to 0.78
+  move is far above the floor, so that part is real.
+- Of the 50 claims, 9 are wrong in all three runs and 7 flip. Six of the 7 flips are false alarms on
+  passing claims, so the instability sits on the pass boundary; fail recall is the stable one.
+- The 5 stable false alarms split along one rule, not one shape:
+  - `case-14 -> FR-PRD-04` (the category page must list matching products), `case-21 -> FR-CART-02`
+    (total = 4 x unit price) and `case-30 -> FR-ORD-02` (review rows must list name and price)
+    assert content the snapshot PRD never states. Relabeled to `fail` on 2026-11-03.
+  - `case-12 -> FR-PRD-03` (a second keyword restates AC2) and `case-6 -> FR-ACC-04` (a
+    parenthetical rationale) restate a stated rule, so they stay `pass`. The judge was over-strict
+    there, and the prompt now says that a repeated rule on a new input and an explanatory
+    parenthetical are not assertions.
+- The contradiction was `case-14 -> FR-CART-02` (fail) against `case-21 -> FR-CART-02` (pass): same
+  requirement, same "total = 4 x unit price" assertion. Both are now `fail`.
+- The 4 stable misses are `case-20` (wrong_assertion), `case-23`, `case-38` (undefined) and
+  `case-43` (wrong_scenario).
+- `case-23` and `case-33` (invoice content) are not PRD gaps to fix here: PRD section 11.2 item 9
+  declares invoice format and content undefined, and item 6 does the same for upload limits. The
+  right fix is that the designer must not assert them, which is the skill self-check ticket below,
+  not a PRD edit.
+- The cart total was the one genuine PRD gap. FR-CART-01 now has AC3 (`total price = price x
+  quantity`). The fixture PRD stays the pre-fix snapshot, so its labels remain correct for the PRD
+  that generated those cases; a designer re-run is what measures the change.
+- Expect the next measurement to move: 3 relabels raise fail recall on those rows, and the
+  prompt tolerance should remove 2 false alarms.
+
+### Stability at temperature 0 (2026-11-03)
+
+Question: is the flakiness sampling noise that a fixed temperature removes?
+
+Method: the 7 claims that flipped across the three v4 runs, judged three more times with
+`--temperature 0` on `deepseek-v4-pro` (21 calls).
+
+| claim | human | default x3 | temp 0 x3 |
+| --- | --- | --- | --- |
+| `case-8 -> FR-PRD-03` | pass | pass fail fail | fail fail fail |
+| `case-10 -> FR-PRD-01` | pass | fail fail pass | fail pass fail |
+| `case-10 -> FR-PRD-05` | pass | fail pass pass | pass pass pass |
+| `case-13 -> FR-CART-01` | pass | fail pass fail | fail fail pass |
+| `case-15 -> FR-CART-03` | pass | fail pass fail | pass pass fail |
+| `case-17 -> FR-ENG-01` | pass | pass fail pass | pass pass fail |
+| `case-20-ui -> FR-UI-01` | fail | pass fail pass | fail pass pass |
+
+- Temperature 0 does **not** make the judge deterministic. 5 of 7 still flip.
+- The 2 that stopped flipping converged on the wrong verdict (`case-8`, `case-10 -> FR-PRD-05`), so
+  stability bought nothing.
+- Accuracy on this deliberately hard subset is 9/21 at the default and 10/21 at temperature 0. The
+  pass boundary is ambiguous to the model, not merely noisy.
+- Decision: keep the provider default temperature. Report a majority of three runs instead of one.
+  `--temperature` and `--claim-id` stay in the CLI for experiments.
+
+### Strict rule applied, re-measurement (2026-11-03)
+
+Rubric: an assertion must be derivable from the claimed FR's body or AC. Repeating a stated rule
+with a new input, and an explanatory parenthetical, are not assertions. Both are in `spec.md` and
+in the prompt.
+
+Three runs on the corrected set (21 fail, 29 pass):
+
+| run | fail recall | pass specificity | disagreements |
+| --- | --- | --- | --- |
+| 1 | 0.81 [0.60, 0.92] | 0.86 [0.69, 0.95] | 8 |
+| 2 | 0.86 [0.65, 0.95] | 0.90 [0.74, 0.96] | 6 |
+| 3 | 0.81 [0.60, 0.92] | 0.90 [0.74, 0.96] | 7 |
+
+- Stable disagreements fell from 9 to 3, and all three are judge misses (`case-23`, `case-38`
+  `undefined`; `case-43` `wrong_scenario`). No stable false alarm on a passing claim remains.
+- The tolerance hit both targets: `case-12` and `case-6` pass in all three runs.
+- The three relabeled claims fail in all three runs.
+- All 7 remaining disagreements are flip-flops on passing claims.
+- Attribution caveat: labels and prompt changed together, so the rate deltas are not a clean A/B.
+  Only the per-claim predictions are attributable, because each was stated before the run.
+- New noise floor for the next comparison: recall 0.05, specificity 0.04, 6 to 8 disagreements.
+- Still dev-only and one PRD. Below the `validate-evaluator` target of 90 / 90; recall only just
+  clears its 80 floor.
+
 ## Next steps
 
 1. **House-skill control run (done).** See the section above. The remaining designer work is
@@ -145,6 +237,17 @@ failure modes   undefined 9     undefined 1
 3. **More PRDs before any TPR/TNR claim.** A by-PRD split needs at least 5-6 PRDs; with three
    (one of which is this 27-FR PRD) the test split is a single PRD. Until then the judge is
    report-only: write it, run it, but do not publish TPR/TNR or gate on it.
+4. **Label boundary (resolved 2026-11-03).** The "assertion the PRD never states" rule is strict:
+   relabel and fail. Two exceptions are written into the spec and the prompt: repeating a stated
+   rule with a new input, and a parenthetical rationale. Three claims were relabeled in the
+   fixture (`case-14 -> FR-PRD-04`, `case-21 -> FR-CART-02`, `case-30 -> FR-ORD-02`); Phoenix still
+   holds the old `pass` values, so a re-export would revert them.
+5. **Re-measure.** Next comparison uses the 2026-11-03 floor (recall 0.05, specificity 0.04, 6 to 8
+   disagreements). Then re-run the designer on the updated PRD (FR-CART-01 AC3) and label that run;
+   that is the only way to see the PRD fix itself.
+6. **Replace the Phoenix annotations.** Three fixture labels no longer match Phoenix
+   (`case-14 -> FR-PRD-04`, `case-21 -> FR-CART-02`, `case-30 -> FR-ORD-02`). Until they are
+   replaced, re-exporting those runs reverts the correction.
 
 ## Comments
 

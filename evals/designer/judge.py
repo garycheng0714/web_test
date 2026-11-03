@@ -20,6 +20,8 @@ from evals.designer.designer_eval.judge import (
     JudgeExample,
     JudgeOutput,
     JudgeRecord,
+    format_rate,
+    group_by_source,
     load_examples,
     render_report,
     run_one,
@@ -39,7 +41,22 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--dataset", default="automationexercise")
     parser.add_argument("--limit", type=int, help="judge only the first N claims")
     parser.add_argument("--source-run", help="judge only claims from one source run")
+    parser.add_argument(
+        "--include-multi-fr",
+        action="store_true",
+        help="also judge legacy multi-requirement cases (historical analysis only)",
+    )
     parser.add_argument("--concurrency", type=int, default=5)
+    parser.add_argument(
+        "--claim-id",
+        action="append",
+        help="judge only these claim ids (repeatable); needed for stability experiments",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        help="override the model temperature (default: leave it to the provider)",
+    )
     parser.add_argument("--run-id", help="output directory name")
     return parser.parse_args(argv)
 
@@ -53,6 +70,7 @@ async def run_all(
     *,
     model_name: str,
     concurrency: int,
+    temperature: float | None = None,
 ) -> list[JudgeRecord]:
     semaphore = asyncio.Semaphore(concurrency)
 
@@ -61,7 +79,9 @@ async def run_all(
             last_error: Exception | None = None
             for attempt in range(_ATTEMPTS):
                 try:
-                    return await run_one(agent, example, model_name=model_name)
+                    return await run_one(
+                        agent, example, model_name=model_name, temperature=temperature
+                    )
                 except Exception as error:
                     last_error = error
                     if attempt < _ATTEMPTS - 1:
@@ -76,9 +96,16 @@ async def run_all(
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     data_dir = DATA_DIR / args.dataset
-    examples = load_examples(data_dir)
+    examples = load_examples(data_dir, single_fr_only=not args.include_multi_fr)
     if args.source_run:
         examples = [example for example in examples if example.data.source_run == args.source_run]
+    if args.claim_id:
+        wanted = set(args.claim_id)
+        examples = [example for example in examples if example.data.claim_id in wanted]
+        missing = wanted - {example.data.claim_id for example in examples}
+        if missing:
+            print(f"unknown claim ids: {sorted(missing)}", file=sys.stderr)
+            return 1
     if args.limit is not None:
         examples = examples[: args.limit]
     if not examples:
@@ -87,22 +114,33 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     model_name = os.environ.get("WEB_TEST_JUDGE_MODEL") or DEFAULT_JUDGE_MODEL
     agent = Agent(resolve_judge_model(), output_type=JudgeOutput, instructions=SYSTEM_PROMPT)
-    print(f"judging {len(examples)} claims with {model_name}...", file=sys.stderr)
+    print(
+        f"judging {len(examples)} claims with {model_name}"
+        + (f" at temperature {args.temperature}" if args.temperature is not None else ""),
+        file=sys.stderr,
+    )
     records = run_sync(
-        run_all(agent, examples, model_name=model_name, concurrency=args.concurrency)
+        run_all(
+            agent,
+            examples,
+            model_name=model_name,
+            concurrency=args.concurrency,
+            temperature=args.temperature,
+        )
     )
 
     run_id = args.run_id or f"{args.dataset}-{datetime.now(UTC):%Y%m%dT%H%M%SZ}"
     run_dir = OUT_DIR / run_id
     write_records(run_dir / "judgements.jsonl", records)
     metrics = score(records)
-    report = render_report(metrics)
+    report = render_report(metrics, group_by_source(records))
     (run_dir / "report.md").write_text(report, encoding="utf-8")
 
     print(f"claims: {metrics.total}")
-    print(f"verdicts: {metrics.passed} pass, {metrics.failed} fail")
-    print(f"TPR: {metrics.tpr:.2f} CI [{metrics.tpr_ci[0]:.2f}, {metrics.tpr_ci[1]:.2f}]")
-    print(f"TNR: {metrics.tnr:.2f} CI [{metrics.tnr_ci[0]:.2f}, {metrics.tnr_ci[1]:.2f}]")
+    print(f"human labels: {metrics.human_fail} fail, {metrics.human_pass} pass")
+    print(f"judge verdicts: {metrics.judged_fail} fail, {metrics.judged_pass} pass")
+    print(f"fail recall: {format_rate(metrics.fail_recall, metrics.fail_recall_ci)}")
+    print(f"pass specificity: {format_rate(metrics.pass_specificity, metrics.pass_specificity_ci)}")
     print(f"disagreements: {len(metrics.disagreements)}")
     print(f"artifacts: {run_dir.relative_to(REPO_ROOT)}")
     return 0

@@ -11,7 +11,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 OPENCODE_GO_BASE_URL = "https://opencode.ai/inference/go/v1"
 DEFAULT_MODEL = "openai-chat:kimi-k2.7-code"
 DEFAULT_DESIGN_MODEL = "openai-chat:deepseek-v4.1-flash"
-DEFAULT_JUDGE_MODEL = "openai-chat:kimi-k2.7-code"
+DEFAULT_JUDGE_MODEL = "openai-chat:deepseek-v4-pro"
 
 
 def _profile(model_name: str) -> ModelProfile | None:

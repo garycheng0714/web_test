@@ -33,15 +33,21 @@ PYTHONPATH=. uv run --group eval python evals/designer/report.py --run <run-id>
 ## Judge
 
 The semantic judge reads a committed dev set under `judge/data/` and writes judgements plus a
-TPR/TNR report under `judge/runs/` (gitignored):
+report under `judge/runs/` (gitignored). It judges single-requirement cases by default; the
+multi-requirement rows are the legacy shape from before ticket 30 and need `--include-multi-fr`.
 
 ```bash
 PYTHONPATH=. uv run --group eval python evals/designer/judge.py \
   --dataset automationexercise --source-run house-automationexercise-20261029 --limit 10
 ```
 
-`WEB_TEST_JUDGE_MODEL` pins the judge model (default `openai-chat:kimi-k2.7-code`). The data is
-one PRD only, so this is a dev set: do not publish TPR/TNR as a general estimate yet.
+The report gives `fail_recall` (judge fails when the human fails) and `pass_specificity` (judge
+passes when the human passes), each with a Wilson interval and the confusion counts behind it. A
+class with no human examples reads `n/a`. These are the TNR and TPR of `validate-evaluator`,
+which names the passing class positive.
+
+`WEB_TEST_JUDGE_MODEL` pins the judge model (default `openai-chat:deepseek-v4-pro`). The data is
+one PRD only, so this is a dev set: do not publish these rates as a general estimate yet.
 
 ## Layout
 

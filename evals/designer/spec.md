@@ -46,6 +46,9 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 元件存在、欄位呈現這類前置／UI 細節不算；`no error`／`no blank state` 這類附加語也不算，
 除非它本身就是該步要驗的結果。
 
+「可推出」的界線：斷言要能從該 claim 的 FR 正文或 AC 推出。同一條已述規則套用在新輸入
+（換一個關鍵字、換一組帳密再驗一次）算可推出；括號內的說明或理由不算斷言。
+
 ## Data
 
 - PRDs：`prd/register-login.md`（FR-ACC-01~06）、`prd/login-smoke.md`、
@@ -83,8 +86,12 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - Semantic judge（ticket 03）：**整份 PRD + case**（`undefined_behavior` 需要整份 PRD 才知
   有沒有寫；`wrong_assertion_to_requirement` 需要該 FR 的正文／AC），binary Pass/Fail，
   critique 要引用缺少或錯置的 step／assertion。模型由 `WEB_TEST_JUDGE_MODEL` 指定（預設
-  `openai-chat:kimi-k2.7-code`，與 designer 不同家族）；輸入不含人類標籤；輸出 JSONL + report
+  `openai-chat:deepseek-v4-pro`，與 designer 不同家族）；輸入不含人類標籤；輸出 JSONL + report
   到 `evals/designer/judge/runs/`。
+- 一個 judge 只判一個準則：case 的每個行為斷言都在 PRD 有依據，且驗的是它宣稱的 FR。
+  `duplicated` 由 CODE 的 `case_duplicate` 判，不進 judge；per-mode 只用來診斷。
+- judge 預設只跑 single-FR case。multi-FR case 是 ticket 30 之前的歷史形狀，只在使用
+  `--include-multi-fr` 時納入。
 - 目前只有一份帶負例的 PRD，judge 只能做 dev（claim-level）；by-PRD split 等更多 PRD。
 - `claim_failure_mode`／`claim_reason` 是人類分析欄位，不是 judge 的輸出，也不進 TPR/TNR。
 - **不要用 Jev verifier 當 ground truth**：它同時是 gate，會循環。人類標籤才是 ground truth。
@@ -97,7 +104,14 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
   沒有 claim 即 `missing`。`clean` 比 `tested` 嚴：一張 case 多驗一個斷言，就會讓它的
   requirement 不再是 clean。
 - 比較 claimed coverage 與 human `claim_alignment`，報告 false tags。
-- Semantic judge：TPR/TNR + CI；split **by PRD**，避免同一個 PRD 的 cases 同時進 dev 與 test。
+- Semantic judge：兩個比例分開報，名稱自帶 positive class。
+  `fail_recall` = P(judge fail | human fail)，`pass_specificity` = P(judge pass | human pass)；
+  這是 `validate-evaluator` 的 TNR 與 TPR，讀 skill 時要換算。各附 Wilson 95% CI。
+  split **by PRD**，避免同一個 PRD 的 cases 同時進 dev 與 test；只有一份 PRD 時報告標
+  `dev only`。
+- 每個比例同時報分母（confusion 計數）。某一類在標籤裡沒有樣本時報 `n/a`，不要報 0。
+- 同一 prompt 至少跑 3 次再比較版本；run 之間的差距是雜訊下限，差距小於它就沒有結論。
+- 報告取三次多數的 verdict。temperature 0 實測無法消除變異（2026-11-03），不要再試一次。
 - 依 `claim_failure_mode` 分組計數，分母是已標的 claim（不是 failure_mode 的列數）。
   `undefined_behavior` 比例高時，先分清是 PRD 缺漏還是 skill 過度外推，再決定補 PRD 或調 skill。
 - 樣本小時 report-only，不宣稱統計顯著。
@@ -137,6 +151,9 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - Label 同時量 alignment 與 grounding；只看總 fail 率會把兩者混在一起，必須按 mode 分開看。
 - `clean` coverage 會把「有測到但多驗一步」的 requirement 算成 not_clean；解讀時要跟 `tested`
   一起看，否則會誤以為 designer 漏了需求。
+- Judge 的 default 是浮動 alias（`deepseek-v4-pro`），provider 更新會讓舊數字漂；要比較版本時
+  先固定 snapshot。
+- 標籤的容差（teardown 不算 assertion、`e.g.` 不算）仍是情境判斷，換 PRD 可能漂。
 
 ## Ticket map
 
@@ -171,4 +188,8 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - `labeling-worksheet.md` 是提案 artifact，不是 ground truth；由 run 產生、供人類在 UI 套用
 - 一個 FR 一個 scenario：多 FR case 的次要 claim 若沒有獨立 scenario，標 `duplicated`
 - 匯出時 `claim_failure_mode` 只保留在 fail claim 上；`claim_reason` 可保留在 pass 當註記
+- Judge 判準收成一個：斷言在 PRD 有依據，且驗的是宣稱的 FR；`duplicated` 移到 CODE
+- 斷言要能從 FR 正文／AC 推出；重複已述規則於新輸入、括號內的說明不算斷言
+- Judge 預設只跑 single-FR；multi-FR 需要 `--include-multi-fr`
+- Judge 比例叫 `fail_recall` / `pass_specificity`，不再用 TPR／TNR（兩套慣例方向相反）
 - 第一版不改 production gate
