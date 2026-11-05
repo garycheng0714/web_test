@@ -210,3 +210,24 @@ element-presence requirement. The prompt hash changes, so no earlier judge run i
 Phoenix: the `claim_failure_mode` annotation config on `web-test-designer-eval` now lists the six
 current values, plus `wrong_scenario_to_requirement` and `undefined_behavior` as legacy values so
 the archived annotations still render, plus `N/A`.
+
+2026-11-05, baseline, v0.8. Three runs on the 27-claim dataset with `kimi-k2.7-code`, prompt
+`8835420e`, after two changes that predate them: the PRD gained the `Continue Shopping` behaviour
+(v0.8), and the judge's third rule now allows an assertion any step of the case produces.
+
+| run | fail verdicts | pass_specificity |
+| --- | --- | --- |
+| `baseline-v08-run1` | 0 | 1.00 [0.88, 1.00] |
+| `baseline-v08-run2` | 0 | 1.00 [0.88, 1.00] |
+| `baseline-v08-run3` | 0 | 1.00 [0.88, 1.00] |
+
+`fail_recall` is `n/a`: the 27 human labels hold no failures. So this baseline measures one thing,
+whether the judge invents failures on good cases, and it says it does not, three times.
+
+Two limits belong with the number:
+
+- The prompt rule was written after reading the disagreements on these same 27 cases, so the 1.00 is
+  fitted to this set. A second PRD is the first honest test of it.
+- With no negative labels, a judge that always passes would also score 1.00. The earlier runs
+  (`baseline-20261105-run1..3`, 4-7 failures) are not comparable: they predate the PRD and prompt
+  changes.
