@@ -14,12 +14,17 @@ Start Phoenix in one terminal:
 uvx arize-phoenix serve
 ```
 
-Run one designer eval in another:
+Run one designer eval in another (the default PRD is `.scratch/automationexercise/prd.md`; pass
+`--run-id`, because the file's stem is `prd`):
 
 ```bash
 PYTHONPATH=. uv run --group eval python evals/designer/run_eval.py \
-  --prd prd/register-login.md
+  --run-id <run-id>
 ```
+
+`prd/register-login.md` still works with an explicit `--prd`, but it predates the one-requirement-per-
+journey unit: its `FR-ACC-01` keeps three staged criteria, so a run on it either splits one journey
+into three cases or drops two.
 
 Annotate the claim spans in Phoenix, then export and report:
 

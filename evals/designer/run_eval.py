@@ -57,7 +57,7 @@ def log_annotations(client, annotations, *, attempts: int = 3) -> None:
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build Phoenix eval units for one designer run.")
-    parser.add_argument("--prd", default="prd/register-login.md")
+    parser.add_argument("--prd", default=".scratch/automationexercise/prd.md")
     parser.add_argument("--project", default=DEFAULT_PROJECT)
     parser.add_argument("--base-url", default="https://automationexercise.com")
     parser.add_argument("--run-id")

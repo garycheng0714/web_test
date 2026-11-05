@@ -10,9 +10,9 @@ directory with the PRD text and one row per HUMAN-labeled claim:
 ```
 
 The requirement text is not stored per row: `load_examples` reads it from the PRD by
-`requirement_id`, so editing a PRD cannot leave a row holding stale text. The working dataset
+`requirement_id`, so editing a PRD cannot leave a row holding stale text. The judged dataset
 (`automationexercise`) has no `prd.md` of its own; `dataset_prd` reads the repo's
-`.scratch/automationexercise/prd.md` instead. Every other dataset keeps a snapshot.
+`.scratch/automationexercise/prd.md` instead.
 
 Superseded datasets are moved to `evals/designer/judge/archive/`, outside `data/`, because
 `test_data_invariants` scans every directory under `data/`.
@@ -26,12 +26,21 @@ the builder is the starting point, not the authority.
 | dataset | source run | claims | fails |
 | --- | --- | --- | --- |
 | `automationexercise` | `journey-v07-20261103` | 27 | 0 |
-| `register-login` | `register-login-20261029T070829Z` | 7 | 0 |
-| `archive/automationexercise-fr` (not judged) | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
 
-Two PRDs, both from the same product, so this is a **dev set only**: a by-PRD train/dev/test split
-needs 5-6 PRDs. Both datasets are pass-heavy; `automationexercise` now has no failures at all, so it
-can measure false alarms but not misses.
+Archived, not judged:
+
+| dataset | source runs | claims | fails |
+| --- | --- | --- | --- |
+| `archive/automationexercise-fr` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
+| `archive/register-login` | `register-login-20261029T070829Z` | 7 | 0 |
+
+One PRD is judged, so this is a **dev set only**: a by-PRD train/dev/test split needs 5-6 PRDs. The
+working set is also pass-only, so it can measure false alarms but not misses; the archived 82 rows
+are the only set with failures, and they predate the one-requirement-per-journey unit.
+
+`register-login` was the eval's default PRD by habit, not by design: it was the first complete PRD in
+the repo. Its `FR-ACC-01` still carries three staged criteria, so a designer run on it either splits
+one journey into three cases or drops two. Tickets 06 and 08 retired it.
 
 ## Label history
 

@@ -37,15 +37,15 @@ criterion field.
 
 ## Tasks
 
-- [ ] Change `run_eval.py`'s `--prd` default from `prd/register-login.md` to
+- [x] Change `run_eval.py`'s `--prd` default from `prd/register-login.md` to
       `.scratch/automationexercise/prd.md`.
-- [ ] Update `evals/designer/README.md` so its default-run example matches, and say the default is
+- [x] Update `evals/designer/README.md` so its default-run example matches, and say the default is
       the working PRD.
-- [ ] Move `evals/designer/judge/data/register-login/` to
+- [x] Move `evals/designer/judge/data/register-login/` to
       `evals/designer/judge/archive/register-login/`; do not delete it.
-- [ ] Update `evals/designer/judge/data/README.md`: drop the archived dataset from the provenance
+- [x] Update `evals/designer/judge/data/README.md`: drop the archived dataset from the provenance
       table, and add one line saying where it went and why.
-- [ ] Keep `uv run pytest tests/designer_evals` green.
+- [x] Keep `uv run pytest tests/designer_evals` green.
 
 ## Out of scope
 
@@ -69,3 +69,12 @@ criterion field.
 Opened 2026-11-03. Decided in the same session as ticket 07: the working PRD is the eval's primary
 input, and `register-login` has no reason to be the default. The 7-row dataset contributes only
 passes, so it cannot check the fail class on its own.
+
+## Result
+
+`run_eval.py` now defaults to `.scratch/automationexercise/prd.md`; the README shows that default and
+says why an explicit `--prd prd/register-login.md` is not the unit the eval measures any more. The
+7-row dataset moved to `evals/designer/judge/archive/register-login/`, and the data README lists it
+under "Archived, not judged" instead of the provenance table.
+
+`test_data_invariants` now scans one dataset. Tests: 368 passed.
