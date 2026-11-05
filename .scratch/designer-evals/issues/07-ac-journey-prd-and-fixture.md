@@ -73,7 +73,8 @@ change.
       multi-requirement case and no duplicate. If it emits 25, the designer still works one case per
       FR: add the "one AC per case" rule to the house skill and run it again (a second paid call).
 - [ ] Label the 27 claims in Phoenix: `claim_alignment` on each, plus `claim_failure_mode` and
-      `claim_reason` on failures.
+      `claim_reason` on failures. Modes: `wrong_actions`, `prd_gap`, `case_assertion`,
+      `wrong_assertion_to_requirement`, `incomplete_journey`, `duplicated` (legacy only).
 - [ ] Export the labels and write the new `claims.jsonl`. Move the old 82-row file to
       `evals/designer/judge/archive/automationexercise-fr/`; do not delete it and do not mix rows
       from both files in one metric.
@@ -183,3 +184,29 @@ requirement sets is the two new ids; the other 25 cases map one-to-one.
 
 So the target is 27 claims over 27 requirements, and the fixture keeps the requirement id as its
 key.
+
+2026-11-05: the failure-mode taxonomy changed before labeling, because the old four were built for
+multi-requirement cases:
+
+- `wrong_scenario_to_requirement` is renamed `wrong_actions` and now also covers "the journey was
+  done by the case's preconditions". The old name read as "wrong scenario chosen", which hid that
+  case.
+- `undefined_behavior` split by the owner of the fix: `prd_gap` (the journey needs a behaviour the
+  PRD does not state) and `case_assertion` (the case invented a value or asserted something
+  undecidable).
+- `incomplete_journey` is new: the case performs the journey but never asserts a result the
+  requirement states. Nothing measured that before.
+- `duplicated` stays as a legacy value; a case can no longer carry a second requirement.
+
+Decision order: `wrong_actions` -> `prd_gap` -> `case_assertion` -> `wrong_assertion_to_requirement`
+-> `incomplete_journey` -> `duplicated`. The first one is about the actions; the rest are about the
+assertions.
+
+The judge's `SYSTEM_PROMPT` now carries a fourth rule for `incomplete_journey`, and its third rule
+no longer mentions acceptance criteria. Page furniture, field lists, element presence, and
+form-entry mechanics are explicitly not results, or the completeness rule would fail every
+element-presence requirement. The prompt hash changes, so no earlier judge run is comparable.
+
+Phoenix: the `claim_failure_mode` annotation config on `web-test-designer-eval` now lists the six
+current values, plus `wrong_scenario_to_requirement` and `undefined_behavior` as legacy values so
+the archived annotations still render, plus `N/A`.

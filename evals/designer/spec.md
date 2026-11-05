@@ -31,23 +31,30 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 
 **Semantic labels（人類標註；ticket 03 judge 只預測 pass/fail）**
 
-- `wrong_scenario_to_requirement`：case 的 steps 根本不在做它 claim 的 FR（scenario 是別的
-  requirement，或是不存在的需求）。
-- `undefined_behavior`：某個行為斷言無法用 PRD 判定——整份 PRD 沒寫（含第 11 章明列未定義
-  者），或 assertion 本身太模糊（兩個 tester 會給不同答案，例如「商品與搜尋字相關」而 PRD
-  沒給比對規則）。根因寫進 `claim_reason`，才分得出是 PRD 缺漏還是 assertion 模糊。
-- `wrong_assertion_to_requirement`：某個行為斷言在 PRD 有依據，但推不出該 claim 的正文／AC，
-  通常是驗了別的 FR 的行為。修法通常是換 assertion 或補 `requirement_ids`，不是刪步驟。
-- `duplicated`：claim 的 FR 沒有自己的 scenario，只是搭在另一個 FR 的 case 上；同一組步驟
-  同時服務兩個 FR，自動化會重複驗證且無法隔離失敗。修法是**拆 case**，不是刪斷言。
+- `wrong_actions`：case 的 steps 不在做它 claim 的 requirement 的旅程——做的是別的
+  requirement、或旅程本身已在 precondition 完成（例如宣稱「登入成功」，但 precondition 已經
+  登入）。修法是改 steps 或改宣稱，不是補斷言。
+- `prd_gap`：這段旅程需要的一個行為，整份 PRD 沒寫（含第 11 章明列未定義者）。修法是 PRD。
+- `case_assertion`：斷言在 PRD 沒有依據或無法判定——多驗了 requirement 列舉外的值、自行
+  外推，或寫得太模糊（兩個 tester 會給不同答案，例如「商品與搜尋字相關」而 PRD 沒給比對
+  規則）。修法是 case。
+- `wrong_assertion_to_requirement`：斷言在 PRD 有依據，但推不出該 claim 的 requirement，通常
+  是驗了隔壁 requirement 的行為。修法是搬走或刪掉那個斷言。
+- `incomplete_journey`：旅程做了，但漏掉 requirement 明寫的一個結果。頁面擺設、欄位清單、
+  元件存在、輸入機制不算結果。修法是補斷言。
+- `duplicated`：legacy，只出現在 ticket 30 之前的 multi-requirement case 上；一個 case 只
+  宣稱一個 requirement 之後，這個形狀不可能再出現。保留給封存的舊資料集。
 
-判定順序 `wrong_scenario` -> `undefined` -> `wrong_assertion` -> `duplicated`，先中先停；任一
-成立，`claim_alignment` 即 `fail`。「斷言」只算會決定功能對錯的 `expected_result`；輸入被接受、
-元件存在、欄位呈現這類前置／UI 細節不算；`no error`／`no blank state` 這類附加語也不算，
-除非它本身就是該步要驗的結果。
+判定順序 `wrong_actions` -> `prd_gap` -> `case_assertion` -> `wrong_assertion_to_requirement`
+-> `incomplete_journey` -> `duplicated`，先中先停；任一成立，`claim_alignment` 即 `fail`。
+`wrong_actions` 判動作層，其餘判斷言層。
 
-「可推出」的界線：斷言要能從該 claim 的 FR 正文或 AC 推出。同一條已述規則套用在新輸入
-（換一個關鍵字、換一組帳密再驗一次）算可推出；括號內的說明或理由不算斷言。
+「斷言」只算會決定功能對錯的 `expected_result`；輸入被接受、元件存在、欄位呈現這類前置／UI
+細節不算；`no error`／`no blank state` 這類附加語也不算，除非它本身就是該步要驗的結果。
+
+「可推出」的界線：斷言要能從該 claim 的 requirement 正文推出（若該 PRD 用 AC 標號，則含其
+AC）。同一條已述規則套用在新輸入（換一個關鍵字、換一組帳密再驗一次）算可推出；括號內的說明
+或理由不算斷言。
 
 ## Data
 
@@ -66,10 +73,12 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 
 - Claim level：`claim_alignment` = `pass` / `fail`（CATEGORICAL，`pass=1.0`、`fail=0.0`），
   每個 claim span（requirement × case）一筆。這是 judge 的目標與 coverage 的來源。
-- `claim_failure_mode`：`wrong_scenario_to_requirement` / `undefined_behavior` /
-  `wrong_assertion_to_requirement` / `duplicated`（CATEGORICAL，無 score，optimization
-  direction `NONE`）；只在 `claim_alignment = fail` 時填。Phoenix UI 無法清空已選的值，所以
-  `export_labels.py` 會丟掉非 fail claim 上的 mode。
+- `claim_failure_mode`：`wrong_actions` / `prd_gap` / `case_assertion` /
+  `wrong_assertion_to_requirement` / `incomplete_journey` / `duplicated`（CATEGORICAL，無
+  score，optimization direction `NONE`）；只在 `claim_alignment = fail` 時填。Phoenix UI
+  無法清空已選的值，所以 `export_labels.py` 會丟掉非 fail claim 上的 mode。封存的舊資料集
+  用的是 `wrong_scenario_to_requirement` / `undefined_behavior`，對應到 `wrong_actions` /
+  （`prd_gap` 或 `case_assertion`）。
 - `claim_reason`：自由文字（FREEFORM）；fail 的 claim 記錄根因，pass 的 claim 也可以當註記
   （例如「teardown 待 ticket 29」）。
 - Grounding 範圍是整份 PRD：§3 資訊架構、§6 文案、§7 資料模型都算「有描述」。
@@ -86,12 +95,13 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 ## Evaluators
 
 - Code first：coverage、invented IDs、empty IDs、duplicates、structure。
-- Semantic judge（ticket 03）：**整份 PRD + case**（`undefined_behavior` 需要整份 PRD 才知
-  有沒有寫；`wrong_assertion_to_requirement` 需要該 FR 的正文／AC），binary Pass/Fail，
-  critique 要引用缺少或錯置的 step／assertion。模型由 `WEB_TEST_JUDGE_MODEL` 指定（預設
+- Semantic judge（ticket 03）：**整份 PRD + case**（`prd_gap` 需要整份 PRD 才知有沒有寫；
+  `wrong_assertion_to_requirement` 需要該 requirement 的正文），binary Pass/Fail，critique
+  要引用缺少或錯置的 step／assertion。模型由 `WEB_TEST_JUDGE_MODEL` 指定（預設
   `openai-chat:kimi-k2.7-code`，與 designer 不同家族）；輸入不含人類標籤；輸出 JSONL + report
   到 `evals/designer/judge/runs/`。
-- 一個 judge 只判一個準則：case 的每個行為斷言都在 PRD 有依據，且驗的是它宣稱的 FR。
+- 一個 judge 只判一個準則：case 的每個行為斷言都在 PRD 有依據、驗的是它宣稱的 requirement，
+  而且 requirement 明寫的每個結果都有被斷言（`incomplete_journey`）。
   `duplicated` 由 CODE 的 `case_duplicate` 判，不進 judge；per-mode 只用來診斷。
 - judge 預設只跑 single-FR case。multi-FR case 是 ticket 30 之前的歷史形狀，只在使用
   `--include-multi-fr` 時納入。
