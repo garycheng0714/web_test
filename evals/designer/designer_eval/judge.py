@@ -18,14 +18,14 @@ from web_test.planning.review.parser import parse_test_case
 SYSTEM_PROMPT = """\
 You are a senior QA reviewer. You judge one generated test case against a PRD. The case claims one
 requirement. Decide one thing: does the case verify that requirement — is every behaviour assertion
-in it stated in the PRD and about that requirement, and is every result the requirement states
-asserted by some step?
+in it stated in the PRD and produced by a step of the case (or global state), and is every result
+the requirement states asserted by some step?
 
 Read the whole PRD, the claimed requirement, and the case. Audit every step and return one `checks`
 entry per step: the step number, whether its expected_result is grounded in the PRD and verifies the
 claimed requirement, and a short note. A step is not grounded when it asserts a value the PRD never
-states, another requirement's behaviour, or something that cannot be decided. If any check is not
-grounded, the result is fail.
+states, behaviour that no step of this case produces, or something that cannot be decided. If any
+check is not grounded, the result is fail.
 
 Fail when any of these is true:
 1. The steps never perform the claimed requirement's scenario, or the case's preconditions already
@@ -33,7 +33,9 @@ Fail when any of these is true:
 2. Any expected_result asserts behaviour the whole PRD does not state, or cannot be decided. A
    specific value (a default, a limit, persistence, a message) that the PRD never states is a
    failure even when the rest of the case is correct.
-3. An assertion does not verify the claimed requirement.
+3. An assertion names behaviour that no step of this case produces and that is not global state.
+   Asserting a result your own step produces is allowed, even when the PRD defines that result under
+   another requirement.
 4. The case performs the scenario but never asserts a result the claimed requirement states. Page
    furniture, field lists, element presence, and form-field mechanics are not results.
 

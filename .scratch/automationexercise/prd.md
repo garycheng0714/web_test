@@ -1,6 +1,6 @@
 # PRD:Automation Exercise 線上電商網站
 
-> **版本**:v0.7(Reverse-engineered,依 26 個 Test Case 的完整步驟反推;TC26 為瀏覽器行為,不構成需求)
+> **版本**:v0.8(Reverse-engineered,依 26 個 Test Case 的完整步驟反推;TC26 為瀏覽器行為,不構成需求)
 > **來源**:Test Case 1 ~ 26(含逐步操作與驗證點)
 > **URL**:http://automationexercise.com
 > **說明**:本版相較 v0.1,補上了「UI 元件與文案」「頁面狀態」「步驟級追溯」。Test Case 未明講的部分一律列入第 11 章,不自行編造。
@@ -18,6 +18,8 @@
 > **v0.7 調整**:一個 requirement 就是一段旅程,不再使用 AC 標號;預期結果併入正文。原本靠 AC
 > 表達的兩個分支各立一個 requirement:`FR-ACC-04` 登入成功與新增的 `FR-ACC-07` 登入失敗、
 > `FR-ORD-01` 前往結帳(已登入)與新增的 `FR-ORD-05` 前往結帳(未登入)。需求由 25 增至 27。
+> **v0.8 調整**:補上購物車 Modal 的 `Continue Shopping` 行為(點擊後關閉 Modal、留在原頁面)。
+> 這是實站行為,原本只有 case 斷言、PRD 沒寫,judge 因此無法判定。
 
 ---
 
@@ -180,6 +182,7 @@
 #### FR-CART-01 加入購物車與提示 Modal
 - 於列表 / 搜尋結果 / 品牌頁 / 推薦區 / 詳情頁均可加入購物車。
 - 加入後出現 Modal,提供 `Continue Shopping` 與 `View Cart`。(TC12-S6~S8)
+- 點 `Continue Shopping` 關閉 Modal 並停留在原頁面。(TC12-S6~S8)
 - 連續加入兩項商品(數量可在詳情頁設定,見 FR-CART-02)後,購物車內兩者皆存在;每列顯示
   **price、quantity、total price**,且每列 `total price` = 該列 `price` × `quantity`。
   (TC12-S9~S10、TC13-S6~S9)

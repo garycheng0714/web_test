@@ -38,8 +38,9 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - `case_assertion`：斷言在 PRD 沒有依據或無法判定——多驗了 requirement 列舉外的值、自行
   外推，或寫得太模糊（兩個 tester 會給不同答案，例如「商品與搜尋字相關」而 PRD 沒給比對
   規則）。修法是 case。
-- `wrong_assertion_to_requirement`：斷言在 PRD 有依據，但推不出該 claim 的 requirement，通常
-  是驗了隔壁 requirement 的行為。修法是搬走或刪掉那個斷言。
+- `wrong_assertion_to_requirement`：斷言在 PRD 有依據，但沒有任何一步產生它，也不是全域狀態
+  ——通常是從 precondition 繼承來的隔壁 requirement 的頁面結果。修法是刪掉那個斷言，或把它
+  降成狀態描述。
 - `incomplete_journey`：旅程做了，但漏掉 requirement 明寫的一個結果。頁面擺設、欄位清單、
   元件存在、輸入機制不算結果。修法是補斷言。
 - `duplicated`：legacy，只出現在 ticket 30 之前的 multi-requirement case 上；一個 case 只
@@ -55,6 +56,10 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 「可推出」的界線：斷言要能從該 claim 的 requirement 正文推出（若該 PRD 用 AC 標號，則含其
 AC）。同一條已述規則套用在新輸入（換一個關鍵字、換一組帳密再驗一次）算可推出；括號內的說明
 或理由不算斷言。
+
+「屬於誰」的界線：斷言可以由這 case 的任一步產生，即使 PRD 把那個結果寫在另一個 requirement
+（例如為了走到結帳而註冊，註冊成功訊息就是自己動作的產物）；全域狀態（Header 的登入狀態、
+購物車數量）任何 case 都可以斷言。不行的是：沒有經過這 case 的動作，卻宣稱別人的頁面結果。
 
 ## Data
 
