@@ -72,13 +72,13 @@ change.
 - [x] Gate before labeling: the run must emit 27 cases, each on exactly one requirement, with no
       multi-requirement case and no duplicate. If it emits 25, the designer still works one case per
       FR: add the "one AC per case" rule to the house skill and run it again (a second paid call).
-- [ ] Label the 27 claims in Phoenix: `claim_alignment` on each, plus `claim_failure_mode` and
+- [x] Label the 27 claims in Phoenix: `claim_alignment` on each, plus `claim_failure_mode` and
       `claim_reason` on failures. Modes: `wrong_actions`, `prd_gap`, `case_assertion`,
       `wrong_assertion_to_requirement`, `incomplete_journey`, `duplicated` (legacy only).
-- [ ] Export the labels and write the new `claims.jsonl`. Move the old 82-row file to
+- [x] Export the labels and write the new `claims.jsonl`. Move the old 82-row file to
       `evals/designer/judge/archive/automationexercise-fr/`; do not delete it and do not mix rows
       from both files in one metric.
-- [ ] Run the judge three times with distinct run ids, take the majority verdict per claim, and
+- [x] Run the judge three times with distinct run ids, take the majority verdict per claim, and
       report `fail_recall`, `pass_specificity`, the confusion counts, and the Wilson intervals.
 - [ ] Record token usage per call in `run.json` and the judge runs, so the baseline's cost is a
       measurement rather than an estimate.
@@ -231,3 +231,17 @@ Two limits belong with the number:
 - With no negative labels, a judge that always passes would also score 1.00. The earlier runs
   (`baseline-20261105-run1..3`, 4-7 failures) are not comparable: they predate the PRD and prompt
   changes.
+
+## Result
+
+The PRD is one requirement per journey (27, no acceptance criteria). The designer run
+`journey-v07-20261103` produced 27 cases, one per requirement; all 27 were labeled pass and
+rebuilt into the dev set with `build_claims.py`. The old 82-row set is archived at
+`evals/designer/judge/archive/automationexercise-fr/`.
+
+Baseline, prompt `8835420e`, `kimi-k2.7-code`, three runs: `pass_specificity` 1.00 [0.88, 1.00],
+no disagreements in any run, `fail_recall` `n/a`. The limits are recorded in the comment above and
+in the ticket's risks.
+
+One task stays open: the judge runs do not record token usage, so the baseline's cost is still an
+estimate. Everything else in this ticket is done.

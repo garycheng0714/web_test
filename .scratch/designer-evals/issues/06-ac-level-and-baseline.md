@@ -8,7 +8,7 @@ by construction.
 **Blocked by:** 07, which rewrites the PRD's criteria and rebuilds the fixture at
 `(case, requirement)` granularity. The schema work waits on that.
 
-**Status:** needs-triage
+**Status:** wontfix
 
 **Shape:**
 - Types: `Case.ac_ids: list[str]` in `web_test/planning/schema.py`; `requirement_ids` becomes a
@@ -83,3 +83,10 @@ goes from 38 criteria to 27 (TC26 is a browser action, so `FR-UI-01` keeps one A
 and the AC-level claims are deferred: ticket 07 fixes the PRD and rebuilds the fixture at
 `(case, requirement)` granularity first. The 49 existing labels are an FR-level snapshot; the 27
 new rows will re-key mechanically because the mapping is 1:1.
+
+2026-11-05: closed as wontfix. Ticket 07 removed the layer this ticket wanted to promote: an
+acceptance criterion was only a checkpoint inside a requirement, so the requirement itself became
+the journey, and the two requirements that carried two criteria were split into two requirements
+each. There is no criterion id to claim, no `criterion_id` to add to `Case`, and no AC-level fixture
+to build. `AcceptanceCriterion` and `parse_requirements` remain for `prd/register-login.md`, which
+still uses the old format and is out of scope.
