@@ -1,6 +1,6 @@
 # Judge data
 
-A small, committed dev set for the semantic judge (`evals/designer/judge.py`). Each dataset is one
+A small, committed dev set for the semantic judge (`evals/designer/run_judge.py`). Each dataset is one
 directory with the PRD text and one row per HUMAN-labeled claim:
 
 ```text

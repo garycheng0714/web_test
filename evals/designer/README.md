@@ -37,7 +37,7 @@ report under `judge/runs/` (gitignored). It judges single-requirement cases by d
 multi-requirement rows are the legacy shape from before ticket 30 and need `--include-multi-fr`.
 
 ```bash
-PYTHONPATH=. uv run --group eval python evals/designer/judge.py \
+PYTHONPATH=. uv run --group eval python evals/designer/run_judge.py \
   --dataset automationexercise --source-run house-automationexercise-20261029 --limit 10
 ```
 
