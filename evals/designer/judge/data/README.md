@@ -14,25 +14,32 @@ The requirement text is not stored per row: `load_examples` reads it from the PR
 (`automationexercise`) has no `prd.md` of its own; `dataset_prd` reads the repo's
 `.scratch/automationexercise/prd.md` instead. Every other dataset keeps a snapshot.
 
+Superseded datasets are moved to `evals/designer/judge/archive/`, outside `data/`, because
+`test_data_invariants` scans every directory under `data/`.
+
 ## Provenance
 
-Both datasets were built from runs on `feature/designer-evals-claims`. The rows and the cases inside
-them come from the runs as generated; the PRD has since been aligned to v0.4 (see below).
+Rows are built with `evals/designer/build_claims.py`, which joins a run's `units.json` with the
+HUMAN annotations in its exported `labels.jsonl`. The committed file is then corrected in review;
+the builder is the starting point, not the authority.
 
-| dataset | source runs | claims | fails |
+| dataset | source run | claims | fails |
 | --- | --- | --- | --- |
-| `automationexercise` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
+| `automationexercise` | `journey-v07-20261103` | 27 | 0 |
 | `register-login` | `register-login-20261029T070829Z` | 7 | 0 |
+| `archive/automationexercise-fr` (not judged) | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
 
-Both datasets use the same automationexercise PRD in the first case, so this is a **dev set only**:
-a by-PRD train/dev/test split needs 5-6 PRDs. `register-login` contributes only passes, so it can
-check one class but not the other.
-
-Most automationexercise rows predate ticket 30 (one case per requirement), so `load_examples` skips
-multi-requirement cases unless `--include-multi-fr` is passed. The 49 single-requirement rows are the
-current target: 17 fail, 32 pass.
+Two PRDs, both from the same product, so this is a **dev set only**: a by-PRD train/dev/test split
+needs 5-6 PRDs. Both datasets are pass-heavy; `automationexercise` now has no failures at all, so it
+can measure false alarms but not misses.
 
 ## Label history
+
+**2026-11-05, PRD v0.7 and a new unit.** The working PRD became one requirement = one journey, with
+no acceptance-criterion labels (25 requirements became 27). The 82-row set above was archived
+unchanged; the new set is 27 claims from `journey-v07-20261103`, all labeled `pass`. The failure-mode
+vocabulary changed at the same time, so `wrong_scenario_to_requirement` and `undefined_behavior` only
+appear in the archived rows; see `evals/designer/spec.md` for the current six.
 
 **2026-11-03, rubric.** Three passing claims asserted content the PRD did not state and were
 relabeled `fail` (`undefined_behavior`): `case-14 -> FR-PRD-04`, `case-21 -> FR-CART-02`,
@@ -58,7 +65,8 @@ The committed dataset in this directory is the source of truth for the judge, no
 labels were corrected in review after they were first annotated (the v0.4 alignment, the boundary
 ruling), and Phoenix still holds the original values. Re-exporting either historical run rebuilds a
 `labels.jsonl` that would silently revert those corrections, so do not rebuild this directory from
-Phoenix. Phoenix remains the labeling UI for new runs.
+Phoenix. Phoenix remains the labeling UI for new runs; `build_claims.py` turns a fresh export into
+candidate rows, and those rows are reviewed before they replace this file.
 
 The run directories themselves stay local (`evals/designer/runs/` and `evals/designer/judge/runs/`
 are gitignored).
