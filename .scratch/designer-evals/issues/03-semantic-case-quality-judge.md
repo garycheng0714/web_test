@@ -121,7 +121,7 @@ failure modes   undefined 9     undefined 1
 
 ## Judge implementation and dev run (2026-11-02)
 
-- `evals/designer/judge.py` + `designer_eval/judge.py`: one binary judgement per labeled claim,
+- `evals/designer/run_judge.py` + `designer_eval/judge.py`: one binary judgement per labeled claim,
   whole PRD + case, critique first. Model: `WEB_TEST_JUDGE_MODEL` (default
   `openai-chat:kimi-k2.7-code`, a different family from the designer).
 - Dev fixture `evals/designer/judge/data/`: 85 automationexercise claims + 7 register-login

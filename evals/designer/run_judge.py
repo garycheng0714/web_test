@@ -2,7 +2,7 @@
 
 This runs one LLM judgement per labeled claim. It is report-only and does not gate anything.
 
-    PYTHONPATH=. uv run --group eval python evals/designer/judge.py \
+    PYTHONPATH=. uv run --group eval python evals/designer/run_judge.py \
         --dataset automationexercise --limit 10
 """
 

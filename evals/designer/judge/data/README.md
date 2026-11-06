@@ -1,41 +1,62 @@
 # Judge data
 
-A small, committed dev set for the semantic judge (`evals/designer/judge.py`). Each dataset is one
+A small, committed dev set for the semantic judge (`evals/designer/run_judge.py`). Each dataset is one
 directory with the PRD text and one row per HUMAN-labeled claim:
 
 ```text
 <dataset>/prd.md       # the PRD text the labels are judged against
-<dataset>/claims.jsonl # claim_id, requirement_id, case_id, requirement_text, case_markdown,
+<dataset>/claims.jsonl # claim_id, requirement_id, case_id, case_markdown,
                        # human_label, human_mode, human_reason, source_run
 ```
 
+The requirement text is not stored per row: `load_examples` reads it from the PRD by
+`requirement_id`, so editing a PRD cannot leave a row holding stale text. The judged dataset
+(`automationexercise`) has no `prd.md` of its own; `dataset_prd` reads the repo's
+`.scratch/automationexercise/prd.md` instead.
+
+Superseded datasets are moved to `evals/designer/judge/archive/`, outside `data/`, because
+`test_data_invariants` scans every directory under `data/`.
+
 ## Provenance
 
-Both datasets were built from runs on `feature/designer-evals-claims`. The rows and the cases inside
-them come from the runs as generated; the PRD has since been aligned to v0.4 (see below).
+Rows are built with `evals/designer/build_claims.py`, which joins a run's `units.json` with the
+HUMAN annotations in its exported `labels.jsonl`. The committed file is then corrected in review;
+the builder is the starting point, not the authority.
+
+| dataset | source run | claims | fails |
+| --- | --- | --- | --- |
+| `automationexercise` | `journey-v07-20261103` | 27 | 0 |
+
+Archived, not judged:
 
 | dataset | source runs | claims | fails |
 | --- | --- | --- | --- |
-| `automationexercise` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 31 |
-| `register-login` | `register-login-20261029T070829Z` | 7 | 0 |
+| `archive/automationexercise-fr` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
+| `archive/register-login` | `register-login-20261029T070829Z` | 7 | 0 |
 
-Both datasets use the same automationexercise PRD in the first case, so this is a **dev set only**:
-a by-PRD train/dev/test split needs 5-6 PRDs. `register-login` contributes only passes, so it can
-check one class but not the other.
+One PRD is judged, so this is a **dev set only**: a by-PRD train/dev/test split needs 5-6 PRDs. The
+working set is also pass-only, so it can measure false alarms but not misses; the archived 82 rows
+are the only set with failures, and they predate the one-requirement-per-journey unit.
 
-Most automationexercise rows predate ticket 30 (one case per requirement), so `load_examples` skips
-multi-requirement cases unless `--include-multi-fr` is passed. The 49 single-requirement rows are the
-current target: 18 fail, 31 pass.
+`register-login` was the eval's default PRD by habit, not by design: it was the first complete PRD in
+the repo. Its `FR-ACC-01` still carries three staged criteria, so a designer run on it either splits
+one journey into three cases or drops two. Tickets 06 and 08 retired it.
 
 ## Label history
+
+**2026-11-05, PRD v0.7 and a new unit.** The working PRD became one requirement = one journey, with
+no acceptance-criterion labels (25 requirements became 27). The 82-row set above was archived
+unchanged; the new set is 27 claims from `journey-v07-20261103`, all labeled `pass`. The failure-mode
+vocabulary changed at the same time, so `wrong_scenario_to_requirement` and `undefined_behavior` only
+appear in the archived rows; see `evals/designer/spec.md` for the current six.
 
 **2026-11-03, rubric.** Three passing claims asserted content the PRD did not state and were
 relabeled `fail` (`undefined_behavior`): `case-14 -> FR-PRD-04`, `case-21 -> FR-CART-02`,
 `case-30 -> FR-ORD-02`. The rule lives in `evals/designer/spec.md`.
 
 **2026-11-03, PRD v0.4 alignment.** `prd.md` now matches the working PRD v0.4, and every row's
-`requirement_text` was refreshed from it. Labels changed only where the new text decides the
-verdict:
+requirement text was refreshed from it (the per-row copy has since been dropped: the PRD is read by
+id). Labels changed only where the new text decides the verdict:
 
 - `case-13 -> FR-PRD-04` and `case-14 -> FR-PRD-04` became `pass`: v0.4 states that the category
   page lists only the selected subcategory's products.
@@ -53,7 +74,8 @@ The committed dataset in this directory is the source of truth for the judge, no
 labels were corrected in review after they were first annotated (the v0.4 alignment, the boundary
 ruling), and Phoenix still holds the original values. Re-exporting either historical run rebuilds a
 `labels.jsonl` that would silently revert those corrections, so do not rebuild this directory from
-Phoenix. Phoenix remains the labeling UI for new runs.
+Phoenix. Phoenix remains the labeling UI for new runs; `build_claims.py` turns a fresh export into
+candidate rows, and those rows are reviewed before they replace this file.
 
 The run directories themselves stay local (`evals/designer/runs/` and `evals/designer/judge/runs/`
 are gitignored).

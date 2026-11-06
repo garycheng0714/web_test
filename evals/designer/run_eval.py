@@ -17,6 +17,7 @@ Then:
 import argparse
 import os
 import sys
+import time
 from collections.abc import Sequence
 from datetime import UTC, datetime
 
@@ -42,9 +43,21 @@ RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
 DEFAULT_PROJECT = "web-test-designer-eval"
 
 
+def log_annotations(client, annotations, *, attempts: int = 3) -> None:
+    """Write CODE annotations, retrying while the spans created moments ago are still indexed."""
+    for attempt in range(1, attempts + 1):
+        try:
+            log_code_annotations(client, annotations)
+            return
+        except Exception:
+            if attempt == attempts:
+                raise
+            time.sleep(2)
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build Phoenix eval units for one designer run.")
-    parser.add_argument("--prd", default="prd/register-login.md")
+    parser.add_argument("--prd", default=".scratch/automationexercise/prd.md")
     parser.add_argument("--project", default=DEFAULT_PROJECT)
     parser.add_argument("--base-url", default="https://automationexercise.com")
     parser.add_argument("--run-id")
@@ -126,7 +139,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     try:
-        log_code_annotations(client, annotations)
+        log_annotations(client, annotations)
     except Exception as error:
         print(f"failed to write code annotations: {error}", file=sys.stderr)
         return 1

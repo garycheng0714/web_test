@@ -11,25 +11,33 @@ from pydantic_ai import Agent
 from pydantic_ai.settings import ModelSettings
 
 from evals.designer.designer_eval.metrics import wilson_interval
+from evals.designer.designer_eval.requirements import parse_requirements
+from web_test.paths import PRD_PATH
 from web_test.planning.review.parser import parse_test_case
 
 SYSTEM_PROMPT = """\
 You are a senior QA reviewer. You judge one generated test case against a PRD. The case claims one
-requirement. Decide one thing: is every behaviour assertion in the case stated in the PRD and
-verifying that requirement?
+requirement. Decide one thing: does the case verify that requirement — is every behaviour assertion
+in it stated in the PRD and produced by a step of the case (or global state), and is every result
+the requirement states asserted by some step?
 
 Read the whole PRD, the claimed requirement, and the case. Audit every step and return one `checks`
 entry per step: the step number, whether its expected_result is grounded in the PRD and verifies the
 claimed requirement, and a short note. A step is not grounded when it asserts a value the PRD never
-states, another requirement's behaviour, or something that cannot be decided. If any check is not
-grounded, the result is fail.
+states, behaviour that no step of this case produces, or something that cannot be decided. If any
+check is not grounded, the result is fail.
 
 Fail when any of these is true:
-1. The steps never perform the claimed requirement's scenario.
+1. The steps never perform the claimed requirement's scenario, or the case's preconditions already
+   did.
 2. Any expected_result asserts behaviour the whole PRD does not state, or cannot be decided. A
    specific value (a default, a limit, persistence, a message) that the PRD never states is a
    failure even when the rest of the case is correct.
-3. An assertion does not verify the claimed requirement's body or acceptance criteria.
+3. An assertion names behaviour that no step of this case produces and that is not global state.
+   Asserting a result your own step produces is allowed, even when the PRD defines that result under
+   another requirement.
+4. The case performs the scenario but never asserts a result the claimed requirement states. Page
+   furniture, field lists, element presence, and form-field mechanics are not results.
 
 These are not assertions: a step that only sets up state, a step that only cleans up or logs out, a
 value introduced with "e.g.", page or context assertions, form-field input mechanics, element
@@ -42,13 +50,16 @@ the claimed requirement. Do not name a failure mode. Write the critique first, t
 
 
 class LabeledClaim(BaseModel):
-    """One fixture row. Boundary data, so a mistyped label fails here, not silently in `score`."""
+    """One fixture row. Boundary data, so a mistyped label fails here, not silently in `score`.
+
+    The requirement text is not stored: it is read from the dataset's PRD by id, so editing the
+    PRD never leaves a row holding stale text.
+    """
 
     source_run: str
     claim_id: str
     requirement_id: str
     case_id: str
-    requirement_text: str
     case_markdown: str
     human_label: Literal["pass", "fail"]
     human_mode: str | None = None
@@ -146,9 +157,25 @@ def requirement_count(case_markdown: str) -> int:
         return 0
 
 
+# A dataset named after the working PRD's directory tracks that PRD and has no `prd.md` of its own.
+WORKING_PRD_DATASETS = {PRD_PATH.parent.name: PRD_PATH}
+
+
+def dataset_prd(data_dir: Path) -> Path:
+    """The PRD the dataset's labels are judged against.
+
+    The working dataset reads the repo's PRD, so the two cannot drift. Every other dataset keeps
+    its own point-in-time `prd.md` snapshot.
+    """
+    return WORKING_PRD_DATASETS.get(data_dir.name, data_dir / "prd.md")
+
+
 def load_examples(data_dir: Path, *, single_fr_only: bool = True) -> list[JudgeExample]:
     """Read a dataset. Multi-FR rows are legacy shapes, so they are excluded by default."""
-    prd_text = (data_dir / "prd.md").read_text(encoding="utf-8")
+    prd_text = dataset_prd(data_dir).read_text(encoding="utf-8")
+    requirement_text = {
+        requirement.id: requirement.text for requirement in parse_requirements(prd_text)
+    }
     examples: list[JudgeExample] = []
     for line in (data_dir / "claims.jsonl").read_text(encoding="utf-8").splitlines():
         if not line.strip():
@@ -156,6 +183,11 @@ def load_examples(data_dir: Path, *, single_fr_only: bool = True) -> list[JudgeE
         claim = LabeledClaim.model_validate_json(line)
         if single_fr_only and requirement_count(claim.case_markdown) > 1:
             continue
+        if claim.requirement_id not in requirement_text:
+            raise ValueError(
+                f"{claim.claim_id} claims {claim.requirement_id}, "
+                f"which {dataset_prd(data_dir).name} does not define"
+            )
         examples.append(
             JudgeExample(
                 data=JudgeInput(
@@ -164,7 +196,7 @@ def load_examples(data_dir: Path, *, single_fr_only: bool = True) -> list[JudgeE
                     requirement_id=claim.requirement_id,
                     case_id=claim.case_id,
                     prd_text=prd_text,
-                    requirement_text=claim.requirement_text,
+                    requirement_text=requirement_text[claim.requirement_id],
                     case_markdown=claim.case_markdown,
                 ),
                 human_label=claim.human_label,
