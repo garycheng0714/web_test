@@ -46,8 +46,8 @@ judgement. That sentence belongs in any report built on it.
       links, §10.2 records the four corrections.
 - [x] Confirm v0.1 parsed as 10, v0.2 as 21, v0.3 as 22, all with no acceptance criteria.
 - [x] Freeze the PRD at v0.3: `sha256` `2cf895ee…`, recorded in the comment below.
-- [ ] Run the designer once on v0.3 (paid) and check the gate: about 22 cases, one requirement
-      each, no invented requirement ids.
+- [x] Run the designer once on v0.3 (paid) and check the gate: 22 cases, one requirement each,
+      no invented requirement ids (run `todomvc-v03-20261106`).
 - [ ] Label the claims in Phoenix, using the v0.8 modes.
 - [ ] Build the dataset with `build_claims.py`, under a name that reads the TodoMVC PRD.
 - [ ] Run the judge three times (paid) and report `pass_specificity`, `fail_recall`, the confusion
@@ -107,3 +107,23 @@ designer run on v0.2 is a paid call.
 
 22 requirements. `sha256` `2cf895ee9c924eb8c81a4f359a78d15659a234ed5095a4c6bb54c872bec3255a`. The
 v0.1 and v0.2 files are superseded and no run on either may be labeled or compared.
+
+2026-11-06, gate run on v0.3: `todomvc-v03-20261106`, `deepseek-v4.1-flash`.
+
+| | result |
+| --- | --- |
+| requirements | 22 |
+| cases | 22 |
+| claims | 22 (one requirement each) |
+| distinct requirements | 22 |
+| requirements per case | 1 for all 22 |
+| duplicate cases | 0 |
+| invalid ids | 0 |
+| usage | prompt 11,107 / completion 12,323 / cache read 4,480 / total 23,430 |
+| open questions | 11 |
+
+The v0.1 run answered the same PRD with 22 cases for 10 requirements; after the re-cut the designer
+emits one case per requirement, so the extra cases were the design's reading of a coarse PRD, not a
+taste for splitting. The v0.1 run stays unlabeled.
+
+Next: label 22 claims in Phoenix, build the dataset, judge x3 (66 paid calls).
