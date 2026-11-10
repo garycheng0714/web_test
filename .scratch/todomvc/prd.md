@@ -1,6 +1,6 @@
 # PRD:TodoMVC(designer eval 的第二份 PRD)
 
-> **版本**:v0.7(2026-11-10)
+> **版本**:v0.8(2026-11-10)
 > **性質**:由公開規格**與其參考實作**抽取,不是反推自 live 站,也不是本專案撰寫
 > **來源**:
 > - 規格:[`tastejs/todomvc` 的 `app-spec.md`](https://github.com/tastejs/todomvc/blob/master/app-spec.md) @ `d040877fd8895c4f18fa5190e4b8ee474ffa8ac4`
@@ -26,6 +26,9 @@
 > **v0.7 調整**:依「一條 requirement = 一條被測邏輯」拆出兩條。`FR-03` 只保留「新增」,
 > 「允許重複標題」成為 `FR-26`;`FR-17` 只保留「重新載入後保留」,「未儲存的編輯被丟棄」
 > 成為 `FR-27`。需求由 25 增至 27。
+> **v0.8 調整**:`FR-TODO-05` 補上 toggle 的反向與隔離——再點一次回到未完成、其他 todo 不受
+> 影響。設計師原本就從整份 PRD 的「取消勾選」與 checkbox 語意推出這兩件事,但 `FR-05`
+> 沒寫,judge 因此判它未 grounded。需求數不變。
 > **抽取規則**:
 > 1. 只收使用者可見的結果;實作細節(CSS class、HTML id、`localStorage` key、`<strong>` 包裝)
 >    不進 requirement。
@@ -88,8 +91,11 @@
 - 在新增輸入框只輸入空白後按 Enter → 清單不變,不建立新項目。(New todo)
 
 #### FR-TODO-05 勾選完成
-- 點某一項 todo 的 checkbox → 該項被標記為完成,標題顯示刪除線且文字轉為灰色。
-  (Item, 1 + template 的 CSS)
+- 點某一項 todo 的 checkbox → 該項的 `completed` 變為 true,標題顯示刪除線且文字轉為灰色。
+- 再次點擊同一項的 checkbox → `completed` 變回 false,標題恢復為一般文字,該項回到未完成。
+- 其他 todo 的外觀與完成狀態不受影響。
+  (Item, 1 + template 的 CSS;toggle 的兩個方向由「updating its `completed` value」與
+  `FR-TODO-14`、`FR-TODO-21` 的「取消勾選」支撐)
 
 #### FR-TODO-06 全部標記完成
 - 勾選清單頂端的「全部標記完成」→ 所有 todo 變成已完成;再取消勾選 → 所有 todo 回到未完成。
