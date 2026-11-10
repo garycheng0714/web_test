@@ -77,6 +77,13 @@ Do not derive cases from the PRD's grounding or observation notes: observed opti
 values, disabled/read-only fields, or unselected-by-default controls are for automation, not
 requirements, and a happy-path case already exercises the controls it uses.
 
+Test the transition into a state, not the state at rest. When a requirement names a state ("the
+button is hidden when nothing is completed"), start the case in the state where the condition is
+false (one item completed, the button visible), perform the action that makes the condition true
+(uncomplete that item), and assert the state the requirement names. Do not start in the state that
+already holds at page load, and do not assert the complementary state to give the case movement: the
+condition turning false belongs to whichever requirement owns that action.
+
 Anything the PRD leaves undefined or contradictory — validation messages, error recovery, field
 formats, case-sensitivity, trimming, session persistence, permission redirects, race conditions,
 timing — is **not** a case. Record it under `open_questions` instead. A case whose expected result is
@@ -112,7 +119,8 @@ point, role, or workflow stage differs, even when the expected message is the sa
 
 ## Output
 
-Return the test cases and the open questions.
+Return the test cases and the open questions. Write `test_scenario`, every step, and `notes` in the
+PRD's language.
 
 Each case records:
 
