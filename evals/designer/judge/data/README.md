@@ -26,6 +26,7 @@ the builder is the starting point, not the authority.
 | dataset | source run | claims | fails |
 | --- | --- | --- | --- |
 | `automationexercise` | `journey-v07-20261103` | 27 | 0 |
+| `todomvc` | `todomvc-v03-20261106` | 22 | 1 |
 
 Archived, not judged:
 
@@ -34,9 +35,9 @@ Archived, not judged:
 | `archive/automationexercise-fr` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
 | `archive/register-login` | `register-login-20261029T070829Z` | 7 | 0 |
 
-One PRD is judged, so this is a **dev set only**: a by-PRD train/dev/test split needs 5-6 PRDs. The
-working set is also pass-only, so it can measure false alarms but not misses; the archived 82 rows
-are the only set with failures, and they predate the one-requirement-per-journey unit.
+Two PRDs are judged, so this is still a **dev set**: a by-PRD train/dev/test split needs 5-6 PRDs.
+Both sets are pass-heavy; `automationexercise` has no failures at all, and `todomvc` has one, whose
+label compares the PRD to the app rather than the case to the PRD.
 
 `register-login` was the eval's default PRD by habit, not by design: it was the first complete PRD in
 the repo. Its `FR-ACC-01` still carries three staged criteria, so a designer run on it either splits

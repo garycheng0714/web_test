@@ -127,3 +127,42 @@ emits one case per requirement, so the extra cases were the design's reading of 
 taste for splitting. The v0.1 run stays unlabeled.
 
 Next: label 22 claims in Phoenix, build the dataset, judge x3 (66 paid calls).
+
+2026-11-06, judge baseline on the held-out PRD. Dataset `judge/data/todomvc/` (22 rows: 21 pass,
+1 fail), frozen PRD v0.3, prompt `8835420e`, `kimi-k2.7-code`, three runs.
+
+| run | fail verdicts | fail recall | pass specificity |
+| --- | --- | --- | --- |
+| `todomvc-baseline-run1` | 4 | 0.00 [0.00, 0.79] | 0.86 [0.65, 0.95] |
+| `todomvc-baseline-run2` | 4 | 0.00 | 0.86 |
+| `todomvc-baseline-run3` | 3 | 0.00 | 0.90 [0.71, 0.97] |
+| majority | 3 | 0.00 [0.00, 0.79] | 0.86 [0.65, 0.95] |
+
+19 of 22 claims had the same verdict in all three runs.
+
+**The missed fail is not judgeable.** `case-14 -> FR-TODO-14` is labeled `prd_gap`: the PRD says
+`0 items` where the app renders `0 items left`, and the case copies the PRD. The judge is given the
+PRD as truth, so it passes the case every time. `claim_alignment` compares a case to its PRD; this
+label compares the PRD to the app. Two different questions. Either the row should be pass with a
+reason, or `prd_gap` rows are excluded from `fail_recall` — the judge cannot catch them.
+
+**The three stable false alarms:**
+
+- `case-16 -> FR-TODO-16` (3/3): the judge says "the button appears when a todo is completed" is not
+  stated by FR-TODO-16. FR-TODO-15 states the button is used when completed items exist, and the
+  case's own step produces the completed item. The judge read one requirement in isolation.
+- `case-5 -> FR-TODO-05` (2/3): the judge objects to asserting the clicked checkbox is checked and
+  the other todo is unchanged. The checkbox is the control the step clicked; the second clause is a
+  "nothing else changed" note, which the rubric says is not an assertion.
+- `case-12 -> FR-TODO-12` (2/3): mixed. The scenario title claims Enter and blur but the steps only
+  do Enter (a real title/steps mismatch), and "leaves edit mode" is not stated. The second reason is
+  pedantic, the first is fair.
+
+One more, not majority: `case-17 -> FR-TODO-17` failed 1/3 for asserting list order, which the PRD's
+§11 explicitly leaves undefined. That catch is correct; the human label missed it. It is also
+unstable.
+
+So the held-out PRD did its job: it shows the judge is not ready to gate. Specificity around 0.86 on
+a document it has not seen, with two of three stable failures caused by reading requirements in
+isolation and treating a "nothing else changed" note as an assertion. `fail_recall` stays
+uninformative with one negative, and that negative is outside the judge's question.
