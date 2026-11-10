@@ -1,6 +1,6 @@
 # PRD:TodoMVC(designer eval 的第二份 PRD)
 
-> **版本**:v0.6(2026-11-10)
+> **版本**:v0.7(2026-11-10)
 > **性質**:由公開規格**與其參考實作**抽取,不是反推自 live 站,也不是本專案撰寫
 > **來源**:
 > - 規格:[`tastejs/todomvc` 的 `app-spec.md`](https://github.com/tastejs/todomvc/blob/master/app-spec.md) @ `d040877fd8895c4f18fa5190e4b8ee474ffa8ac4`
@@ -23,12 +23,15 @@
 > **v0.6 調整**:修正 §11 第 2 條。v0.5 寫「不規定,排序為新增順序」——先說不規定又給了順序,
 > 而 `FR-TODO-03` 已經定義新增在最後。現在只留「id 重用不規定」,順序正式由 `FR-TODO-03`
 > 與本條定義。
+> **v0.7 調整**:依「一條 requirement = 一條被測邏輯」拆出兩條。`FR-03` 只保留「新增」,
+> 「允許重複標題」成為 `FR-26`;`FR-17` 只保留「重新載入後保留」,「未儲存的編輯被丟棄」
+> 成為 `FR-27`。需求由 25 增至 27。
 > **抽取規則**:
 > 1. 只收使用者可見的結果;實作細節(CSS class、HTML id、`localStorage` key、`<strong>` 包裝)
 >    不進 requirement。
-> 2. 同一段動作序列是一個 requirement;從共用狀態分岔的兩條路徑**各自**一個 requirement(與
->    working PRD 的 `FR-ACC-04` 登入成功 / 失敗相同)。一個 requirement = 一段旅程,不使用 AC
->    標號。
+> 2. 一個 requirement = **一條被測邏輯**。同一條邏輯的不同方向、不同輸入放進 steps;不同的
+>    驗證規則或不同的行為規則各自一條 requirement(例如「新增」與「允許重複標題」是兩條)。
+>    不使用 AC 標號。
 > 3. 能用規格原句就用原句,不改寫成我們的語氣。
 > 4. 規格與參考實作都沒寫的行為,列為第 11 章的非目標,不自行發明。
 > 5. 被丟掉的東西列在第 10 章,讓切法可被檢查。
@@ -79,8 +82,7 @@
 - 開啟 app → 新增 todo 的輸入框已取得焦點,可直接輸入。(New todo)
 
 #### FR-TODO-03 新增 todo
-- 在新增輸入框輸入文字後按 Enter → 該文字成為清單最後一項,輸入框清空。
-- 標題不要求唯一,允許與既有 todo 重複。(New todo)
+- 在新增輸入框輸入文字後按 Enter → 該文字成為清單最後一項,輸入框清空。(New todo)
 
 #### FR-TODO-04 空白不成案
 - 在新增輸入框只輸入空白後按 Enter → 清單不變,不建立新項目。(New todo)
@@ -131,9 +133,7 @@
 
 #### FR-TODO-17 重新載入後保留
 - 新增、勾選或編輯 todo 後重新載入頁面 → 清單內容與完成狀態與重新載入前一致,且沒有任何項目
-  處於編輯模式。
-- 在編輯模式修改標題但尚未按 Enter 或失焦就重新載入 → 標題維持原值,未儲存的修改被丟棄。
-  (Persistence + Editing)
+  處於編輯模式。(Persistence)
 
 #### FR-TODO-18 預設篩選顯示全部
 - 開啟 app(預設 `#/`)→ 顯示所有 todo,footer 的 `All` 連結為選取狀態;點 `All` 連結 →
@@ -165,6 +165,15 @@
 #### FR-TODO-25 上一頁 / 下一頁切換篩選
 - 依序開啟 `#/active`、`#/completed` 後按瀏覽器上一頁 → 回到 `Active` 篩選,清單與選取狀態
   跟著改變;按下一頁 → 回到 `Completed` 篩選。(Routing:路由改變時重新篩選)
+
+#### FR-TODO-26 建立重複名稱的 todo
+- 以與既有 todo 相同的標題新增 → 新項目照樣建立,兩項各自獨立(各有自己的 checkbox),
+  不被拒絕、也不合併。
+  (非 spec 明文;由「spec 沒有唯一性要求」推得,與 `FR-TODO-23` 同類)
+
+#### FR-TODO-27 未儲存的編輯在重新載入後丟棄
+- 在編輯模式修改標題,但尚未按 Enter 或失焦就重新載入頁面 → 標題維持原值,未儲存的修改
+  被丟棄。(Editing「只在 Enter 或失焦時儲存」+ Persistence)
 
 ## 5. 關鍵流程
 
@@ -213,6 +222,7 @@
 |---|---|
 | No todos + `.main` 結構 | `FR-TODO-01` |
 | New todo | `FR-TODO-02`、`FR-TODO-03`、`FR-TODO-04` |
+| 非 spec 明文;新增的驗證規則(重複標題) | `FR-TODO-26` |
 | Item(1)checkbox 勾選 + CSS 完成樣式 | `FR-TODO-05` |
 | Mark all as complete | `FR-TODO-06`、`FR-TODO-07`、`FR-TODO-15` |
 | Item(3)懸停 + CSS hover | `FR-TODO-08`、`FR-TODO-23` |
@@ -220,6 +230,7 @@
 | Counter | `FR-TODO-14` |
 | Clear completed button | `FR-TODO-15`、`FR-TODO-16` |
 | Persistence | `FR-TODO-17` |
+| Persistence + Editing(只在 Enter / 失焦提交) | `FR-TODO-27` |
 | Routing | `FR-TODO-18`、`FR-TODO-19`、`FR-TODO-20`、`FR-TODO-21`、`FR-TODO-22`、`FR-TODO-24`、`FR-TODO-25` |
 
 > `FR-TODO-23` 的點擊行為在 `app-spec.md` 沒有明文;按鈕名為「remove」、class 為 `destroy`,
@@ -266,5 +277,5 @@
 |---|---|---|
 | 1 | 多分頁同步 | 不要求;跨分頁不即時同步,重新載入才反映 |
 | 2 | id 重用 | 不規定,由實作決定。清單順序為新增順序:新增項目位於最後(見 `FR-TODO-03`),移除或編輯不改變其他項目的相對順序 |
-| 3 | 標題長度上限 | 不設上限(見 `FR-TODO-03`:允許重複,不限長度) |
+| 3 | 標題長度上限 | 不設上限 |
 | 4 | 觸控裝置 | 不支援;移除按鈕僅以滑鼠懸停觸發 |

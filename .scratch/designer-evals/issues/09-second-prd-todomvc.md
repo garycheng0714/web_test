@@ -46,10 +46,13 @@ judgement. That sentence belongs in any report built on it.
       links, §10.2 records the four corrections.
 - [x] v0.5: the determinable §11 items written into requirements from the reference
       implementation, three requirements added, §11 becomes non-goals. 25 requirements.
+- [x] v0.7: one requirement = one logic under test. The duplicate-title rule leaves FR-TODO-03
+      for FR-TODO-26, and the unsaved-edit rule leaves FR-TODO-17 for FR-TODO-27. 27 requirements.
 - [x] Confirm v0.1 parsed as 10, v0.2 as 21, v0.3 as 22, all with no acceptance criteria.
-- [x] Freeze the PRD at v0.6: `sha256` `c1a43b86…`, recorded in the comment below.
+- [x] Freeze the PRD at v0.7: `sha256` `2f20f61b…`, recorded in the comment below.
 - [x] Run the designer once on v0.3 (paid): 22 cases, one requirement each.
-- [x] Run the designer once on v0.6 (paid): `todomvc-v06-20261110`, 25 cases, one per requirement.
+- [x] Run the designer once on v0.6 (paid): 25 cases, one per requirement.
+- [ ] Run the designer once on v0.7 (paid) and check the gate: about 27 cases.
       no invented requirement ids (run `todomvc-v03-20261106`).
 - [ ] Label the claims in Phoenix, using the v0.8 modes.
 - [ ] Build the dataset with `build_claims.py`, under a name that reads the TodoMVC PRD.
@@ -211,3 +214,19 @@ case. `FR-23` asserts the relative order, which §11-2 now defines.
 
 `sha256` `c1a43b8669283b0dfb858d2d5f17c51b22d91aef0c503333b31bbd91a6b3ae20`. This is the version to
 label. v0.3's dataset stays frozen; the v0.4 and v0.5 runs are superseded.
+
+2026-11-10, v0.7: the unit is one requirement = one logic under test, not one action and not one
+outcome. A rule with two directions stays one requirement (mark-all toggles all, both ways); two
+different rules get two requirements even when the action is the same.
+
+That moves two rules out of requirements that carried them:
+
+- The duplicate-title rule leaves `FR-TODO-03` for `FR-TODO-26`. It is not in the spec; it follows
+  from the absence of a uniqueness rule, like `FR-TODO-23` follows from the button's name. §9 marks
+  it.
+- The unsaved-edit rule leaves `FR-TODO-17` for `FR-TODO-27`. It is the "edits are committed only by
+  Enter or blur" rule meeting persistence, not persistence itself.
+
+25 -> 27 requirements, no acceptance criteria. `sha256`
+`2f20f61b67fd9fba1568f14f0baf684b625e2e98fbca5f432f3a353d4c5cfbd6`. No run yet on v0.7; the
+v0.6 run answers a PRD with two fewer requirements.
