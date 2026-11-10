@@ -27,6 +27,7 @@ the builder is the starting point, not the authority.
 | --- | --- | --- | --- |
 | `automationexercise` | `journey-v07-20261103` | 27 | 0 |
 | `todomvc` | `todomvc-v03-20261106` | 22 | 1 |
+| `todomvc-v07` | `todomvc-v07-20261110` | 28 | 0 |
 
 Archived, not judged:
 
@@ -36,8 +37,8 @@ Archived, not judged:
 | `archive/register-login` | `register-login-20261029T070829Z` | 7 | 0 |
 
 Two PRDs are judged, so this is still a **dev set**: a by-PRD train/dev/test split needs 5-6 PRDs.
-Both sets are pass-heavy; `automationexercise` has no failures at all, and `todomvc` has one, whose
-label compares the PRD to the app rather than the case to the PRD.
+Every set is pass-heavy: `automationexercise` and `todomvc-v07` have no failures at all, and the one
+failure in `todomvc` compares the PRD to the app rather than the case to the PRD.
 
 `register-login` was the eval's default PRD by habit, not by design: it was the first complete PRD in
 the repo. Its `FR-ACC-01` still carries three staged criteria, so a designer run on it either splits

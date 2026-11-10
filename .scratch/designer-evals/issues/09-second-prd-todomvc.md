@@ -253,3 +253,30 @@ a boundary case, and the claim model already supports several claims on one requ
 
 This is the run to label. The v0.6 run has two fewer requirements and is superseded; the v0.3
 dataset stays frozen.
+
+2026-11-10, judge on the v0.7 set. Dataset `judge/data/todomvc-v07/` (28 rows, all pass, frozen PRD
+v0.7), prompt `8835420e`, `kimi-k2.7-code`, three runs.
+
+| run | fail verdicts | pass specificity |
+| --- | --- | --- |
+| `todomvc-v07-run1` | 1 | 0.96 [0.82, 0.99] |
+| `todomvc-v07-run2` | 4 | 0.86 [0.69, 0.94] |
+| `todomvc-v07-run3` | 3 | 0.89 [0.73, 0.96] |
+| majority | 1 | 0.96 [0.82, 0.99] |
+
+23 of 28 claims agreed across the three runs, up from 19 of 22 on v0.3, but per-claim verdicts still
+move.
+
+One stable false alarm: `case-5 -> FR-TODO-05` failed 3/3. The case checks the item's completed style
+and then clicks again to show it returns to incomplete; the judge says the inverse and the "other
+item unchanged" clause are not stated by FR-TODO-05. That is the same rule question the earlier
+`case-5` raised, and the PRD now states unchecking (FR-TODO-14 and FR-TODO-21) without stating the
+inverse visual.
+
+The other five failures are one-off: `case-15` (the `0 items left` boundary), `case-17` (footer
+contents), `case-2` (focus evidence), `case-21`, `case-22`. Each failed in one run only.
+
+Specificity on this held-out set is 27/28 majority. `fail_recall` is `n/a`: the labels hold no
+negatives, so the run measures false alarms only. The improvement over the v0.3 set (0.86 majority)
+comes from the cases and the PRD, not from the judge, which has not changed since the automationexercise
+baseline.
