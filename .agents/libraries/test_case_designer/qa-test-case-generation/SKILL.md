@@ -138,3 +138,9 @@ data, the test environment, or the test process (e.g. where a fixture account co
 an open question into a case.
 
 Put prerequisites in `preconditions`, not the first step. Use `notes` for the source of a case.
+
+Preconditions describe the state before the first step and nothing the step itself does. Do not state
+a rendered state for an app that is not open — say what is stored instead ("the browser holds one
+todo from an earlier session", not "the list shows one todo"). Do not let a step repeat a
+precondition: a case whose precondition is "the app is loaded" cannot start by opening the app.
+Every condition a step needs must be listed.

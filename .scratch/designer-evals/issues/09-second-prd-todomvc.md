@@ -47,9 +47,9 @@ judgement. That sentence belongs in any report built on it.
 - [x] v0.5: the determinable §11 items written into requirements from the reference
       implementation, three requirements added, §11 becomes non-goals. 25 requirements.
 - [x] Confirm v0.1 parsed as 10, v0.2 as 21, v0.3 as 22, all with no acceptance criteria.
-- [x] Freeze the PRD at v0.5: `sha256` `7bbd16ef…`, recorded in the comment below.
+- [x] Freeze the PRD at v0.6: `sha256` `c1a43b86…`, recorded in the comment below.
 - [x] Run the designer once on v0.3 (paid): 22 cases, one requirement each.
-- [ ] Run the designer once on v0.5 (paid) and check the gate: about 25 cases, one requirement each,
+- [x] Run the designer once on v0.6 (paid): `todomvc-v06-20261110`, 25 cases, one per requirement.
       no invented requirement ids (run `todomvc-v03-20261106`).
 - [ ] Label the claims in Phoenix, using the v0.8 modes.
 - [ ] Build the dataset with `build_claims.py`, under a name that reads the TodoMVC PRD.
@@ -192,3 +192,22 @@ PRD is still not ours in content, but it is now a derivation across three artifa
 
 `sha256` `7bbd16ef70c97e7ba5600581575012440091e531a84360b8c1d56d811cb33baa`. The v0.3 dataset stays
 frozen; the v0.4 run (skill-state) is superseded and must not be labeled.
+
+2026-11-10, v0.6 and the precondition rule. Two fixes, then the gate run.
+
+- §11-2 said "not specified" and then gave the order. It now says only id reuse is unspecified;
+  list order is insertion order and removal or editing keeps the relative order, which `FR-TODO-03`
+  already required.
+- The skill now says preconditions describe the state before step 1: persisted data, not a rendered
+  list for an app that is not open, and no step that repeats a precondition.
+
+Run `todomvc-v06-20261110`: 25 requirements, 25 cases, one requirement each, no duplicates, no
+invented ids. Usage 30,818 tokens.
+
+The known defects from earlier runs are gone in this run: `FR-02` opens the app from a stored state
+instead of a contradiction, `FR-16` is the transition, `FR-03` covers the duplicate title inside one
+case, `FR-17` covers the unsaved edit inside one case, and `FR-24` covers both filters inside one
+case. `FR-23` asserts the relative order, which §11-2 now defines.
+
+`sha256` `c1a43b8669283b0dfb858d2d5f17c51b22d91aef0c503333b31bbd91a6b3ae20`. This is the version to
+label. v0.3's dataset stays frozen; the v0.4 and v0.5 runs are superseded.
