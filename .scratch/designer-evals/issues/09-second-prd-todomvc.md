@@ -52,8 +52,8 @@ judgement. That sentence belongs in any report built on it.
 - [x] Freeze the PRD at v0.7: `sha256` `2f20f61b…`, recorded in the comment below.
 - [x] Run the designer once on v0.3 (paid): 22 cases, one requirement each.
 - [x] Run the designer once on v0.6 (paid): 25 cases, one per requirement.
-- [ ] Run the designer once on v0.7 (paid) and check the gate: about 27 cases.
-      no invented requirement ids (run `todomvc-v03-20261106`).
+- [x] Run the designer once on v0.7 (paid): `todomvc-v07-20261110`, 27 requirements, 28 cases
+      (`FR-TODO-14` adds a boundary case for `0 items left`), no duplicates, no invented ids.
 - [ ] Label the claims in Phoenix, using the v0.8 modes.
 - [ ] Build the dataset with `build_claims.py`, under a name that reads the TodoMVC PRD.
 - [ ] Run the judge three times (paid) and report `pass_specificity`, `fail_recall`, the confusion
@@ -230,3 +230,26 @@ That moves two rules out of requirements that carried them:
 25 -> 27 requirements, no acceptance criteria. `sha256`
 `2f20f61b67fd9fba1568f14f0baf684b625e2e98fbca5f432f3a353d4c5cfbd6`. No run yet on v0.7; the
 v0.6 run answers a PRD with two fewer requirements.
+
+2026-11-10, gate run on v0.7: `todomvc-v07-20261110`, `deepseek-v4.1-flash`.
+
+| | result |
+| --- | --- |
+| requirements | 27 |
+| cases | 28 |
+| claims | 28 |
+| requirements per case | 1 for all 28 |
+| duplicate cases | 0 |
+| invalid ids | 0 |
+| usage | prompt 13,388 / completion 18,622 / cache read 5,632 / total 32,010 |
+
+One requirement has two cases: `FR-TODO-14` keeps the counter journey and adds a boundary case for
+`0 items left`, which the main case cannot reach without completing every todo. That is the skill's
+boundary allowance working as intended.
+
+**1:1 is not a goal.** A requirement is one logic under test; the same logic may need a main case and
+a boundary case, and the claim model already supports several claims on one requirement. The earlier
+"one requirement, one case" was an observation about a well-cut PRD, not an invariant.
+
+This is the run to label. The v0.6 run has two fewer requirements and is superseded; the v0.3
+dataset stays frozen.
