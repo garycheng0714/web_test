@@ -44,9 +44,12 @@ judgement. That sentence belongs in any report built on it.
       the corrected cut recorded in §10.1, §9 re-synced.
 - [x] v0.3 after review: 22 requirements, Enter and blur split, routes described by the footer
       links, §10.2 records the four corrections.
+- [x] v0.5: the determinable §11 items written into requirements from the reference
+      implementation, three requirements added, §11 becomes non-goals. 25 requirements.
 - [x] Confirm v0.1 parsed as 10, v0.2 as 21, v0.3 as 22, all with no acceptance criteria.
-- [x] Freeze the PRD at v0.3: `sha256` `2cf895ee…`, recorded in the comment below.
-- [x] Run the designer once on v0.3 (paid) and check the gate: 22 cases, one requirement each,
+- [x] Freeze the PRD at v0.5: `sha256` `7bbd16ef…`, recorded in the comment below.
+- [x] Run the designer once on v0.3 (paid): 22 cases, one requirement each.
+- [ ] Run the designer once on v0.5 (paid) and check the gate: about 25 cases, one requirement each,
       no invented requirement ids (run `todomvc-v03-20261106`).
 - [ ] Label the claims in Phoenix, using the v0.8 modes.
 - [ ] Build the dataset with `build_claims.py`, under a name that reads the TodoMVC PRD.
@@ -166,3 +169,26 @@ So the held-out PRD did its job: it shows the judge is not ready to gate. Specif
 a document it has not seen, with two of three stable failures caused by reading requirements in
 isolation and treating a "nothing else changed" note as an assertion. `fail_recall` stays
 uninformative with one negative, and that negative is outside the judge's question.
+
+2026-11-10, v0.5: the §11 items that the reference implementation settles are now requirements.
+
+| source | written into |
+| --- | --- |
+| `todomvc-app-css` (`li:hover .destroy`, `.destroy { display:none }`) | `FR-08` also hides on hover-out; `FR-05` is a strikethrough with grey text |
+| `todomvc-app-template/index.html` (`.main` hidden when empty, toggle-all inside it) | `FR-01` includes the mark-all checkbox |
+| spec ("number of active todos", "filter on a model level") | `FR-14` ignores the filter; `FR-24` new item follows the filter |
+| hash routing | `FR-25` back/forward changes the filter |
+| editing saved only on Enter/blur + editing mode not persisted | `FR-17` drops an unsaved edit on reload |
+
+Three new requirements: `FR-TODO-23` remove (click), `FR-TODO-24` adding under a filter,
+`FR-TODO-25` back/forward. 22 -> 25. `FR-TODO-23` is the only inference: the spec never says what
+the remove button does; the name and the `destroy` class carry it, and §9 says so.
+
+§11 is now "non-goals": no cross-tab sync, no id/order rule, no title length limit, no touch
+support. Those are scope decisions, not invented behaviour.
+
+The header's nature changed from "extracted from a spec" to "spec + reference implementation". The
+PRD is still not ours in content, but it is now a derivation across three artifacts.
+
+`sha256` `7bbd16ef70c97e7ba5600581575012440091e531a84360b8c1d56d811cb33baa`. The v0.3 dataset stays
+frozen; the v0.4 run (skill-state) is superseded and must not be labeled.
