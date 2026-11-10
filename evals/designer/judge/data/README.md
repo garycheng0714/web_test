@@ -28,6 +28,7 @@ the builder is the starting point, not the authority.
 | `automationexercise` | `journey-v07-20261103` | 27 | 0 |
 | `todomvc` | `todomvc-v03-20261106` | 22 | 1 |
 | `todomvc-v07` | `todomvc-v07-20261110` | 28 | 0 |
+| `todomvc-v08` | `todomvc-v07-20261110` (same cases, corrected FR-TODO-05) | 28 | 0 |
 
 Archived, not judged:
 

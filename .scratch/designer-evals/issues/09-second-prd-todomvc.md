@@ -280,3 +280,25 @@ Specificity on this held-out set is 27/28 majority. `fail_recall` is `n/a`: the 
 negatives, so the run measures false alarms only. The improvement over the v0.3 set (0.86 majority)
 comes from the cases and the PRD, not from the judge, which has not changed since the automationexercise
 baseline.
+
+2026-11-10, v0.8 judge run. Same 28 claims as v0.7, with `FR-TODO-05` now stating the checkbox toggle
+both ways and the isolation. Only the judge's input changed.
+
+| run | fail verdicts | pass specificity |
+| --- | --- | --- |
+| `todomvc-v08-run1` | 0 | 1.00 [0.88, 1.00] |
+| `todomvc-v08-run2` | 2 | 0.93 [0.77, 0.98] |
+| `todomvc-v08-run3` | 0 | 1.00 [0.88, 1.00] |
+| majority | 0 | 1.00 [0.88, 1.00] |
+
+26 of 28 claims agreed across all three runs. `case-5 -> FR-TODO-05`, the stable false alarm from the
+v0.7 set (3/3 fail), now passes 3/3: the objection was that the inverse and the unaffected sibling
+were not stated, and v0.8 states them.
+
+The two remaining failures are one-off and both in run 2: `case-1 -> FR-TODO-01` and
+`case-20 -> FR-TODO-19`. Neither repeated.
+
+So the one stable judge error on this PRD was a PRD gap, not a judge defect. The judge still varies
+run to run on two claims; `fail_recall` is `n/a` because the set has no negatives.
+
+The v0.7 dataset stays as the record of the 0.96 result and the gap it exposed.
