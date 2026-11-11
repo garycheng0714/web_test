@@ -1,6 +1,6 @@
 # PRD:TodoMVC(designer eval 的第二份 PRD)
 
-> **版本**:v0.8(2026-11-10)
+> **版本**:v0.9(2026-11-10)
 > **性質**:由公開規格**與其參考實作**抽取,不是反推自 live 站,也不是本專案撰寫
 > **來源**:
 > - 規格:[`tastejs/todomvc` 的 `app-spec.md`](https://github.com/tastejs/todomvc/blob/master/app-spec.md) @ `d040877fd8895c4f18fa5190e4b8ee474ffa8ac4`
@@ -29,6 +29,9 @@
 > **v0.8 調整**:`FR-TODO-05` 補上 toggle 的反向與隔離——再點一次回到未完成、其他 todo 不受
 > 影響。設計師原本就從整份 PRD 的「取消勾選」與 checkbox 語意推出這兩件事,但 `FR-05`
 > 沒寫,judge 因此判它未 grounded。需求數不變。
+> **v0.9 調整**:把「且沒有任何項目處於編輯模式」從 `FR-17` 移到 `FR-27`。它是 spec 的另一條
+> 規則(editing mode should not be persisted),不是「內容持久化」的一部分。拆分在 probe
+> 標註後才發現。
 > **抽取規則**:
 > 1. 只收使用者可見的結果;實作細節(CSS class、HTML id、`localStorage` key、`<strong>` 包裝)
 >    不進 requirement。
@@ -138,8 +141,7 @@
 - 沒有已完成項目時 → 「清除已完成」按鈕隱藏。(Clear completed button)
 
 #### FR-TODO-17 重新載入後保留
-- 新增、勾選或編輯 todo 後重新載入頁面 → 清單內容與完成狀態與重新載入前一致,且沒有任何項目
-  處於編輯模式。(Persistence)
+- 新增、勾選或編輯 todo 後重新載入頁面 → 清單內容與完成狀態與重新載入前一致。(Persistence)
 
 #### FR-TODO-18 預設篩選顯示全部
 - 開啟 app(預設 `#/`)→ 顯示所有 todo,footer 的 `All` 連結為選取狀態;點 `All` 連結 →
@@ -179,7 +181,7 @@
 
 #### FR-TODO-27 未儲存的編輯在重新載入後丟棄
 - 在編輯模式修改標題,但尚未按 Enter 或失焦就重新載入頁面 → 標題維持原值,未儲存的修改
-  被丟棄。(Editing「只在 Enter 或失焦時儲存」+ Persistence)
+  被丟棄,該項離開編輯模式。(Editing「只在 Enter 或失焦時儲存」+ Persistence)
 
 ## 5. 關鍵流程
 
