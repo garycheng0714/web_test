@@ -73,6 +73,11 @@ same behaviour (Home vs Cart), two entry points (product list vs search), and tw
 separate scenarios: each gets its own case. "Dense" means no duplicate cases, not one case per
 behaviour cluster.
 
+Every step must be needed to perform the claimed journey. A step that exercises another requirement's
+behaviour without being needed is a second journey in the wrong case: move it to that requirement's
+case, or drop it. The checkout case must register to reach checkout; the hover case does not need to
+click remove.
+
 Do not derive cases from the PRD's grounding or observation notes: observed option sets, default
 values, disabled/read-only fields, or unselected-by-default controls are for automation, not
 requirements, and a happy-path case already exercises the controls it uses.

@@ -77,3 +77,14 @@ assertion, one per run.
 
 Opened 2026-11-11. The judge had only been measured on pass-only sets; this is the first recall
 number. Reuse the method for the next PRD rather than adding more probes to this one.
+
+2026-11-11: the first R1 boundary is now in the standard, the second is not.
+
+- Written into the skill and `spec.md`: a step must be needed to perform the claimed journey, so a
+  detour that exercises another requirement's behaviour is `wrong_actions` even when it produces the
+  asserted result. `P05` is the example.
+- Not written: `P12`'s "the page does not reload" is the absence of an event, not a result a step
+  produces. Deliberately left out of scope; if it matters, the PRD must state it.
+- The judge prompt is unchanged, so its third rule still lacks the "needed" qualifier even though the
+  judge applied it. Align the prompt when the judge is next re-baselined; that run also verifies the
+  probe's 1.00 still holds.
