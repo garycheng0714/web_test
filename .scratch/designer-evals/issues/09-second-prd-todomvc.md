@@ -54,9 +54,9 @@ judgement. That sentence belongs in any report built on it.
 - [x] Run the designer once on v0.6 (paid): 25 cases, one per requirement.
 - [x] Run the designer once on v0.7 (paid): `todomvc-v07-20261110`, 27 requirements, 28 cases
       (`FR-TODO-14` adds a boundary case for `0 items left`), no duplicates, no invented ids.
-- [ ] Label the claims in Phoenix, using the v0.8 modes.
-- [ ] Build the dataset with `build_claims.py`, under a name that reads the TodoMVC PRD.
-- [ ] Run the judge three times (paid) and report `pass_specificity`, `fail_recall`, the confusion
+- [x] Label the claims in Phoenix, using the v0.8 modes.
+- [x] Build the dataset with `build_claims.py`, under a name that reads the TodoMVC PRD.
+- [x] Run the judge three times (paid) and report `pass_specificity`, `fail_recall`, the confusion
       counts, and the three-run agreement, separately from the `automationexercise` baseline.
 
 ## Out of scope
@@ -302,3 +302,6 @@ So the one stable judge error on this PRD was a PRD gap, not a judge defect. The
 run to run on two claims; `fail_recall` is `n/a` because the set has no negatives.
 
 The v0.7 dataset stays as the record of the 0.96 result and the gap it exposed.
+
+The v0.8 labeling, dataset build and three judge runs above close the ticket's last three tasks; the
+boxes were left unticked when the work landed.
