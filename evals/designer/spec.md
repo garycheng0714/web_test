@@ -32,8 +32,9 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 **Semantic labels（人類標註；ticket 03 judge 只預測 pass/fail）**
 
 - `wrong_actions`：case 的 steps 不在做它 claim 的 requirement 的旅程——做的是別的
-  requirement、或旅程本身已在 precondition 完成（例如宣稱「登入成功」，但 precondition 已經
-  登入）。修法是改 steps 或改宣稱，不是補斷言。
+  requirement、旅程本身已在 precondition 完成（例如宣稱「登入成功」，但 precondition 已經
+  登入），或不必要地多做另一個 requirement 的旅程（必要的前置步驟不算）。修法是改 steps 或改
+  宣稱，不是補斷言。
 - `prd_gap`：這段旅程需要的一個行為，整份 PRD 沒寫（含第 11 章明列未定義者）。修法是 PRD。
 - `case_assertion`：斷言在 PRD 沒有依據或無法判定——多驗了 requirement 列舉外的值、自行
   外推，或寫得太模糊（兩個 tester 會給不同答案，例如「商品與搜尋字相關」而 PRD 沒給比對
@@ -57,9 +58,10 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 AC）。同一條已述規則套用在新輸入（換一個關鍵字、換一組帳密再驗一次）算可推出；括號內的說明
 或理由不算斷言。
 
-「屬於誰」的界線：斷言可以由這 case 的任一步產生，即使 PRD 把那個結果寫在另一個 requirement
-（例如為了走到結帳而註冊，註冊成功訊息就是自己動作的產物）；全域狀態（Header 的登入狀態、
-購物車數量）任何 case 都可以斷言。不行的是：沒有經過這 case 的動作，卻宣稱別人的頁面結果。
+「屬於誰」的界線：斷言可以由這 case 的任一步產生，**且該步必須是走完這段旅程的必要步驟**，
+即使 PRD 把那個結果寫在另一個 requirement（例如為了走到結帳而註冊，註冊成功訊息就是自己動作
+的產物）；全域狀態（Header 的登入狀態、購物車數量）任何 case 都可以斷言。不行的是：沒有經過
+這 case 的動作，卻宣稱別人的頁面結果；或為了產生某個結果而多做一段不必要的旅程。
 
 ## Data
 

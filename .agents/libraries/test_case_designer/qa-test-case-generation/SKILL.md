@@ -73,9 +73,21 @@ same behaviour (Home vs Cart), two entry points (product list vs search), and tw
 separate scenarios: each gets its own case. "Dense" means no duplicate cases, not one case per
 behaviour cluster.
 
+Every step must be needed to perform the claimed journey. A step that exercises another requirement's
+behaviour without being needed is a second journey in the wrong case: move it to that requirement's
+case, or drop it. The checkout case must register to reach checkout; the hover case does not need to
+click remove.
+
 Do not derive cases from the PRD's grounding or observation notes: observed option sets, default
 values, disabled/read-only fields, or unselected-by-default controls are for automation, not
 requirements, and a happy-path case already exercises the controls it uses.
+
+Test the transition into a state, not the state at rest. When a requirement names a state ("the
+button is hidden when nothing is completed"), start the case in the state where the condition is
+false (one item completed, the button visible), perform the action that makes the condition true
+(uncomplete that item), and assert the state the requirement names. Do not start in the state that
+already holds at page load, and do not assert the complementary state to give the case movement: the
+condition turning false belongs to whichever requirement owns that action.
 
 Anything the PRD leaves undefined or contradictory — validation messages, error recovery, field
 formats, case-sensitivity, trimming, session persistence, permission redirects, race conditions,
@@ -112,7 +124,8 @@ point, role, or workflow stage differs, even when the expected message is the sa
 
 ## Output
 
-Return the test cases and the open questions.
+Return the test cases and the open questions. Write `test_scenario`, every step, and `notes` in the
+PRD's language.
 
 Each case records:
 
@@ -130,3 +143,9 @@ data, the test environment, or the test process (e.g. where a fixture account co
 an open question into a case.
 
 Put prerequisites in `preconditions`, not the first step. Use `notes` for the source of a case.
+
+Preconditions describe the state before the first step and nothing the step itself does. Do not state
+a rendered state for an app that is not open — say what is stored instead ("the browser holds one
+todo from an earlier session", not "the list shows one todo"). Do not let a step repeat a
+precondition: a case whose precondition is "the app is loaded" cannot start by opening the app.
+Every condition a step needs must be listed.

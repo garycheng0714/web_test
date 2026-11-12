@@ -1,0 +1,241 @@
+# PRD:TodoMVC(designer eval 的第二份 PRD)
+
+> **版本**:v0.3(2026-11-06)
+> **性質**:由公開規格**抽取**,不是反推,也不是本專案撰寫
+> **來源**:[`tastejs/todomvc` 的 `app-spec.md`](https://github.com/tastejs/todomvc/blob/master/app-spec.md)
+> @ `d040877fd8895c4f18fa5190e4b8ee474ffa8ac4`
+> **live**:https://demo.playwright.dev/todomvc/
+> **用途**:held-out PRD,用來驗證 judge 的判準在另一份規格、另一種顆粒度上是否成立。不進
+> production 管線(`prd/` 底下新增檔案會觸發 `plan.yml`)。
+> **v0.2 調整**:依「分支 = 獨立旅程」重切,10 → 21 條。v0.1 把同一段旅程的替代路徑(例如編輯
+> 的儲存 / 清空 / 取消)併成一條,設計師只好自己拆。requirement 不再使用 HTML id 當主詞。
+> **v0.3 調整**:review 後的四個修正——全選補上「再取消勾選」;進入編輯模式明寫隱藏的是
+> checkbox 與移除按鈕;Enter 與失焦各自一條 requirement;篩選改用 footer 的連結當動作,hash
+> 留作背景。
+> **抽取規則**:
+> 1. 只收使用者可見的結果;實作細節(CSS class、HTML id、`localStorage` key、`<strong>` 包裝)
+>    不進 requirement。
+> 2. 同一段動作序列是一個 requirement;從共用狀態分岔的兩條路徑**各自**一個 requirement(與
+>    working PRD 的 `FR-ACC-04` 登入成功 / 失敗相同)。一個 requirement = 一段旅程,不使用 AC
+>    標號。
+> 3. 能用規格原句就用原句,不改寫成我們的語氣。
+> 4. 規格沒寫的行為放進第 11 章,不自行補。
+> 5. 被丟掉的東西列在第 10 章,讓切法可被檢查。
+
+## 1. 產品概述
+
+一個單頁的 todo 清單 app:新增、勾選完成、編輯(清空即刪)、依狀態篩選,並在重新載入後保留
+內容與篩選。規格本身是「如何實作一個一致的 TodoMVC 範例」,本 PRD 只取其中對使用者可見的行為。
+
+## 2. 使用者角色
+
+| 角色 | 說明 |
+|---|---|
+| 使用者 | 唯一的角色。沒有登入、沒有多使用者、沒有權限。 |
+
+## 3. 資訊架構
+
+### 3.1 頁面與元件
+
+| 元件 | 內容 |
+|---|---|
+| 新增輸入框 | 位於 app 頂部;載入時應取得焦點 |
+| 清單區 | 全部 todo;頂端有「全部標記完成」checkbox |
+| 單一 todo | checkbox、標題、懸停時顯示的移除按鈕;雙擊標題進入編輯 |
+| Footer | 未完成計數、篩選連結(All / Active / Completed)、「清除已完成」按鈕 |
+
+> 規格的 HTML id(`#main`、`#footer`)與 class(`.destroy` 等)只當定位線索,不是斷言值。
+
+### 3.2 狀態
+
+- 清單為空:清單區、計數與篩選連結都看不到。
+- 篩選:footer 的 `All`、`Active`、`Completed` 連結,對應 `#/`、`#/active`、`#/completed`。
+
+## 4. 功能需求
+
+> 編號 `FR-<模組>-<序號>`;一個 requirement 就是一段旅程:起始狀態、動作、可觀察的結果。
+> 括號內是規格對應的段落名。
+
+### 4.1 清單 (TODO)
+
+#### FR-TODO-01 空狀態
+- 開啟 app 且沒有任何 todo → 清單、未完成計數與篩選連結都看不到。(No todos)
+
+#### FR-TODO-02 載入時輸入框有焦點
+- 開啟 app → 新增 todo 的輸入框已取得焦點,可直接輸入。(New todo)
+
+#### FR-TODO-03 新增 todo
+- 在新增輸入框輸入文字後按 Enter → 該文字成為清單最後一項,輸入框清空。(New todo)
+
+#### FR-TODO-04 空白不成案
+- 在新增輸入框只輸入空白後按 Enter → 清單不變,不建立新項目。(New todo)
+
+#### FR-TODO-05 勾選完成
+- 點某一項 todo 的 checkbox → 該項被標記為完成,清單上以已完成樣式呈現。(Item, 1)
+
+#### FR-TODO-06 全部標記完成
+- 勾選清單頂端的「全部標記完成」→ 所有 todo 變成已完成;再取消勾選 → 所有 todo 回到未完成。
+  (Mark all as complete)
+
+#### FR-TODO-07 全選反映單項狀態
+- 所有 todo 都被勾選時 → 「全部標記完成」checkbox 自動變為勾選;任一項被取消勾選時 → 它跟著
+  取消。(Mark all as complete)
+
+#### FR-TODO-08 懸停顯示移除按鈕
+- 滑鼠移到某一項 todo 上 → 該項的移除按鈕出現。(Item, 3)
+
+#### FR-TODO-09 進入編輯模式
+- 雙擊某一項 todo 的標題 → 進入編輯模式:該項的 checkbox 與移除按鈕隱藏,顯示含原標題且已
+  取得焦點的輸入框。(Item, 2 + Editing)
+
+#### FR-TODO-10 按 Enter 儲存編輯
+- 在編輯模式修改標題後按 Enter → 標題更新,離開編輯模式。(Editing)
+
+#### FR-TODO-11 失焦儲存編輯
+- 在編輯模式修改標題後讓輸入框失焦 → 標題更新,離開編輯模式。(Editing)
+
+#### FR-TODO-12 清空標題即刪除
+- 在編輯模式把標題清空後按 Enter 或讓輸入框失焦 → 該項 todo 被刪除。(Editing)
+
+#### FR-TODO-13 取消編輯
+- 在編輯模式按 Escape → 放棄修改,標題保持原值,離開編輯模式。(Editing)
+
+#### FR-TODO-14 未完成計數
+- Footer 顯示未完成 todo 的數量:0 / 1 / 2 個未完成時 → `0 items` / `1 item` / `2 items`;
+  新增、勾選或取消勾選後 → 數字隨之更新。(Counter)
+
+#### FR-TODO-15 清除已完成
+- 有已完成項目時按下「清除已完成」→ 所有已完成項目從清單移除,「全部標記完成」的勾選狀態被
+  清除。(Clear completed button + Mark all as complete)
+
+#### FR-TODO-16 沒有已完成時隱藏清除按鈕
+- 沒有已完成項目時 → 「清除已完成」按鈕隱藏。(Clear completed button)
+
+#### FR-TODO-17 重新載入後保留
+- 新增、勾選或編輯 todo 後重新載入頁面 → 清單內容與完成狀態與重新載入前一致,且沒有任何項目
+  處於編輯模式。(Persistence)
+
+#### FR-TODO-18 預設篩選顯示全部
+- 開啟 app(預設 `#/`)→ 顯示所有 todo,footer 的 `All` 連結為選取狀態;點 `All` 連結 →
+  同樣顯示所有 todo。(Routing)
+
+#### FR-TODO-19 篩選未完成
+- 點 footer 的 `Active` 連結 → 只顯示未完成項目,且 `Active` 連結為選取狀態。(Routing)
+
+#### FR-TODO-20 篩選已完成
+- 點 footer 的 `Completed` 連結 → 只顯示已完成項目,且 `Completed` 連結為選取狀態。(Routing)
+
+#### FR-TODO-21 篩選中改動立即反映
+- 在 `Active` 篩選下把某一項勾選完成 → 該項立即從清單消失;在 `Completed` 篩選下把某一項取消
+  勾選 → 該項立即從清單消失。(Routing)
+
+#### FR-TODO-22 重新載入後保留篩選
+- 停在 `Active` 或 `Completed` 篩選時重新載入頁面 → 仍停在該篩選,該連結仍為選取狀態,清單仍
+  依它顯示。(Routing)
+
+## 5. 關鍵流程
+
+```text
+開啟 app
+  │
+  ├─ 沒有 todo ──► 清單、計數、篩選都看不到
+  │
+  └─ 有 todo ──► 新增 / 勾選 / 編輯 / 刪除
+                    │
+                    ▼
+              篩選(All / Active / Completed)
+                    │
+                    ▼
+              重新載入 ──► 內容與篩選保留
+```
+
+## 6. 訊息文案清單(Verbatim)
+
+| 情境 | 文案 |
+|---|---|
+| 未完成計數,0 | `0 items` |
+| 未完成計數,1 | `1 item` |
+| 未完成計數,2 | `2 items` |
+| 篩選連結 | `All`、`Active`、`Completed` |
+
+> 規格原文的計數範例是 `**2** items left`;`<strong>` 是 markup,`left` 屬文案。本 PRD 只收
+> 文案部分。
+
+## 7. 資料模型(規格明寫的部分)
+
+| 實體 | 欄位 |
+|---|---|
+| Todo | `id`、`title`、`completed` |
+
+- 儲存位置:`localStorage`,key 格式 `todos-[framework]`(實作細節,不列為需求)。
+
+## 8. 非功能需求
+
+規格的「Template Application」「Structure」「Directory Structure」「Code」段落是給實作者的
+要求(目錄結構、npm、code style、瀏覽器支援),不是使用者可見行為,因此不列為需求。
+
+## 9. 追溯矩陣
+
+| 規格段落 | 對應 requirement |
+|---|---|
+| No todos | `FR-TODO-01` |
+| New todo | `FR-TODO-02`、`FR-TODO-03`、`FR-TODO-04` |
+| Item(1)checkbox 勾選 | `FR-TODO-05` |
+| Mark all as complete | `FR-TODO-06`、`FR-TODO-07`、`FR-TODO-15` |
+| Item(3)懸停移除按鈕 | `FR-TODO-08` |
+| Item(2)雙擊 + Editing | `FR-TODO-09`、`FR-TODO-10`、`FR-TODO-11`、`FR-TODO-12`、`FR-TODO-13` |
+| Counter | `FR-TODO-14` |
+| Clear completed button | `FR-TODO-15`、`FR-TODO-16` |
+| Persistence | `FR-TODO-17` |
+| Routing | `FR-TODO-18`、`FR-TODO-19`、`FR-TODO-20`、`FR-TODO-21`、`FR-TODO-22` |
+
+> Editing 的規格原文只說 "hide the other controls";`FR-TODO-09` 裡的「checkbox 與移除按鈕」
+> 取自 template 參考實作,不是規格字面。
+
+## 10. 抽取時丟掉的東西
+
+| 被丟掉的 | 原因 |
+|---|---|
+| class 名稱(`completed`、`editing`、`selected`、`.destroy`)與 HTML id(`#main`、`#footer`) | 實作細節;只在 §3 當定位線索,不進 requirement、不當斷言值 |
+| `localStorage` key 格式 `todos-[framework]` | 實作細節 |
+| 計數的 `<strong>` 包裝 | markup |
+| 目錄結構、`package.json`、npm、`.gitignore`、code style、瀏覽器支援 | 實作要求 |
+| 「apps should look and behave exactly like the template」 | 對範例實作者的比較要求,不是使用者行為 |
+| `autofocus` attribute | 規格建議的實作方式;保留「載入時取得焦點」這個可觀察結果 |
+
+### 10.1 v0.1 → v0.2 的切法修正
+
+| v0.1 | v0.2 | 理由 |
+|---|---|---|
+| `FR-TODO-01` 用「`#main` / `#footer` 承載…」當主詞 | 拿掉那行,改成可觀察的「都看不到」 | id 是實作細節;「承載」不是結果 |
+| `FR-TODO-06` 編輯 = 進入 + 儲存 + 清空刪除 + 取消 | 拆成進入 / 儲存 / 刪除 / 取消 | 從共用狀態分岔的四條路徑 |
+| `FR-TODO-02` 新增 = 焦點 + 新增 + 空白 | 拆成焦點 / 新增 / 空白 | 焦點是獨立旅程;空白是新增的失敗分支 |
+| `FR-TODO-04` 全選 = 設定 + 反映 + 清除後重置 | 拆成設定 / 反映;重置併入「清除已完成」 | 動作不同;重置是「清除」這個動作的結果 |
+| `FR-TODO-07` 計數 = 顯示 + 更新 + 0 items | 留一條 | 同一個顯示在不同狀態,不是新旅程 |
+| `FR-TODO-08` 清除 = 移除 + 隱藏 | 拆成動作 / 狀態顯示 | 動作 vs 狀態 |
+| `FR-TODO-09` 保留 = 內容 + 編輯狀態 | 留一條 | 同一個動作(重新載入)的兩個結果 |
+| `FR-TODO-10` 路由 = active + completed + 更新 + 篩選保留 | 拆成五條並補上預設篩選 | 每一條是不同的動作 |
+
+### 10.2 v0.2 → v0.3 的 review 修正
+
+| v0.2 | v0.3 | 理由 |
+|---|---|---|
+| 全選只寫「勾選」 | 補「再取消勾選 → 全部回到未完成」 | 規格原文是 toggles |
+| 進入編輯只寫「其他控制項」 | 明寫 checkbox 與移除按鈕 | 具體清單取自 template |
+| 儲存編輯把 Enter 與失焦放在同一條 | 拆成 `FR-TODO-10`(Enter)與 `FR-TODO-11`(失焦) | 兩個觸發各自一段旅程 |
+| 清空即刪保留「Enter 或失焦」 | 不動 | 規格只說空標題則 destroy,未拆觸發 |
+| 路由用 hash 當動作 | 改用 footer 的 `All` / `Active` / `Completed` 連結;hash 留作背景 | 使用者點的是連結 |
+
+## 11. 未定義事項
+
+| # | 項目 | 說明 |
+|---|---|---|
+| 1 | 點擊移除按鈕的結果 | 規格只寫「懸停時顯示移除按鈕」,沒寫點擊後的行為 |
+| 2 | 移開滑鼠後移除按鈕是否隱藏 | 規格未寫 |
+| 3 | 重複標題 | 規格只處理 trim 後為空,未提是否允許重複 |
+| 4 | 空清單時「全部標記完成」是否顯示 | 空狀態只寫清單區與 footer 隱藏 |
+| 5 | 計數是否只算目前篩選可見的項目 | 規格寫「active todos」,未提篩選 |
+| 6 | 篩選狀態下新增項目的顯示時機 | 規格只寫「更新時要依篩選處理」 |
+| 7 | 多分頁同時開啟時的同步 | `localStorage` 寫入的跨分頁行為未寫 |
+| 8 | 瀏覽器上一頁 / 下一頁與 hash 路由的互動 | 規格未寫 |
+| 9 | 刪除後 id 是否重用、清單排序 | 規格未寫 |
