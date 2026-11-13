@@ -169,3 +169,8 @@ A rule that lives only in a precondition never becomes a claim, so it never gets
 in coverage; that was the reason to promote these. §11's row about a guest pressing favorite/follow
 now records the demo's inconsistency (favorite → `/register`, follow → `/login`) instead of leaving
 the targets unstated.
+
+Same day, v0.5: a successful sign-in or sign-up lands on `/` (`router.navigate(['/'])`), so
+`FR-RW-01` and `FR-RW-03` now say so. That is the fifth observation, and it replaces §11's old
+"which page after auth" row with the case the demo does not settle: a signed-in user opening
+`/login` or `/register`.

@@ -1,7 +1,7 @@
 # PRD:RealWorld / Conduit(designer eval 的第三份 PRD)
 
-> **版本**:v0.4(2026-11-13)
-> **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上 2026-11-13 對 live demo 的四項
+> **版本**:v0.5(2026-11-13)
+> **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上 2026-11-13 對 live demo 的五項
 > 觀察;不是反推自 live 站,也不是本專案撰寫
 > **來源**:
 > - 規格:[`realworld-apps/realworld`](https://github.com/realworld-apps/realworld) @
@@ -29,6 +29,9 @@
 > `FR-RW-27`(訪客開 `/settings`、`/editor` 被導向 `/login`)來自 live demo。訪客的行為不再只
 > 出現在 precondition 裡,而是有自己的 claim 與覆蓋率。
 >
+> **v0.5 調整**:`FR-RW-01`、`FR-RW-03` 補上「成功後回到 `/`」。來源沒寫,取自 live demo 的
+> `router.navigate(['/'])`;§11 第 3 條因此改成「已登入者開啟 `/login`、`/register`」。
+>
 > **範圍(A+)**:只收 `features.md` 的七條功能,加上來源明寫的失敗路徑。只由 `routing.md` 增加、
 > 而七條功能沒點名的旅程(例如 Profile 頁的 My Articles / Favorited Articles 兩個 tab)不列為
 > requirement。
@@ -42,7 +45,8 @@
 > 4. **失敗路徑只有在來源明寫時才是 requirement。** 驗證訊息與 `error-messages` 在來源裡,所以
 >    「登入失敗」「註冊被拒」可以是 requirement;來源沒寫的行為列為第 11 章的非目標。
 >    例外:live demo 可觀察、但來源沒寫的行為,只有在 §9 明列時才可成為 requirement(目前是
->    `FR-RW-16` 的空狀態文案、`FR-RW-24`、`FR-RW-25`、`FR-RW-27`)。
+>    `FR-RW-01`、`FR-RW-03` 的導向、`FR-RW-16` 的空狀態文案、`FR-RW-24`、`FR-RW-25`、
+>    `FR-RW-27`)。
 > 5. 被丟掉的東西列在第 10 章,讓切法可被檢查。
 > 6. 新增 requirement 一律附加編號,不重排既有編號。
 > 7. `specs/e2e/` 與其 SELECTORS 契約**不是**來源,寫作與 review 期間都不讀(ticket 11)。
@@ -98,8 +102,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 
 #### FR-RW-01 註冊成功
 - 在 `/register` 填入未被使用的 username、email、password 後送出 → 帳號建立,header 由
-  `Sign in` / `Sign up` 換成 `New Article`、`Settings` 與自己的 profile 連結。
-  (features「CRU- users」+ templates 的 header;登入後導向哪一頁來源沒寫,見 §11)
+  `Sign in` / `Sign up` 換成 `New Article`、`Settings` 與自己的 profile 連結,並回到 `/`。
+  (features「CRU- users」+ templates 的 header;導向 `/` 取自 live demo,見 §9)
 
 #### FR-RW-02 註冊被拒
 - 以已存在的 email 註冊 → 停留在 `/register`,header 不變成已登入,表單的 error 區塊顯示
@@ -110,8 +114,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 
 #### FR-RW-03 登入成功
 - 在 `/login` 填入既有帳號的 email 與 password 後送出 → header 換成 `New Article`、`Settings`
-  與自己的 profile 連結。
-  (features「Authenticate users via JWT」+ templates 的 header)
+  與自己的 profile 連結,並回到 `/`。
+  (features「Authenticate users via JWT」+ templates 的 header;導向 `/` 取自 live demo,見 §9)
 
 #### FR-RW-04 登入被拒
 - 在 `/login` 填入錯誤的 password 後送出 → 停留在 `/login`,header 不變成已登入,error 區塊顯示
@@ -324,6 +328,7 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 | live demo 觀察(2026-11-13):Your Feed 空狀態文案與其中的 `Global Feed` 連結 | `FR-RW-16` |
 | templates:Your Feed tab 只在登入後出現 | `FR-RW-26` |
 | live demo 觀察(2026-11-13):訪客開 `/settings`、`/editor` 被導向 `/login` | `FR-RW-27` |
+| live demo 觀察(2026-11-13):登入與註冊成功後導向 `/` | `FR-RW-01`、`FR-RW-03` |
 
 > **三處推論,都在這裡標記**:
 > 1. `FR-RW-09` 的「出現在 Global Feed 第一篇」由「列表以最新在前排序」加上「建立文章」推得;
@@ -359,7 +364,7 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 |---|---|---|
 | 1 | 密碼規則(長度、複雜度) | 來源沒寫;不要求 |
 | 2 | token / session 的有效期 | 來源沒寫;不要求 |
-| 3 | 登入或註冊成功後導向哪一頁 | 來源沒寫;只要求 header 變成已登入,不要求落地頁 |
+| 3 | 已登入者開啟 `/login`、`/register` | 來源沒寫;不要求導向或阻擋 |
 | 4 | 每頁文章數 | API 預設 20;UI 未規定,不要求固定篇數 |
 | 5 | tag 正規化(大小寫、空白、重複) | 不規定 |
 | 6 | slug 格式 | 由實作決定;只要求標題改變時 slug 跟著更新(`FR-RW-12`) |
