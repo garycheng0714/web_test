@@ -82,7 +82,7 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 
 #### FR-RW-01 註冊成功
 - 在 `/register` 填入未被使用的 username、email、password 後送出 → 帳號建立,header 由
-  `Sign in` / `Sign up` 換成已登入的一組連結(含 `New Article`、`Settings` 與自己的 profile)。
+  `Sign in` / `Sign up` 換成 `New Article`、`Settings` 與自己的 profile 連結。
   (features「CRU- users」+ templates 的 header;登入後導向哪一頁來源沒寫,見 §11)
 
 #### FR-RW-02 註冊被拒
@@ -93,7 +93,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
   (error-handling「Validation messages」+ templates 的 `error-messages`)
 
 #### FR-RW-03 登入成功
-- 在 `/login` 填入既有帳號的 email 與 password 後送出 → header 換成已登入的一組連結。
+- 在 `/login` 填入既有帳號的 email 與 password 後送出 → header 換成 `New Article`、`Settings`
+  與自己的 profile 連結。
   (features「Authenticate users via JWT」+ templates 的 header)
 
 #### FR-RW-04 登入被拒
@@ -102,7 +103,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
   (error-handling:401 for unauthorized;templates 的 `error-messages`)
 
 #### FR-RW-05 重新載入後維持登入
-- 登入後重新載入任一頁 → header 仍是已登入的一組連結,不需要再次登入。
+- 登入後重新載入任一頁 → header 仍是 `New Article`、`Settings` 與自己的 profile 連結,不需要再次
+  登入。
   (routing「Uses JWT (store the token in localStorage)」;token 存哪裡是實作細節)
 
 #### FR-RW-06 登出
