@@ -69,10 +69,10 @@ The E2E suite (`specs/e2e/`) is **not** a source for this ticket; see the decisi
       traceability table (requirement → source file), a §10 dropped list, and §11 non-goals.
 - [ ] Cut by the branch rule: one requirement = one logic under test; a branch from a shared state
       gets its own requirement; no acceptance-criteria layer.
-- [ ] Review the cut before any run. Check that no requirement states behaviour absent from its cited
+- [x] Review the cut before any run. Check that no requirement states behaviour absent from its cited
       origin (a pinned file, or a dated observation in §9), and that every stated validation message
       copied into an assertion matches `error-handling.md` exactly.
-- [ ] Freeze the PRD and record its `sha256` and line count in a dated comment.
+- [x] Freeze the PRD and record its `sha256` and line count in a dated comment.
 - [ ] Run the designer once (paid) with an explicit `--run-id`.
 - [ ] Gate before labeling: one case per requirement (or an allowed extra boundary case), no
       multi-requirement case, no duplicate, no invented ids.
@@ -174,3 +174,14 @@ Same day, v0.5: a successful sign-in or sign-up lands on `/` (`router.navigate([
 `FR-RW-01` and `FR-RW-03` now say so. That is the fifth observation, and it replaces §11's old
 "which page after auth" row with the case the demo does not settle: a signed-in user opening
 `/login` or `/register`.
+
+2026-11-13: the PRD is frozen at **v0.5**.
+
+- `sha256` `0b2136094587e53d7447a6c5ac885eed5222276392d8b4dcf759c95507e7f063`, 377 lines,
+  27 requirements, no acceptance criteria.
+- Any later edit invalidates the comparison and belongs in a new version.
+- The review was not a separate pass: the cut was checked mechanically during the session
+  (`parse_requirements` reads 27, ids are contiguous and unique, every requirement cites a pinned file
+  or a §9 observation, §9 covers 27/27, no acceptance criteria) and the human decided each addition in
+  the conversation. Five behaviours now come from the demo rather than the spec; they are listed in
+  §9 and are the first assertions that would fail against a different Conduit implementation.
