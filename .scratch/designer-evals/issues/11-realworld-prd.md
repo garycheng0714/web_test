@@ -104,8 +104,9 @@ Confirm the budget before the first designer call.
 - The failure-path requirements copy English messages exactly; a one-word drift makes the case's
   assertion an invention, and the judge will fail it for the wrong reason.
 - The live demo can drift from the specification. Grounding is not part of this ticket.
-- Scope A+ is wider than the first estimate: it landed at 25 requirements after the two live-demo
-  observations, so the run, the labeling and the judge calls all take longer than a happy-path cut.
+- Scope A+ is wider than the first estimate: it landed at 27 requirements after the live-demo
+  observations and the two visitor rules, so the run, the labeling and the judge calls all take
+  longer than a happy-path cut.
 - The three list requirements need seeded data the happy path does not: at least one followed author
   for Your Feed, at least one tagged article for a tag list. The cases must say so in `preconditions`,
   not in step 1.
@@ -160,3 +161,11 @@ Same day, v0.3: `FR-RW-16` gains the "following nobody" empty state, including t
 That string is not in the pinned spec either; it is the Angular implementation's `empty-feed-message`,
 so the PRD now pins two implementation-level strings (this and the disabled buttons). Section 11's
 empty-state row was narrowed to the other lists so the two do not contradict.
+
+Same day, v0.4: visitor behaviour becomes its own requirements. `FR-RW-26` (the `Your Feed` tab
+appears only after signing in) comes from templates.md and had only been described in §3.3. `FR-RW-27`
+(a guest opening `/settings` or `/editor` is sent to `/login`) comes from the demo's route guard.
+A rule that lives only in a precondition never becomes a claim, so it never gets a label or appears
+in coverage; that was the reason to promote these. §11's row about a guest pressing favorite/follow
+now records the demo's inconsistency (favorite → `/register`, follow → `/login`) instead of leaving
+the targets unstated.

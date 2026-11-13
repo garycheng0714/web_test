@@ -1,7 +1,7 @@
 # PRD:RealWorld / Conduit(designer eval 的第三份 PRD)
 
-> **版本**:v0.3(2026-11-13)
-> **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上 2026-11-13 對 live demo 的三項
+> **版本**:v0.4(2026-11-13)
+> **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上 2026-11-13 對 live demo 的四項
 > 觀察;不是反推自 live 站,也不是本專案撰寫
 > **來源**:
 > - 規格:[`realworld-apps/realworld`](https://github.com/realworld-apps/realworld) @
@@ -25,6 +25,10 @@
 > 取自 live demo 的 Angular 實作(`article-list.component.ts` 的 `empty-feed-message`),規格沒寫;
 > 因此 §11 第 11 條只涵蓋其他列表。三項觀察都記在 §9。
 >
+> **v0.4 調整**:補上訪客的兩條規則。`FR-RW-26`(`Your Feed` tab 只在登入後出現)來自 templates;
+> `FR-RW-27`(訪客開 `/settings`、`/editor` 被導向 `/login`)來自 live demo。訪客的行為不再只
+> 出現在 precondition 裡,而是有自己的 claim 與覆蓋率。
+>
 > **範圍(A+)**:只收 `features.md` 的七條功能,加上來源明寫的失敗路徑。只由 `routing.md` 增加、
 > 而七條功能沒點名的旅程(例如 Profile 頁的 My Articles / Favorited Articles 兩個 tab)不列為
 > requirement。
@@ -38,7 +42,7 @@
 > 4. **失敗路徑只有在來源明寫時才是 requirement。** 驗證訊息與 `error-messages` 在來源裡,所以
 >    「登入失敗」「註冊被拒」可以是 requirement;來源沒寫的行為列為第 11 章的非目標。
 >    例外:live demo 可觀察、但來源沒寫的行為,只有在 §9 明列時才可成為 requirement(目前是
->    `FR-RW-16` 的空狀態文案、`FR-RW-24`、`FR-RW-25`)。
+>    `FR-RW-16` 的空狀態文案、`FR-RW-24`、`FR-RW-25`、`FR-RW-27`)。
 > 5. 被丟掉的東西列在第 10 章,讓切法可被檢查。
 > 6. 新增 requirement 一律附加編號,不重排既有編號。
 > 7. `specs/e2e/` 與其 SELECTORS 契約**不是**來源,寫作與 review 期間都不讀(ticket 11)。
@@ -133,6 +137,11 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 - 兩欄都有值後 → `Sign in` 按鈕可按。
   (來源沒寫;取自 live demo 的觀察,見 §9)
 
+#### FR-RW-27 訪客開啟需要登入的頁面被導向登入
+- 以訪客身分直接開啟 `/settings` → 被導向 `/login`。
+- 以訪客身分直接開啟 `/editor` → 被導向 `/login`。
+  (來源沒寫;取自 live demo 的觀察,見 §9)
+
 ### 4.2 個人設定(SETTINGS)
 
 #### FR-RW-07 更新個人資料
@@ -200,6 +209,11 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 #### FR-RW-18 分頁
 - 文章總數超過一頁時,清單下方出現分頁連結;點第 2 頁 → 顯示下一批文章。
   (features「paginated lists」+ templates 的 `pagination` + endpoints `limit` / `offset`)
+
+#### FR-RW-26 Your Feed tab 只在登入後出現
+- 以訪客身分開啟 `/` → 只有 `Global Feed` tab,看不到 `Your Feed`。
+- 登入後開啟 `/` → 多出 `Your Feed` tab。
+  (templates「an optional Your Feed tab, appears after logging in」)
 
 ### 4.5 留言(COMMENT)
 
@@ -308,6 +322,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 | live demo 觀察(2026-11-13):註冊欄位未填完,`Sign up` 不可按 | `FR-RW-24` |
 | live demo 觀察(2026-11-13):登入欄位未填完,`Sign in` 不可按 | `FR-RW-25` |
 | live demo 觀察(2026-11-13):Your Feed 空狀態文案與其中的 `Global Feed` 連結 | `FR-RW-16` |
+| templates:Your Feed tab 只在登入後出現 | `FR-RW-26` |
+| live demo 觀察(2026-11-13):訪客開 `/settings`、`/editor` 被導向 `/login` | `FR-RW-27` |
 
 > **三處推論,都在這裡標記**:
 > 1. `FR-RW-09` 的「出現在 Global Feed 第一篇」由「列表以最新在前排序」加上「建立文章」推得;
@@ -352,5 +368,5 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 | 9 | 錯誤訊息在頁面上的位置與樣式 | 只要求出現在表單的 `error-messages` 區塊 |
 | 10 | 載入中狀態、樂觀更新、離線、多分頁同步 | 不要求 |
 | 11 | Global Feed 與 tag 列表的「沒有文章」空狀態文案 | 來源沒寫;不要求(Your Feed 的空狀態見 `FR-RW-16`) |
-| 12 | 訪客按收藏或追蹤 | 來源沒寫要導向登入或隱藏;不要求 |
+| 12 | 訪客按收藏或追蹤 | 來源沒寫;live demo 不一致(收藏 → `/register`,追蹤 → `/login`),不寫死 |
 | 13 | email 文法邊界(`a@b`、TLD 長度、unicode) | 由實作決定;測試只要求用不含 `@` 的值(見 `FR-RW-02`) |
