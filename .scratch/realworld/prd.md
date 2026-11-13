@@ -88,7 +88,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 #### FR-RW-02 註冊被拒
 - 以已存在的 email 註冊 → 停留在 `/register`,header 不變成已登入,表單的 error 區塊顯示
   `has already been taken`。
-- 以格式錯誤的 email 註冊 → 同樣停留、同樣未登入,error 區塊顯示 `is invalid`。
+- 以格式錯誤的 email(例如不含 `@` 的 `not-an-email`)註冊 → 同樣停留、同樣未登入,error 區塊顯示
+  `is invalid`。
   (error-handling「Validation messages」+ templates 的 `error-messages`)
 
 #### FR-RW-03 登入成功
@@ -319,3 +320,4 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 | 10 | 載入中狀態、樂觀更新、離線、多分頁同步 | 不要求 |
 | 11 | 文章列表的「沒有文章」空狀態文案 | 來源沒寫;不要求 |
 | 12 | 訪客按收藏或追蹤 | 來源沒寫要導向登入或隱藏;不要求 |
+| 13 | email 文法邊界(`a@b`、TLD 長度、unicode) | 由實作決定;測試只要求用不含 `@` 的值(見 `FR-RW-02`) |
