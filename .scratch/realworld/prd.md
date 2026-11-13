@@ -1,6 +1,6 @@
 # PRD:RealWorld / Conduit(designer eval 的第三份 PRD)
 
-> **版本**:v0.5(2026-11-13)
+> **版本**:v0.6(2026-11-13)
 > **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上 2026-11-13 對 live demo 的五項
 > 觀察;不是反推自 live 站,也不是本專案撰寫
 > **來源**:
@@ -31,6 +31,10 @@
 >
 > **v0.5 調整**:`FR-RW-01`、`FR-RW-03` 補上「成功後回到 `/`」。來源沒寫,取自 live demo 的
 > `router.navigate(['/'])`;§11 第 3 條因此改成「已登入者開啟 `/login`、`/register`」。
+>
+> **v0.6 調整**:`FR-RW-02` 拆成兩條。唯一性(`has already been taken`)與格式(`is invalid`)是
+> 兩條驗證規則,不是同一條規則的兩個輸入,原寫法違反抽取規則 2。新增 `FR-RW-28`,需求 27 → 28。
+> v0.5 的 run `realworld-v05-20261113` 因此作廢,不得標註或比較。
 >
 > **範圍(A+)**:只收 `features.md` 的七條功能,加上來源明寫的失敗路徑。只由 `routing.md` 增加、
 > 而七條功能沒點名的旅程(例如 Profile 頁的 My Articles / Favorited Articles 兩個 tab)不列為
@@ -105,11 +109,9 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
   `Sign in` / `Sign up` 換成 `New Article`、`Settings` 與自己的 profile 連結,並回到 `/`。
   (features「CRU- users」+ templates 的 header;導向 `/` 取自 live demo,見 §9)
 
-#### FR-RW-02 註冊被拒
+#### FR-RW-02 已存在的 email 被拒
 - 以已存在的 email 註冊 → 停留在 `/register`,header 不變成已登入,表單的 error 區塊顯示
   `has already been taken`。
-- 以格式錯誤的 email(例如不含 `@` 的 `not-an-email`)註冊 → 同樣停留、同樣未登入,error 區塊顯示
-  `is invalid`。
   (error-handling「Validation messages」+ templates 的 `error-messages`)
 
 #### FR-RW-03 登入成功
@@ -145,6 +147,11 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 - 以訪客身分直接開啟 `/settings` → 被導向 `/login`。
 - 以訪客身分直接開啟 `/editor` → 被導向 `/login`。
   (來源沒寫;取自 live demo 的觀察,見 §9)
+
+#### FR-RW-28 格式錯誤的 email 被拒
+- 以格式錯誤的 email(例如不含 `@` 的 `not-an-email`)註冊 → 停留在 `/register`,header 不變成
+  已登入,error 區塊顯示 `is invalid`。
+  (error-handling「Validation messages」+ templates 的 `error-messages`)
 
 ### 4.2 個人設定(SETTINGS)
 
@@ -320,7 +327,7 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 | features:Follow other users | `FR-RW-23` |
 | routing:只顯示給作者 | `FR-RW-14`、`FR-RW-21` |
 | routing:markdown 與留言區 | `FR-RW-11` |
-| error-handling:驗證訊息與 401 | `FR-RW-02`、`FR-RW-04`、`FR-RW-10` |
+| error-handling:驗證訊息與 401 | `FR-RW-02`、`FR-RW-04`、`FR-RW-10`、`FR-RW-28` |
 | endpoints:slug 隨標題更新 | `FR-RW-12` |
 | templates:header 兩態 | `FR-RW-01`、`FR-RW-03`、`FR-RW-06` |
 | live demo 觀察(2026-11-13):註冊欄位未填完,`Sign up` 不可按 | `FR-RW-24` |

@@ -104,8 +104,8 @@ Confirm the budget before the first designer call.
 - The failure-path requirements copy English messages exactly; a one-word drift makes the case's
   assertion an invention, and the judge will fail it for the wrong reason.
 - The live demo can drift from the specification. Grounding is not part of this ticket.
-- Scope A+ is wider than the first estimate: it landed at 27 requirements after the live-demo
-  observations and the two visitor rules, so the run, the labeling and the judge calls all take
+- Scope A+ is wider than the first estimate: it landed at 28 requirements after the live-demo
+  observations and the visitor rules, so the run, the labeling and the judge calls all take
   longer than a happy-path cut.
 - The three list requirements need seeded data the happy path does not: at least one followed author
   for Your Feed, at least one tagged article for a tag list. The cases must say so in `preconditions`,
@@ -185,3 +185,14 @@ Same day, v0.5: a successful sign-in or sign-up lands on `/` (`router.navigate([
   or a §9 observation, §9 covers 27/27, no acceptance criteria) and the human decided each addition in
   the conversation. Five behaviours now come from the demo rather than the spec; they are listed in
   §9 and are the first assertions that would fail against a different Conduit implementation.
+
+2026-11-13, v0.6: `FR-RW-02` was two validation rules in one requirement — uniqueness
+(`has already been taken`) and format (`is invalid`) — which breaks the PRD's own rule 2. The designer
+had merged both into one case and said so in its notes, which is what exposed it. The requirement now
+covers uniqueness only, and `FR-RW-28` covers format; 27 -> 28 requirements.
+
+The PRD is frozen again at **v0.6**: `sha256`
+`0cb7426742416f8ca0f69f99ce8e03d0b3364625e9093b74dffa1f3e2348009d`, 384 lines. The v0.5 freeze and
+its run `realworld-v05-20261113` are superseded: that run answered a PRD that no longer exists, so it
+must not be labeled, exported or compared. No labels had been made, so nothing was lost but the one
+designer call.
