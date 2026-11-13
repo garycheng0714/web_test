@@ -154,3 +154,9 @@ behave that way. The source states neither, so `FR-RW-24` and `FR-RW-25` are rec
 observations in the PRD's §9, and the invariant above now allows that origin. The editor observation
 is also what makes `FR-RW-10` reachable: its journey depends on pressing `Publish Article` with a
 field empty.
+
+Same day, v0.3: `FR-RW-16` gains the "following nobody" empty state, including the copy
+`Your feed is empty. Follow some users to see their articles here, or check out the Global Feed!`.
+That string is not in the pinned spec either; it is the Angular implementation's `empty-feed-message`,
+so the PRD now pins two implementation-level strings (this and the disabled buttons). Section 11's
+empty-state row was narrowed to the other lists so the two do not contradict.
