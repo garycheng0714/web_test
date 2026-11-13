@@ -1,7 +1,8 @@
 # PRD:RealWorld / Conduit(designer eval 的第三份 PRD)
 
-> **版本**:v0.1(2026-11-12)
-> **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),不是反推自 live 站,也不是本專案撰寫
+> **版本**:v0.2(2026-11-13)
+> **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上 2026-11-13 對 live demo 的兩項
+> 觀察;不是反推自 live 站,也不是本專案撰寫
 > **來源**:
 > - 規格:[`realworld-apps/realworld`](https://github.com/realworld-apps/realworld) @
 >   `25588846c314b15a5e427ffe816e6b4af7be68c7`(2026-11-02,MIT)
@@ -15,6 +16,10 @@
 > 狀態、伺服器回傳的錯誤、以及「只有作者能操作」的權限規則,都是 TodoMVC 沒有的。不進
 > production 管線(`prd/` 底下新增檔案會觸發 `plan.yml`)。
 >
+> **v0.2 調整**:新增 `FR-RW-24`、`FR-RW-25`——註冊與登入在欄位未填完時,送出按鈕不可按。來源是
+> live demo 的觀察,不是規格;PRD 的性質因此從「衍生」變成「衍生 + 觀察」。同一批觀察也確認編輯器
+> 沒有這個行為,所以 `FR-RW-10` 走得通。v0.1 只收規格、模板與 API 契約。
+>
 > **範圍(A+)**:只收 `features.md` 的七條功能,加上來源明寫的失敗路徑。只由 `routing.md` 增加、
 > 而七條功能沒點名的旅程(例如 Profile 頁的 My Articles / Favorited Articles 兩個 tab)不列為
 > requirement。
@@ -27,6 +32,8 @@
 > 3. 能用來源原句就用原句,不改寫成我們的語氣;文案照抄,不改大小寫。
 > 4. **失敗路徑只有在來源明寫時才是 requirement。** 驗證訊息與 `error-messages` 在來源裡,所以
 >    「登入失敗」「註冊被拒」可以是 requirement;來源沒寫的行為列為第 11 章的非目標。
+>    例外:live demo 可觀察、但來源沒寫的行為,只有在 §9 明列時才可成為 requirement(目前是
+>    `FR-RW-24`、`FR-RW-25`)。
 > 5. 被丟掉的東西列在第 10 章,讓切法可被檢查。
 > 6. 新增 requirement 一律附加編號,不重排既有編號。
 > 7. `specs/e2e/` 與其 SELECTORS 契約**不是**來源,寫作與 review 期間都不讀(ticket 11)。
@@ -110,6 +117,16 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 #### FR-RW-06 登出
 - 在 `/settings` 按 `Or click here to logout.` → header 換回 `Sign in` / `Sign up`。
   (features「logout button on settings page」+ templates)
+
+#### FR-RW-24 註冊按鈕在欄位未填時不可按
+- 在 `/register`,Username、Email、Password 任一欄位為空時 → `Sign up` 按鈕不可按。
+- 三個欄位都有值後 → `Sign up` 按鈕可按。
+  (來源沒寫;取自 live demo 的觀察,見 §9)
+
+#### FR-RW-25 登入按鈕在欄位未填時不可按
+- 在 `/login`,Email 或 Password 為空時 → `Sign in` 按鈕不可按。
+- 兩欄都有值後 → `Sign in` 按鈕可按。
+  (來源沒寫;取自 live demo 的觀察,見 §9)
 
 ### 4.2 個人設定(SETTINGS)
 
@@ -280,6 +297,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 | error-handling:驗證訊息與 401 | `FR-RW-02`、`FR-RW-04`、`FR-RW-10` |
 | endpoints:slug 隨標題更新 | `FR-RW-12` |
 | templates:header 兩態 | `FR-RW-01`、`FR-RW-03`、`FR-RW-06` |
+| live demo 觀察(2026-11-13):註冊欄位未填完,`Sign up` 不可按 | `FR-RW-24` |
+| live demo 觀察(2026-11-13):登入欄位未填完,`Sign in` 不可按 | `FR-RW-25` |
 
 > **三處推論,都在這裡標記**:
 > 1. `FR-RW-09` 的「出現在 Global Feed 第一篇」由「列表以最新在前排序」加上「建立文章」推得;
@@ -288,6 +307,9 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 >    來源沒有明寫那個數字是收藏數或追蹤者數。
 > 3. `FR-RW-02`、`FR-RW-10` 的「error 區塊顯示伺服器訊息」由 `error-handling.md` 的訊息表加上模板
 >    的 `error-messages` 區塊推得;來源沒有明寫前端會原樣顯示伺服器訊息,而不是自己的文案。
+
+> `FR-RW-10` 的可執行性由同日觀察支撐:編輯器**不**因必填欄位為空而讓送出按鈕不可按,所以
+> 「缺欄位後按 `Publish Article`」走得通。這一項不是 requirement。
 
 ## 10. 抽取時丟掉的東西
 
