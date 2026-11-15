@@ -30,7 +30,7 @@ The rest are mocks and fakes standing in for real types; fixing them may need `c
 ## Tasks
 
 - [x] Add `tests/designer_evals` to `include` first; fix its 8 errors (they are small: pass `datetime(...)`, use `UnitKind.CLAIM`, type the `kind` parameter as the literal).
-- [ ] Then add the rest of `tests` and work through the 15 remaining errors group by group.
+- [x] Then add the rest of `tests` and work through the remaining errors group by group.
 - [ ] `uv run --group eval basedpyright` clean; `uv run pytest` unchanged.
 
 ## Out of scope
@@ -45,8 +45,11 @@ The rest are mocks and fakes standing in for real types; fixing them may need `c
 
 ## Result
 
-`[tool.basedpyright] include` is now `["web_test", "evals/designer", "tests/designer_evals"]`, and
-that directory reports **0 errors**:
+`[tool.basedpyright] include` is `["web_test", "evals/designer", "tests"]`; the whole suite is in the
+gate and reports **0 errors** (it reported 22 before any of this, and 14 after the eval group was
+fixed).
+
+`tests/designer_evals` (8 errors, done first):
 
 - `created_at="2026-11-13T00:00:00Z"` → `datetime(2026, 11, 13, tzinfo=UTC)` in the two fixtures
   that build a `RunSummary`;
@@ -55,15 +58,28 @@ that directory reports **0 errors**:
 - `_FakeTracer.calls` / `start_as_current_span` annotated with `Context | None`, so
   `get_current_span(context)` type-checks instead of receiving `object`.
 
-Six of the eight came from the model typing in tickets 12-16: the tests were never in the gate, so
+Six of those eight came from the model typing in tickets 12-16: the tests were never in the gate, so
 pydantic's runtime coercion hid fields that had become `datetime` or an enum.
 
-Left open, outside the include: 11 errors in `tests/automation`, 1 in `tests/publishing`, 2 in
-`tests/test_model.py` (14 total). They are mocks and fakes whose shapes do not match the real types;
-deciding whether to bring them in — and whether to tighten the fakes or `cast` — is still a
-maintainer call, so the ticket stays `needs-triage`.
+The remaining 14:
+
+- `tests/automation/test_coding_agent.py` (3): three `agent.run(prompt)` calls on an
+  `Agent[AutomationDeps, …]` now pass `deps=AutomationDeps()`. This was not only a type error: the
+  runs had `deps=None`, and a tool reading `ctx.deps` would have raised `AttributeError`.
+- `tests/automation/test_repair_guard.py` (8): a `_ctx()` helper casts a `SimpleNamespace` to
+  `RunContext[AutomationDeps]` (the handlers read only `ctx.deps`), `call` and `tool_def` are real
+  `ToolCallPart` / `ToolDefinition` objects instead of `None`, and the hook decorator's sync-or-async
+  overloads are narrowed with one cast where `run_sync` needs a coroutine.
+- `tests/publishing/test_github.py` (1): `completed_at.utcoffset()` may be `None`, so the assertion
+  compares the offset to `timedelta(0)` instead of calling through it.
+- `tests/test_model.py` (2): `resolve_model()` returns `Model | str`, so the tests narrow with
+  `isinstance(model, OpenAIChatModel)` before reading `model_name`.
+
+391 tests, ruff, 8 contracts and `basedpyright` all pass. The gate was proved live by planting a
+type error in each of `tests/designer_evals` and `tests/automation`: both are reported.
 
 ## Comments
 
-2026-11-15: the human chose the narrow group first. The eval tests are where the recent typing landed,
-so they were the ones worth gating now; the automation fakes are a separate change.
+2026-11-15: the human chose the narrow group first, then asked for the remaining 14 in the same
+session. Closing both phases under this ticket rather than opening a second one: the outcome is one
+thing (the tests are in the gate), and the second phase only made the include list unconditional.

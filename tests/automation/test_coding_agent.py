@@ -147,7 +147,7 @@ def test_browser_tools_are_dispatched_through_the_agent(tmp_path: Path) -> None:
     )
     agent = build_automation_agent(model, workspace_dir=tmp_path)
 
-    result = run_sync(agent.run("Ground the home page"))
+    result = run_sync(agent.run("Ground the home page", deps=AutomationDeps()))
 
     returns = _tool_returns(result)
     assert "navigate" in returns
@@ -162,7 +162,7 @@ def test_green_run_produces_a_pr_body(tmp_path: Path) -> None:
     )
     agent = build_automation_agent(model, workspace_dir=tmp_path)
 
-    result = run_sync(agent.run("Automate the approved cases"))
+    result = run_sync(agent.run("Automate the approved cases", deps=AutomationDeps()))
 
     assert "# Skill: pr" in str(_tool_returns(result)["load_capability"])
     assert result.output.pr_body == body
@@ -174,6 +174,6 @@ def test_red_run_produces_no_pr_body(tmp_path: Path) -> None:
     )
     agent = build_automation_agent(model, workspace_dir=tmp_path)
 
-    result = run_sync(agent.run("Automate the approved cases"))
+    result = run_sync(agent.run("Automate the approved cases", deps=AutomationDeps()))
 
     assert result.output.pr_body is None
