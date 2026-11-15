@@ -10,10 +10,9 @@ from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_ai.settings import ModelSettings
 
+from evals.designer.designer_eval.dataset import load_dataset
 from evals.designer.designer_eval.metrics import wilson_interval
 from evals.designer.designer_eval.requirements import parse_requirements
-from web_test.paths import PRD_PATH
-from web_test.planning.review.parser import parse_test_case
 
 SYSTEM_PROMPT = """\
 You are a senior QA reviewer. You judge one generated test case against a PRD. The case claims one
@@ -47,23 +46,6 @@ not a new assertion. A parenthetical that explains why a stated result matters i
 The case's scenario title may name another requirement; judge the steps, not the title. Judge only
 the claimed requirement. Do not name a failure mode. Write the critique first, then the result.
 """
-
-
-class LabeledClaim(BaseModel):
-    """One fixture row. Boundary data, so a mistyped label fails here, not silently in `score`.
-
-    The requirement text is not stored: it is read from the dataset's PRD by id, so editing the
-    PRD never leaves a row holding stale text.
-    """
-
-    source_run: str
-    claim_id: str
-    requirement_id: str
-    case_id: str
-    case_markdown: str
-    human_label: Literal["pass", "fail"]
-    human_mode: str | None = None
-    human_reason: str | None = None
 
 
 class StepCheck(BaseModel):
@@ -147,62 +129,28 @@ def build_prompt(example: JudgeExample) -> str:
     )
 
 
-def requirement_count(case_markdown: str) -> int:
-    """How many requirements the case's own yaml claims. Derived, so it cannot drift."""
-    # shortcut: unparseable markdown counts as one requirement so a hand-written row still runs.
-    # Tighten when a dataset without the rendered `## Case N:` heading appears.
-    try:
-        return len(parse_test_case(case_markdown, "").cases[0].requirement_ids)
-    except ValueError:
-        return 0
-
-
-# A dataset named after the working PRD's directory tracks that PRD and has no `prd.md` of its own.
-WORKING_PRD_DATASETS = {PRD_PATH.parent.name: PRD_PATH}
-
-
-def dataset_prd(data_dir: Path) -> Path:
-    """The PRD the dataset's labels are judged against.
-
-    The working dataset reads the repo's PRD, so the two cannot drift. Every other dataset keeps
-    its own point-in-time `prd.md` snapshot.
-    """
-    return WORKING_PRD_DATASETS.get(data_dir.name, data_dir / "prd.md")
-
-
 def load_examples(data_dir: Path, *, single_fr_only: bool = True) -> list[JudgeExample]:
-    """Read a dataset. Multi-FR rows are legacy shapes, so they are excluded by default."""
-    prd_text = dataset_prd(data_dir).read_text(encoding="utf-8")
+    """Turn a dataset's rows into judge inputs; the PRD supplies each requirement's text."""
+    dataset = load_dataset(data_dir, single_fr_only=single_fr_only)
     requirement_text = {
-        requirement.id: requirement.text for requirement in parse_requirements(prd_text)
+        requirement.id: requirement.text for requirement in parse_requirements(dataset.prd_text)
     }
-    examples: list[JudgeExample] = []
-    for line in (data_dir / "claims.jsonl").read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        claim = LabeledClaim.model_validate_json(line)
-        if single_fr_only and requirement_count(claim.case_markdown) > 1:
-            continue
-        if claim.requirement_id not in requirement_text:
-            raise ValueError(
-                f"{claim.claim_id} claims {claim.requirement_id}, "
-                f"which {dataset_prd(data_dir).name} does not define"
-            )
-        examples.append(
-            JudgeExample(
-                data=JudgeInput(
-                    source_run=claim.source_run,
-                    claim_id=claim.claim_id,
-                    requirement_id=claim.requirement_id,
-                    case_id=claim.case_id,
-                    prd_text=prd_text,
-                    requirement_text=requirement_text[claim.requirement_id],
-                    case_markdown=claim.case_markdown,
-                ),
-                human_label=claim.human_label,
-                human_mode=claim.human_mode,
-            )
+    examples = [
+        JudgeExample(
+            data=JudgeInput(
+                source_run=claim.source_run,
+                claim_id=claim.claim_id,
+                requirement_id=claim.requirement_id,
+                case_id=claim.case_id,
+                prd_text=dataset.prd_text,
+                requirement_text=requirement_text[claim.requirement_id],
+                case_markdown=claim.case_markdown,
+            ),
+            human_label=claim.human_label,
+            human_mode=claim.human_mode,
         )
+        for claim in dataset.claims
+    ]
     return sorted(examples, key=lambda example: example.data.claim_id)
 
 

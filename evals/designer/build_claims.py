@@ -17,7 +17,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
-from evals.designer.designer_eval.judge import LabeledClaim
+from evals.designer.designer_eval.dataset import LabeledClaim
 from web_test.paths import REPO_ROOT
 
 RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"

@@ -2,14 +2,14 @@
 
 Each check here answers a failure that cost rework once: a dataset pointing at a requirement the
 PRD had removed, and a dataset whose rows no longer resolved against the PRD they are judged with.
-The PRD itself is not copied into the working dataset (`judge.dataset_prd`), so it cannot drift.
+The PRD itself is not copied into the working dataset (`dataset.dataset_prd`), so it cannot drift.
 """
 
 from pathlib import Path
 
 import pytest
 
-from evals.designer.designer_eval.judge import LabeledClaim, dataset_prd
+from evals.designer.designer_eval.dataset import LabeledClaim, dataset_prd
 from evals.designer.designer_eval.requirements import parse_requirements
 from web_test.paths import REPO_ROOT
 
