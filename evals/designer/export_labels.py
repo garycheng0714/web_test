@@ -10,7 +10,6 @@ Run from the repository root:
 """
 
 import argparse
-import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -18,15 +17,11 @@ from typing import Any
 
 from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_units
 from evals.designer.designer_eval.labels import AnnotationRow, write_labels
+from evals.designer.designer_eval.phoenix import base_url
 from evals.designer.designer_eval.units import EvalUnit
 from web_test.paths import REPO_ROOT
 
 RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
-
-
-def _base_url() -> str:
-    base = os.environ.get("PHOENIX_COLLECTOR_ENDPOINT", "http://127.0.0.1:6006")
-    return base.removesuffix("/v1/traces")
 
 
 def _latest_run() -> Path:
@@ -118,7 +113,7 @@ def main() -> int:
     from phoenix.client import Client
 
     project = args.project or run.project
-    client = Client(base_url=_base_url())
+    client = Client(base_url=base_url())
     annotations = client.spans.get_span_annotations(
         span_ids=[unit.span_id for unit in units],
         project_identifier=project,

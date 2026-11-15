@@ -17,9 +17,9 @@ Both feed a `phoenix.client.Client(base_url=…)`, so the divergence is a double
 
 ## Tasks
 
-- [ ] Import `base_url` from `evals.designer.designer_eval.phoenix` and delete `export_labels._base_url`.
-- [ ] Keep the `--project` fallback (`args.project or run.project`) unchanged.
-- [ ] `uv run pytest tests/designer_evals` green.
+- [x] Import `base_url` from `evals.designer.designer_eval.phoenix` and delete `export_labels._base_url`.
+- [x] Keep the `--project` fallback (`args.project or run.project`) unchanged.
+- [x] `uv run pytest tests/designer_evals` green.
 
 ## Out of scope
 
@@ -29,3 +29,7 @@ Both feed a `phoenix.client.Client(base_url=…)`, so the divergence is a double
 ## Risks
 
 - No test exercises the client: only a live export (`uvx arize-phoenix serve` + `export_labels.py --run …`) proves the normalised URL works against the real server.
+
+## Result
+
+`export_labels.main` now builds the client with `phoenix.base_url()`; `_base_url` and the `os` import are gone. Checked the three endpoint shapes against the shared helper: unset → `http://127.0.0.1:6006`, trailing slash → same without the slash, `/v1/traces` suffix → stripped. A live export is still the only end-to-end proof (see Risks).
