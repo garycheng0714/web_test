@@ -11,16 +11,16 @@ from evals.designer.designer_eval.judge import (
     JudgeExample,
     JudgeInput,
     JudgeOutput,
-    JudgeRecord,
     build_prompt,
     group_by_source,
     load_examples,
     prompt_sha256,
-    render_report,
     run_one,
     score,
     write_records,
 )
+from evals.designer.designer_eval.judge_records import JudgeRecord
+from evals.designer.designer_eval.judge_report import render_report
 from web_test._run import run_sync
 
 

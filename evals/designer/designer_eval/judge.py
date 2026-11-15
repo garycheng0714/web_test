@@ -12,6 +12,7 @@ from pydantic_ai.settings import ModelSettings
 
 from evals.designer.designer_eval.dataset import load_dataset
 from evals.designer.designer_eval.jsonl import write_rows
+from evals.designer.designer_eval.judge_records import JudgeMetrics, JudgeRecord
 from evals.designer.designer_eval.metrics import wilson_interval
 from evals.designer.designer_eval.requirements import parse_requirements
 
@@ -77,44 +78,6 @@ class JudgeExample:
     data: JudgeInput
     human_label: str
     human_mode: str | None
-
-
-class JudgeRecord(BaseModel):
-    claim_id: str
-    source_run: str
-    requirement_id: str
-    case_id: str
-    verdict: str
-    critique: str
-    checks: list[dict[str, object]]
-    human_label: str
-    human_mode: str | None
-    model: str
-    prompt_sha256: str
-
-
-@dataclass(frozen=True)
-class JudgeMetrics:
-    """Confusion counts live beside the rates so a reader can check the denominators.
-
-    Both rates name their positive class, because `TPR`/`TNR` are read in opposite directions by
-    `validate-evaluator` (positive = pass) and by failure detection (positive = fail).
-    """
-
-    total: int
-    human_fail: int
-    human_pass: int
-    judged_fail: int
-    judged_pass: int
-    caught: int
-    missed: int
-    false_alarm: int
-    agreed_pass: int
-    fail_recall: float | None
-    pass_specificity: float | None
-    fail_recall_ci: tuple[float, float] | None
-    pass_specificity_ci: tuple[float, float] | None
-    disagreements: list[JudgeRecord]
 
 
 def prompt_sha256() -> str:
@@ -224,75 +187,6 @@ def group_by_source(records: Sequence[JudgeRecord]) -> dict[str, JudgeMetrics]:
     for record in records:
         groups.setdefault(record.source_run, []).append(record)
     return {source: score(group) for source, group in sorted(groups.items())}
-
-
-def format_rate(value: float | None, interval: tuple[float, float] | None) -> str:
-    if value is None or interval is None:
-        return "n/a"
-    return f"{value:.2f} [{interval[0]:.2f}, {interval[1]:.2f}]"
-
-
-def render_report(metrics: JudgeMetrics, groups: dict[str, JudgeMetrics] | None = None) -> str:
-    lines = [
-        "# Designer judge report",
-        "",
-        f"- Claims: {metrics.total}",
-        f"- Human labels: {metrics.human_fail} fail, {metrics.human_pass} pass",
-        f"- Judge verdicts: {metrics.judged_fail} fail, {metrics.judged_pass} pass",
-        "",
-        "## Metrics",
-        "",
-        "| Metric | Definition | Value (Wilson 95% CI) |",
-        "| --- | --- | --- |",
-        (
-            f"| Fail recall | judge fails when the human fails | "
-            f"{format_rate(metrics.fail_recall, metrics.fail_recall_ci)} |"
-        ),
-        (
-            f"| Pass specificity | judge passes when the human passes | "
-            f"{format_rate(metrics.pass_specificity, metrics.pass_specificity_ci)} |"
-        ),
-        "",
-        "## Confusion",
-        "",
-        "| | human fail | human pass |",
-        "| --- | --- | --- |",
-        f"| judge fail | {metrics.caught} | {metrics.false_alarm} |",
-        f"| judge pass | {metrics.missed} | {metrics.agreed_pass} |",
-        "",
-    ]
-    if groups and len(groups) > 1:
-        lines += [
-            "## By source run",
-            "",
-            "| source run | claims | fail recall | pass specificity |",
-            "| --- | --- | --- | --- |",
-        ]
-        for source, group in groups.items():
-            lines.append(
-                f"| `{source}` | {group.total} | "
-                f"{format_rate(group.fail_recall, group.fail_recall_ci)} | "
-                f"{format_rate(group.pass_specificity, group.pass_specificity_ci)} |"
-            )
-        lines.append("")
-    lines += ["## Disagreements", ""]
-    if not metrics.disagreements:
-        lines.append("None.")
-    for record in metrics.disagreements:
-        lines.append(
-            f"- `{record.claim_id}` ({record.source_run}): human `{record.human_label}`"
-            + (f" / {record.human_mode}" if record.human_mode else "")
-            + f", judge `{record.verdict}` - {record.critique.strip().splitlines()[0][:160]}"
-        )
-    lines += [
-        "",
-        "## Limits",
-        "",
-        "- Dev only: every dataset holds one PRD, so these rates cannot be a held-out estimate.",
-        "- A rate is `n/a` when the human labels contain no example of that class.",
-        "- Legacy multi-requirement cases are excluded unless `--include-multi-fr` is passed.",
-    ]
-    return "\n".join(lines) + "\n"
 
 
 def write_records(path: Path, records: Sequence[JudgeRecord]) -> None:

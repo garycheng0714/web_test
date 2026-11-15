@@ -19,15 +19,14 @@ from evals.designer.designer_eval.judge import (
     SYSTEM_PROMPT,
     JudgeExample,
     JudgeOutput,
-    JudgeRecord,
-    format_rate,
     group_by_source,
     load_examples,
-    render_report,
     run_one,
     score,
     write_records,
 )
+from evals.designer.designer_eval.judge_records import JudgeRecord
+from evals.designer.designer_eval.judge_report import format_rate, render_report
 from evals.designer.designer_eval.layout import JUDGE_DATA_DIR, JUDGE_RUNS_DIR
 from web_test._run import run_sync
 from web_test.model import DEFAULT_JUDGE_MODEL, resolve_judge_model
