@@ -1,10 +1,10 @@
-import importlib.util
 import json
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
+from evals.designer import export_labels, report
 from evals.designer.designer_eval.artifacts import RunSummary
 from evals.designer.designer_eval.labels import (
     AnnotationResult,
@@ -15,21 +15,6 @@ from evals.designer.designer_eval.labels import (
 )
 from evals.designer.designer_eval.units import EvalUnit, UnitKind
 from web_test.planning.schema import DesignOutput
-
-ROOT = Path(__file__).parents[2]
-
-
-def _load(name: str):
-    path = ROOT / "evals" / "designer" / f"{name}.py"
-    spec = importlib.util.spec_from_file_location(f"designer_{name}", path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-export_labels = _load("export_labels")
-report = _load("report")
 
 
 def _run() -> RunSummary:

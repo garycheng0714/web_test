@@ -1,25 +1,9 @@
-import importlib.util
-from pathlib import Path
-
 import pytest
 
+from evals.designer import build_claims
 from evals.designer.designer_eval.artifacts import RunSummary
 from evals.designer.designer_eval.labels import AnnotationRow
 from evals.designer.designer_eval.units import EvalUnit, UnitKind
-
-ROOT = Path(__file__).parents[2]
-
-
-def _load(name: str):
-    path = ROOT / "evals" / "designer" / f"{name}.py"
-    spec = importlib.util.spec_from_file_location(f"designer_{name}", path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-build_claims = _load("build_claims")
 
 RUN = RunSummary(
     run_id="run-1",
