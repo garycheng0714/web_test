@@ -1,7 +1,7 @@
 """Write one designer eval run's durable artifacts."""
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
@@ -36,7 +36,7 @@ def write_design(run_dir: Path, design: DesignOutput, rendered: str) -> None:
 def write_results(run_dir: Path, metadata: RunMetadata) -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "units.json").write_text(
-        json.dumps([asdict(unit) for unit in metadata.units], indent=2, ensure_ascii=False),
+        json.dumps([unit.model_dump() for unit in metadata.units], indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
     (run_dir / "prd.md").write_text(metadata.prd_text, encoding="utf-8")

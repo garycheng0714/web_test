@@ -142,7 +142,7 @@ def test_create_units_uses_the_agent_span_as_parent(monkeypatch):
     assert provider.flushed is True
     assert [unit.span_id for unit in units] == ["0000000000000abc"]
     assert units[0].kind == UnitKind.CLAIM
-    assert units[0].attributes is spec.attributes
+    assert units[0].attributes == spec.attributes
     assert len(tracer.calls) == 1
     name, context, attributes = tracer.calls[0]
     assert name == spec.name
