@@ -12,24 +12,14 @@ Run from the repository root:
 import argparse
 import sys
 from collections.abc import Sequence
-from pathlib import Path
 from typing import Any
 
 from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_units
 from evals.designer.designer_eval.jsonl import write_rows
 from evals.designer.designer_eval.labels import AnnotationRow
+from evals.designer.designer_eval.layout import resolve_run_dir
 from evals.designer.designer_eval.phoenix import base_url
 from evals.designer.designer_eval.units import EvalUnit
-from web_test.paths import REPO_ROOT
-
-RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
-
-
-def _latest_run() -> Path:
-    runs = [path for path in RUNS_DIR.iterdir() if (path / "run.json").exists()]
-    if not runs:
-        raise FileNotFoundError(f"no run artifacts under {RUNS_DIR}")
-    return max(runs, key=lambda path: path.stat().st_mtime)
 
 
 def _alignment_by_span(annotations: Sequence[Any]) -> dict[str, str | None]:
@@ -99,12 +89,7 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        if args.run_dir:
-            run_dir = Path(args.run_dir)
-        elif args.run:
-            run_dir = RUNS_DIR / args.run
-        else:
-            run_dir = _latest_run()
+        run_dir = resolve_run_dir(run=args.run, run_dir=args.run_dir, marker="run.json")
         run = read_run(run_dir)
         units = read_units(run_dir)
     except (OSError, ValueError) as error:

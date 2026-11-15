@@ -28,12 +28,10 @@ from evals.designer.designer_eval.judge import (
     score,
     write_records,
 )
+from evals.designer.designer_eval.layout import JUDGE_DATA_DIR, JUDGE_RUNS_DIR
 from web_test._run import run_sync
 from web_test.model import DEFAULT_JUDGE_MODEL, resolve_judge_model
 from web_test.paths import REPO_ROOT
-
-DATA_DIR = REPO_ROOT / "evals" / "designer" / "judge" / "data"
-OUT_DIR = REPO_ROOT / "evals" / "designer" / "judge" / "runs"
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -95,7 +93,7 @@ async def run_all(
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
-    data_dir = DATA_DIR / args.dataset
+    data_dir = JUDGE_DATA_DIR / args.dataset
     examples = load_examples(data_dir, single_fr_only=not args.include_multi_fr)
     if args.source_run:
         examples = [example for example in examples if example.data.source_run == args.source_run]
@@ -130,7 +128,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     run_id = args.run_id or f"{args.dataset}-{datetime.now(UTC):%Y%m%dT%H%M%SZ}"
-    run_dir = OUT_DIR / run_id
+    run_dir = JUDGE_RUNS_DIR / run_id
     write_records(run_dir / "judgements.jsonl", records)
     metrics = score(records)
     report = render_report(metrics, group_by_source(records))

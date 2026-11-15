@@ -20,18 +20,10 @@ from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_un
 from evals.designer.designer_eval.dataset import LabeledClaim
 from evals.designer.designer_eval.jsonl import write_rows
 from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
+from evals.designer.designer_eval.layout import resolve_run_dir
 from evals.designer.designer_eval.units import EvalUnit, UnitKind
-from web_test.paths import REPO_ROOT
 
-RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
 NO_MODE = {None, "N/A"}
-
-
-def _latest_run() -> Path:
-    runs = [path for path in RUNS_DIR.iterdir() if (path / "labels.jsonl").is_file()]
-    if not runs:
-        raise FileNotFoundError(f"no exported run under {RUNS_DIR}")
-    return max(runs, key=lambda path: path.stat().st_mtime)
 
 
 def _field(
@@ -96,11 +88,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        run_dir = (
-            Path(args.run_dir)
-            if args.run_dir
-            else (RUNS_DIR / args.run if args.run else _latest_run())
-        )
+        run_dir = resolve_run_dir(run=args.run, run_dir=args.run_dir, marker="labels.jsonl")
         run = read_run(run_dir)
         units = read_units(run_dir)
         labels = read_labels(run_dir / "labels.jsonl")

@@ -10,11 +10,10 @@ from pathlib import Path
 import pytest
 
 from evals.designer.designer_eval.dataset import LabeledClaim, dataset_prd
+from evals.designer.designer_eval.layout import JUDGE_DATA_DIR
 from evals.designer.designer_eval.requirements import parse_requirements
-from web_test.paths import REPO_ROOT
 
-DATA_DIR = REPO_ROOT / "evals" / "designer" / "judge" / "data"
-DATASETS = sorted(path for path in DATA_DIR.iterdir() if path.is_dir())
+DATASETS = sorted(path for path in JUDGE_DATA_DIR.iterdir() if path.is_dir())
 
 
 def _dataset_id(path: Path) -> str:

@@ -14,6 +14,7 @@ from typing import Literal
 
 from evals.designer.designer_eval.artifacts import RunSummary, read_design, read_run, read_units
 from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
+from evals.designer.designer_eval.layout import resolve_run_dir
 from evals.designer.designer_eval.metrics import wilson_interval
 from evals.designer.designer_eval.units import EvalUnit, UnitKind, case_id, duplicate_groups
 from web_test.paths import REPO_ROOT
@@ -22,18 +23,9 @@ from web_test.planning.review.structure import structure_checks
 from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.schema import DesignOutput
 
-RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
-
 
 def _claims(units: list[EvalUnit]) -> list[EvalUnit]:
     return [unit for unit in units if unit.kind == UnitKind.CLAIM]
-
-
-def _latest_run() -> Path:
-    runs = [path for path in RUNS_DIR.iterdir() if (path / "run.json").exists()]
-    if not runs:
-        raise FileNotFoundError(f"no run artifacts under {RUNS_DIR}")
-    return max(runs, key=lambda path: path.stat().st_mtime)
 
 
 def requirement_rows(units: list[EvalUnit], labels: Sequence[AnnotationRow]) -> list[dict]:
@@ -396,12 +388,7 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        if args.run_dir:
-            run_dir = Path(args.run_dir)
-        elif args.run:
-            run_dir = RUNS_DIR / args.run
-        else:
-            run_dir = _latest_run()
+        run_dir = resolve_run_dir(run=args.run, run_dir=args.run_dir, marker="run.json")
         run = read_run(run_dir)
         units = read_units(run_dir)
         design = read_design(run_dir)
