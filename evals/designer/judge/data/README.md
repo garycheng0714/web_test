@@ -36,8 +36,8 @@ Archived, not judged:
 
 | dataset | source runs | claims | fails |
 | --- | --- | --- | --- |
-| `archive/automationexercise-fr` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
-| `archive/register-login` | `register-login-20261029T070829Z` | 7 | 0 |
+| `judge/archive/automationexercise-fr` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
+| `judge/archive/register-login` | `register-login-20261029T070829Z` | 7 | 0 |
 
 Three PRDs are judged, so this is still a **dev set**: a by-PRD train/dev/test split needs 5-6 PRDs.
 The designer-run sets are pass-heavy: `automationexercise`, `todomvc-v07`, `todomvc-v08` and

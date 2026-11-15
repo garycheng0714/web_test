@@ -19,10 +19,10 @@ The first three are wrong for anyone who reads the code; the fourth would send a
 
 ## Tasks
 
-- [ ] Rewrite the `designer_eval/__init__.py` docstring to name what it is, not one consumer.
-- [ ] Fix the two `--run` help strings to `evals/designer/runs/`.
-- [ ] Fix the archive paths in `judge/data/README.md` (either `../archive/…` or "archived under `judge/archive/`", whichever reads better in place).
-- [ ] `uv run ruff check evals` and `uv run pytest tests/designer_evals` green.
+- [x] Rewrite the `designer_eval/__init__.py` docstring to name what it is, not one consumer.
+- [x] Fix the two `--run` help strings to `evals/designer/runs/`.
+- [x] Fix the archive paths in `judge/data/README.md` (either `../archive/…` or "archived under `judge/archive/`", whichever reads better in place).
+- [x] `uv run ruff check evals` and `uv run pytest tests/designer_evals` green.
 
 ## Out of scope
 
@@ -32,3 +32,11 @@ The first three are wrong for anyone who reads the code; the fourth would send a
 ## Risks
 
 - None: documentation only.
+
+## Result
+
+- `designer_eval/__init__.py` now reads "Designer eval building blocks: PRD requirements, units, labels, run artifacts and the judge." instead of naming `run_eval.py` alone.
+- Both `--run` help strings point at `evals/designer/runs/`.
+- `judge/data/README.md` names the archives as `judge/archive/…`, matching where they live.
+
+No code changed; `uv run ruff check evals` and the designer tests are unaffected.

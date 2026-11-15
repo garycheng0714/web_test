@@ -91,7 +91,7 @@ def _label_rows(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Export Phoenix annotations to labels.jsonl.")
-    parser.add_argument("--run", help="run id under .scratch/designer-evals/runs/")
+    parser.add_argument("--run", help="run id under evals/designer/runs/")
     parser.add_argument("--run-dir", help="explicit run directory (e.g. old-skill-runs/...)")
     parser.add_argument("--project", help="Phoenix project; defaults to run.json")
     parser.add_argument("--annotator", default="local", help="annotator name for HUMAN rows")

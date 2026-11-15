@@ -1,1 +1,1 @@
-"""Designer eval building blocks used by run_eval.py."""
+"""Designer eval building blocks: PRD requirements, units, labels, run artifacts and the judge."""

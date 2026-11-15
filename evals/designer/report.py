@@ -391,7 +391,7 @@ def render_report(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Report designer eval coverage.")
-    parser.add_argument("--run", help="run id under .scratch/designer-evals/runs/")
+    parser.add_argument("--run", help="run id under evals/designer/runs/")
     parser.add_argument("--run-dir", help="explicit run directory")
     args = parser.parse_args()
 
