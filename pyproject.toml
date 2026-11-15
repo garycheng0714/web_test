@@ -173,3 +173,11 @@ forbidden_modules = [
     "evals.designer.export_labels",
     "evals.designer.build_claims",
 ]
+
+[[tool.importlinter.contracts]]
+name = "The judge report does not know the judge"
+type = "independence"
+modules = [
+    "evals.designer.designer_eval.judge",
+    "evals.designer.designer_eval.judge_report",
+]

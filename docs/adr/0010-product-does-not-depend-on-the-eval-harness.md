@@ -32,3 +32,5 @@ evals/designer  ──>  web_test  ──>  (never back to evals)
 - 換得：產品與評測的依賴方向在 PR 當下被擋下；eval 可以放心 import 產品的 schema 與 parser。
 - 代價：`evals` 成為 lint-imports 的 root，未來 evals 內部若成環或命名衝突，分析輸出會變多
   （毫秒級）。eval 套件內部的層次（哪個模組可以 import 哪個）仍靠慣例，不寫成 contract。
+  唯一例外是 ticket 19 買來的那條邊：`judge` 與 `judge_report` 之間有一條 `independence`
+  contract，因為那正是該次拆分的全部價值，而兩個方向都不成環，Python 不會替我們抓到。
