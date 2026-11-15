@@ -9,9 +9,11 @@ Run from the repository root after export_labels.py:
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
+from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
 from evals.designer.designer_eval.metrics import wilson_interval
 from evals.designer.designer_eval.units import RunFindings, UnitKind, case_id, duplicate_groups
 from web_test.paths import REPO_ROOT
@@ -38,13 +40,7 @@ def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _load_labels(path: Path) -> list[dict]:
-    return [
-        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
-    ]
-
-
-def requirement_rows(units: list[dict], labels: list[dict]) -> list[dict]:
+def requirement_rows(units: list[dict], labels: Sequence[AnnotationRow]) -> list[dict]:
     requirements: dict[str, dict] = {}
     for unit in units:
         if unit["kind"] != UnitKind.REQUIREMENT:
@@ -74,10 +70,10 @@ def requirement_rows(units: list[dict], labels: list[dict]) -> list[dict]:
         row["case_ids"].append(attributes["claim.case_id"])
         row["missing"] = False
 
-    claim_labels: dict[str, list[dict]] = {}
+    claim_labels: dict[str, list[AnnotationRow]] = {}
     for label in labels:
-        if label["annotator_kind"] == "HUMAN" and label["annotation"] == "claim_alignment":
-            claim_labels.setdefault(label["target_id"], []).append(label)
+        if label.annotator_kind == "HUMAN" and label.annotation == "claim_alignment":
+            claim_labels.setdefault(label.target_id, []).append(label)
 
     rows = []
     for requirement_id in sorted(requirements):
@@ -89,7 +85,7 @@ def requirement_rows(units: list[dict], labels: list[dict]) -> list[dict]:
             status = "missing"
         elif not relevant:
             status = "unlabeled"
-        elif any(label.get("label") == "pass" for label in relevant):
+        elif any(label.label == "pass" for label in relevant):
             status = "covered"
         else:
             status = "not_clean"
@@ -98,20 +94,21 @@ def requirement_rows(units: list[dict], labels: list[dict]) -> list[dict]:
                 **item,
                 "status": status,
                 "labels": relevant,
-                "pass_count": sum(label.get("label") == "pass" for label in relevant),
+                "pass_count": sum(label.label == "pass" for label in relevant),
                 "tested": bool(item["claim_ids"]) and not item["missing"],
             }
         )
     return rows
 
 
-def _human_fields(labels: list[dict]) -> dict[str, dict[str, dict]]:
-    fields: dict[str, dict[str, dict]] = {}
-    for label in labels:
-        if label["annotator_kind"] != "HUMAN":
-            continue
-        fields.setdefault(label["target_id"], {})[label["annotation"]] = label
-    return fields
+def _value(
+    fields: dict[str, AnnotationRow],
+    name: str,
+    field: Literal["label", "explanation"] = "label",
+) -> str:
+    """One human annotation's text, or `-` when the reviewer left it out."""
+    row = fields.get(name)
+    return (getattr(row, field) if row else None) or "-"
 
 
 def _cell(value: object) -> str:
@@ -208,8 +205,7 @@ def _requirement_lines(rows: list[dict]) -> list[str]:
     ]
     for row in rows:
         labels_text = (
-            ", ".join(f"{label.get('label')}({label.get('annotator')})" for label in row["labels"])
-            or "-"
+            ", ".join(f"{label.label}({label.annotator})" for label in row["labels"]) or "-"
         )
         lines.append(
             f"| {row['requirement_id']} | {', '.join(row['case_ids']) or '-'} | "
@@ -233,7 +229,9 @@ def _failure_mode_lines(
     return lines
 
 
-def _claim_lines(units: list[dict], human_fields: dict[str, dict[str, dict]]) -> list[str]:
+def _claim_lines(
+    units: list[dict], fields_by_target: dict[str, dict[str, AnnotationRow]]
+) -> list[str]:
     lines = [
         "",
         "## Claims",
@@ -242,10 +240,10 @@ def _claim_lines(units: list[dict], human_fields: dict[str, dict[str, dict]]) ->
         "| --- | --- | --- | --- |",
     ]
     for unit in _claims(units):
-        fields = human_fields.get(unit["target_id"], {})
-        alignment = (fields.get("claim_alignment") or {}).get("label") or "-"
-        mode = (fields.get("claim_failure_mode") or {}).get("label") or "-"
-        reason = (fields.get("claim_reason") or {}).get("explanation") or "-"
+        fields = fields_by_target.get(unit["target_id"], {})
+        alignment = _value(fields, "claim_alignment")
+        mode = _value(fields, "claim_failure_mode")
+        reason = _value(fields, "claim_reason", "explanation")
         lines.append(f"| {unit['target_id']} | {alignment} | {mode} | {_cell(reason)} |")
     return lines
 
@@ -255,9 +253,7 @@ def _not_clean_lines(not_clean: list[dict]) -> list[str]:
     if not not_clean:
         return [*lines, "None."]
     for row in not_clean:
-        labels_text = ", ".join(
-            f"{label.get('target_id')}={label.get('label')}" for label in row["labels"]
-        )
+        labels_text = ", ".join(f"{label.target_id}={label.label}" for label in row["labels"])
         lines.append(f"- {row['requirement_id']}: {labels_text}")
     return lines
 
@@ -339,7 +335,7 @@ def render_report(
     *,
     run: dict,
     units: list[dict],
-    labels: list[dict],
+    labels: Sequence[AnnotationRow],
     design: dict,
     structure_errors: list[str] | None = None,
     structure_note: str = "",
@@ -353,19 +349,20 @@ def render_report(
     missing = [row for row in rows if row["status"] == "missing"]
     unlabeled = [row for row in rows if row["status"] == "unlabeled"]
     low, high = wilson_interval(clean, total)
-    human_fields = _human_fields(labels)
+    fields_by_target = human_fields(labels, by="target_id")
     aligned = {
         target: fields["claim_alignment"]
-        for target, fields in human_fields.items()
+        for target, fields in fields_by_target.items()
         if "claim_alignment" in fields
     }
     human_labels = len(aligned)
     mode_counts: dict[str, int] = {}
     for target, label in aligned.items():
-        mode = (human_fields[target].get("claim_failure_mode") or {}).get("label")
-        if label.get("label") == "fail" and mode:
+        mode_row = fields_by_target[target].get("claim_failure_mode")
+        mode = mode_row.label if mode_row else None
+        if label.label == "fail" and mode:
             mode_counts[mode] = mode_counts.get(mode, 0) + 1
-    fail_count = sum(label.get("label") == "fail" for label in aligned.values())
+    fail_count = sum(label.label == "fail" for label in aligned.values())
     findings = findings or RunFindings()
 
     lines = _header_lines(
@@ -385,7 +382,7 @@ def render_report(
     lines += _failure_mode_lines(
         mode_counts=mode_counts, fail_count=fail_count, human_labels=human_labels
     )
-    lines += _claim_lines(units, human_fields)
+    lines += _claim_lines(units, fields_by_target)
     lines += _not_clean_lines(not_clean)
     lines += _code_check_lines(
         findings=findings,
@@ -417,7 +414,7 @@ def main() -> int:
         run = _load_json(run_dir / "run.json")
         units = _load_json(run_dir / "units.json")
         design = _load_json(run_dir / "design.json")
-        labels = _load_labels(run_dir / "labels.jsonl")
+        labels = read_labels(run_dir / "labels.jsonl")
     except (OSError, ValueError) as error:
         print(f"failed to read run artifacts: {error}", file=sys.stderr)
         return 1

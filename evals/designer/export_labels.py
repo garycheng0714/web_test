@@ -17,6 +17,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from evals.designer.designer_eval.labels import AnnotationRow, write_labels
 from web_test.paths import REPO_ROOT
 
 RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
@@ -48,7 +49,7 @@ def _label_rows(
     run: dict,
     *,
     annotator: str,
-) -> list[dict]:
+) -> list[AnnotationRow]:
     by_span: dict[str, list[dict]] = {}
     for annotation in annotations:
         by_span.setdefault(annotation["span_id"], []).append(annotation)
@@ -68,32 +69,27 @@ def _label_rows(
                 continue
             result = annotation.get("result") or {}
             rows.append(
-                {
-                    "run_id": run["run_id"],
-                    "prd": run["prd"],
-                    "target_kind": unit["kind"],
-                    "target_id": unit["target_id"],
-                    "span_id": unit["span_id"],
-                    "annotation": annotation["name"],
-                    "annotator_kind": kind,
-                    "label": result.get("label"),
-                    "score": result.get("score"),
-                    "annotator": annotator if kind == "HUMAN" else "code",
-                    "explanation": result.get("explanation"),
-                    "identifier": annotation.get("identifier", ""),
-                    "annotation_id": annotation.get("id"),
-                    "source": annotation.get("source"),
-                    "metadata": annotation.get("metadata", {}),
-                }
+                AnnotationRow(
+                    run_id=run["run_id"],
+                    prd=run["prd"],
+                    target_kind=unit["kind"],
+                    target_id=unit["target_id"],
+                    span_id=unit["span_id"],
+                    annotation=annotation["name"],
+                    annotator_kind=kind,
+                    label=result.get("label"),
+                    score=result.get("score"),
+                    annotator=annotator if kind == "HUMAN" else "code",
+                    explanation=result.get("explanation"),
+                    identifier=annotation.get("identifier", ""),
+                    annotation_id=annotation.get("id"),
+                    source=annotation.get("source"),
+                    metadata=annotation.get("metadata", {}),
+                )
             )
     return sorted(
         rows,
-        key=lambda row: (
-            row["target_kind"],
-            row["target_id"],
-            row["annotation"],
-            row["annotator_kind"],
-        ),
+        key=lambda row: (row.target_kind, row.target_id, row.annotation, row.annotator_kind),
     )
 
 
@@ -128,13 +124,10 @@ def main() -> int:
     )
     rows = _label_rows(units, annotations, run, annotator=args.annotator)
     path = run_dir / "labels.jsonl"
-    path.write_text(
-        "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
-        encoding="utf-8",
-    )
+    write_labels(path, rows)
 
-    human = sum(row["annotator_kind"] == "HUMAN" for row in rows)
-    code = sum(row["annotator_kind"] == "CODE" for row in rows)
+    human = sum(row.annotator_kind == "HUMAN" for row in rows)
+    code = sum(row.annotator_kind == "CODE" for row in rows)
     print(f"run: {run['run_id']}")
     print(f"project: {project}")
     print(f"labels: {len(rows)} ({human} HUMAN, {code} CODE)")

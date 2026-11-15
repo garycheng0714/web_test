@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pytest
 
+from evals.designer.designer_eval.labels import AnnotationRow
+
 ROOT = Path(__file__).parents[2]
 
 
@@ -37,14 +39,26 @@ def _requirement(span_id: str) -> dict:
     return {"kind": "requirement", "target_id": "FR-ACC-01", "span_id": span_id, "attributes": {}}
 
 
-def _label(span_id: str, name: str, label: str | None = None, explanation: str | None = None):
-    return {
-        "span_id": span_id,
-        "annotation": name,
-        "annotator_kind": "HUMAN",
-        "label": label,
-        "explanation": explanation,
-    }
+def _label(
+    span_id: str,
+    name: str,
+    label: str | None = None,
+    explanation: str | None = None,
+    *,
+    kind: str = "HUMAN",
+):
+    return AnnotationRow(
+        run_id="run-1",
+        prd="prd.md",
+        target_kind="claim",
+        target_id="case-1->FR-ACC-01",
+        span_id=span_id,
+        annotation=name,
+        annotator_kind=kind,
+        annotator="local" if kind == "HUMAN" else "code",
+        label=label,
+        explanation=explanation,
+    )
 
 
 def test_build_rows_joins_claim_units_with_human_labels():
@@ -52,7 +66,7 @@ def test_build_rows_joins_claim_units_with_human_labels():
     labels = [
         _label("span-1", "claim_alignment", "pass"),
         _label("req-1", "claim_alignment", "pass"),
-        {"span_id": "span-1", "annotation": "case_duplicate", "annotator_kind": "CODE"},
+        _label("span-1", "case_duplicate", kind="CODE"),
     ]
 
     rows = build_claims.build_rows(units, labels, RUN)

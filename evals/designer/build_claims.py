@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Literal
 
 from evals.designer.designer_eval.dataset import LabeledClaim
+from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
 from web_test.paths import REPO_ROOT
 
 RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
@@ -31,24 +32,21 @@ def _latest_run() -> Path:
     return max(runs, key=lambda path: path.stat().st_mtime)
 
 
-def _human_fields(labels: Sequence[dict]) -> dict[str, dict[str, dict]]:
-    """span id -> annotation name -> annotation, for HUMAN labels only."""
-    fields: dict[str, dict[str, dict]] = {}
-    for label in labels:
-        if label.get("annotator_kind") != "HUMAN":
-            continue
-        fields.setdefault(label["span_id"], {})[label["annotation"]] = label
-    return fields
-
-
-def _field(fields: dict[str, dict], name: str, key: str = "label") -> str | None:
-    value = (fields.get(name) or {}).get(key)
+def _field(
+    fields: dict[str, AnnotationRow],
+    name: str,
+    field: Literal["label", "explanation"] = "label",
+) -> str | None:
+    row = fields.get(name)
+    value = getattr(row, field) if row else None
     return value if isinstance(value, str) and value.strip() else None
 
 
-def build_rows(units: Sequence[dict], labels: Sequence[dict], run: dict) -> list[LabeledClaim]:
+def build_rows(
+    units: Sequence[dict], labels: Sequence[AnnotationRow], run: dict
+) -> list[LabeledClaim]:
     """Join claim units with their human labels; refuse a claim that is not fully labeled."""
-    by_span = _human_fields(labels)
+    by_span = human_fields(labels, by="span_id")
     rows: list[LabeledClaim] = []
     unlabeled: list[str] = []
     for unit in units:
@@ -103,11 +101,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
         units = json.loads((run_dir / "units.json").read_text(encoding="utf-8"))
-        labels = [
-            json.loads(line)
-            for line in (run_dir / "labels.jsonl").read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
+        labels = read_labels(run_dir / "labels.jsonl")
         rows = build_rows(units, labels, run)
     except (OSError, ValueError, KeyError) as error:
         print(f"failed: {error}", file=sys.stderr)
