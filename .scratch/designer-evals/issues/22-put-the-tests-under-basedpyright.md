@@ -14,11 +14,11 @@
 include = ["web_test", "evals/designer"]
 ```
 
-`uv run --group eval basedpyright tests` reports **23 errors** that CI never sees. They fall into four groups:
+`uv run --group eval basedpyright tests` reports **22 errors** that CI never sees. They fall into four groups:
 
 | group | errors | example |
 | --- | --- | --- |
-| `tests/automation` | 12 | `None` passed where `ToolContext` is expected; `SimpleNamespace` standing in for a typed object |
+| `tests/automation` | 11 | `None` passed where `ToolContext` is expected; `SimpleNamespace` standing in for a typed object |
 | `tests/designer_evals` | 8 | `created_at="2026-11-13T00:00:00Z"` where the model declares `datetime`; `target_kind="claim"` where it declares `UnitKind` |
 | `tests/publishing` | 1 | `total_seconds` on a value typed `None` |
 | `tests/test_model.py` | 2 | `model_name` on a value typed `str` |
@@ -29,7 +29,7 @@ The rest are mocks and fakes standing in for real types; fixing them may need `c
 
 ## Tasks
 
-- [ ] Add `tests/designer_evals` to `include` first; fix its 8 errors (they are small: pass `datetime(...)`, use `UnitKind.CLAIM`, type the `kind` parameter as the literal).
+- [x] Add `tests/designer_evals` to `include` first; fix its 8 errors (they are small: pass `datetime(...)`, use `UnitKind.CLAIM`, type the `kind` parameter as the literal).
 - [ ] Then add the rest of `tests` and work through the 15 remaining errors group by group.
 - [ ] `uv run --group eval basedpyright` clean; `uv run pytest` unchanged.
 
@@ -42,3 +42,28 @@ The rest are mocks and fakes standing in for real types; fixing them may need `c
 
 - Turning on a stricter gate can surface a long tail in mock-heavy tests; if it does, land the eval group first and leave the rest to a follow-up ticket rather than weakening the setting.
 - `typeCheckingMode` is `standard`, not `strict`; do not raise it in this ticket.
+
+## Result
+
+`[tool.basedpyright] include` is now `["web_test", "evals/designer", "tests/designer_evals"]`, and
+that directory reports **0 errors**:
+
+- `created_at="2026-11-13T00:00:00Z"` → `datetime(2026, 11, 13, tzinfo=UTC)` in the two fixtures
+  that build a `RunSummary`;
+- `target_kind="claim"` → `UnitKind.CLAIM` in the three places that build an `AnnotationRow`;
+- `_label(..., kind: str)` → `kind: Literal["HUMAN", "CODE"]`;
+- `_FakeTracer.calls` / `start_as_current_span` annotated with `Context | None`, so
+  `get_current_span(context)` type-checks instead of receiving `object`.
+
+Six of the eight came from the model typing in tickets 12-16: the tests were never in the gate, so
+pydantic's runtime coercion hid fields that had become `datetime` or an enum.
+
+Left open, outside the include: 11 errors in `tests/automation`, 1 in `tests/publishing`, 2 in
+`tests/test_model.py` (14 total). They are mocks and fakes whose shapes do not match the real types;
+deciding whether to bring them in — and whether to tighten the fakes or `cast` — is still a
+maintainer call, so the ticket stays `needs-triage`.
+
+## Comments
+
+2026-11-15: the human chose the narrow group first. The eval tests are where the recent typing landed,
+so they were the ones worth gating now; the automation fakes are a separate change.

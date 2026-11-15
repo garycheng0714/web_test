@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -24,7 +25,7 @@ def _run() -> RunSummary:
         prd_path="prd/register-login.md",
         model="model-1",
         project="project-1",
-        created_at="2026-11-13T00:00:00Z",
+        created_at=datetime(2026, 11, 13, tzinfo=UTC),
         requirements=2,
         cases=2,
         claims=2,
@@ -68,7 +69,7 @@ def _human(target_id: str, span_id: str, label: str | None):
     return AnnotationRow(
         run_id="run-1",
         prd="register-login.md",
-        target_kind="claim",
+        target_kind=UnitKind.CLAIM,
         target_id=target_id,
         span_id=span_id,
         annotation="claim_alignment",
@@ -351,7 +352,7 @@ def test_human_fields_groups_the_human_rows_by_the_asked_id():
         AnnotationRow(
             run_id="run-1",
             prd="register-login.md",
-            target_kind="claim",
+            target_kind=UnitKind.CLAIM,
             target_id="case-1->FR-1",
             span_id="span-1",
             annotation="case_duplicate",

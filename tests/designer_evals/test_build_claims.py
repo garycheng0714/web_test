@@ -1,3 +1,6 @@
+from datetime import UTC, datetime
+from typing import Literal
+
 import pytest
 
 from evals.designer import build_claims
@@ -11,7 +14,7 @@ RUN = RunSummary(
     prd_path="prd/prd.md",
     model="model-1",
     project="project-1",
-    created_at="2026-11-13T00:00:00Z",
+    created_at=datetime(2026, 11, 13, tzinfo=UTC),
     requirements=1,
     cases=1,
     claims=1,
@@ -51,12 +54,12 @@ def _label(
     label: str | None = None,
     explanation: str | None = None,
     *,
-    kind: str = "HUMAN",
+    kind: Literal["HUMAN", "CODE"] = "HUMAN",
 ):
     return AnnotationRow(
         run_id="run-1",
         prd="prd.md",
-        target_kind="claim",
+        target_kind=UnitKind.CLAIM,
         target_id="case-1->FR-ACC-01",
         span_id=span_id,
         annotation=name,
