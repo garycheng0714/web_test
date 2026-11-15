@@ -18,6 +18,7 @@ from typing import Literal
 
 from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_units
 from evals.designer.designer_eval.dataset import LabeledClaim
+from evals.designer.designer_eval.jsonl import write_rows
 from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
 from evals.designer.designer_eval.units import EvalUnit, UnitKind
 from web_test.paths import REPO_ROOT
@@ -109,10 +110,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     out = Path(args.out) if args.out else run_dir / "claims.jsonl"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(
-        "".join(row.model_dump_json(exclude_none=False) + "\n" for row in rows), encoding="utf-8"
-    )
+    write_rows(out, rows)
     passed = sum(row.human_label == "pass" for row in rows)
     print(f"rows: {len(rows)} ({passed} pass, {len(rows) - passed} fail)")
     print(f"output: {out}")

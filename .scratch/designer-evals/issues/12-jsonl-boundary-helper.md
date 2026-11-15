@@ -36,11 +36,11 @@ The policy is: one row per line, `exclude_none=False` (the datasets rely on `"hu
 
 ## Tasks
 
-- [ ] Add `evals/designer/designer_eval/jsonl.py` with `read_rows(path, model)` and `write_rows(path, rows)`.
-- [ ] Route `labels.read_labels` / `write_labels`, `dataset.load_dataset`, `judge.write_records` and `build_claims.main` through it.
-- [ ] Leave `load_dataset`'s single-FR filter and its "claims a requirement the PRD does not define" error where they are.
-- [ ] Add one test: a file with a blank line and a `null` field round-trips, and a malformed line raises.
-- [ ] `uv run pytest tests/designer_evals` green; `uv run lint-imports` still 7 kept.
+- [x] Add `evals/designer/designer_eval/jsonl.py` with `read_rows(path, model)` and `write_rows(path, rows)`.
+- [x] Route `labels.read_labels` / `write_labels`, `dataset.load_dataset`, `judge.write_records` and `build_claims.main` through it.
+- [x] Leave `load_dataset`'s single-FR filter and its "claims a requirement the PRD does not define" error where they are.
+- [x] Add one test: a file with a blank line and a `null` field round-trips, and a malformed line raises.
+- [x] `uv run pytest tests/designer_evals` green; `uv run lint-imports` still 7 kept.
 
 ## Out of scope
 
@@ -51,3 +51,16 @@ The policy is: one row per line, `exclude_none=False` (the datasets rely on `"hu
 
 - The committed datasets must stay byte-identical. Verify by rebuilding one with `build_claims.py --run journey-v07-20261103` and diffing against `judge/data/automationexercise/claims.jsonl`.
 - `judge.write_records` writes into gitignored `judge/runs/`, so a trailing-newline change there is only visible by opening the file.
+
+## Result
+
+`designer_eval/jsonl.py` owns the idiom: `read_rows[RowT](path, model)` and `write_rows(path, rows)`
+(one row per line, `exclude_none=False`, blank lines skipped, parent directory created).
+
+`labels.read_labels`, `dataset.load_dataset`, `judge.write_records`, `build_claims.main` and
+`export_labels.main` all go through it. `labels.write_labels` was deleted: it had one caller and
+only bound the model, so the caller names `write_rows` directly.
+
+`tests/designer_evals/test_jsonl.py` covers the round trip, a `null` field, blank lines and a
+malformed row. Rebuilding `journey-v07-20261103` still produces a byte-identical
+`judge/data/automationexercise/claims.jsonl`.

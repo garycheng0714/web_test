@@ -11,6 +11,7 @@ from pydantic_ai import Agent
 from pydantic_ai.settings import ModelSettings
 
 from evals.designer.designer_eval.dataset import load_dataset
+from evals.designer.designer_eval.jsonl import write_rows
 from evals.designer.designer_eval.metrics import wilson_interval
 from evals.designer.designer_eval.requirements import parse_requirements
 
@@ -295,8 +296,4 @@ def render_report(metrics: JudgeMetrics, groups: dict[str, JudgeMetrics] | None 
 
 
 def write_records(path: Path, records: Sequence[JudgeRecord]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        "".join(record.model_dump_json(exclude_none=False) + "\n" for record in records),
-        encoding="utf-8",
-    )
+    write_rows(path, records)

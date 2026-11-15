@@ -16,7 +16,8 @@ from pathlib import Path
 from typing import Any
 
 from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_units
-from evals.designer.designer_eval.labels import AnnotationRow, write_labels
+from evals.designer.designer_eval.jsonl import write_rows
+from evals.designer.designer_eval.labels import AnnotationRow
 from evals.designer.designer_eval.phoenix import base_url
 from evals.designer.designer_eval.units import EvalUnit
 from web_test.paths import REPO_ROOT
@@ -120,7 +121,7 @@ def main() -> int:
     )
     rows = _label_rows(units, annotations, run, annotator=args.annotator)
     path = run_dir / "labels.jsonl"
-    write_labels(path, rows)
+    write_rows(path, rows)
 
     human = sum(row.annotator_kind == "HUMAN" for row in rows)
     code = sum(row.annotator_kind == "CODE" for row in rows)

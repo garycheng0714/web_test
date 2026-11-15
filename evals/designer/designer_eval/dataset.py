@@ -6,6 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from evals.designer.designer_eval.jsonl import read_rows
 from evals.designer.designer_eval.requirements import parse_requirements
 from web_test.paths import PRD_PATH
 from web_test.planning.review.parser import parse_test_case
@@ -64,10 +65,7 @@ def load_dataset(data_dir: Path, *, single_fr_only: bool = True) -> ClaimDataset
     prd_text = dataset_prd(data_dir).read_text(encoding="utf-8")
     requirement_ids = {requirement.id for requirement in parse_requirements(prd_text)}
     claims: list[LabeledClaim] = []
-    for line in (data_dir / "claims.jsonl").read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        claim = LabeledClaim.model_validate_json(line)
+    for claim in read_rows(data_dir / "claims.jsonl", LabeledClaim):
         if single_fr_only and requirement_count(claim.case_markdown) > 1:
             continue
         if claim.requirement_id not in requirement_ids:

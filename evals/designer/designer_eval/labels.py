@@ -6,6 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from evals.designer.designer_eval.jsonl import read_rows
 from evals.designer.designer_eval.units import UnitKind
 
 
@@ -30,17 +31,7 @@ class AnnotationRow(BaseModel):
 
 
 def read_labels(path: Path) -> list[AnnotationRow]:
-    return [
-        AnnotationRow.model_validate_json(line)
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
-
-
-def write_labels(path: Path, rows: Iterable[AnnotationRow]) -> None:
-    path.write_text(
-        "".join(row.model_dump_json(exclude_none=False) + "\n" for row in rows), encoding="utf-8"
-    )
+    return read_rows(path, AnnotationRow)
 
 
 def human_fields(
