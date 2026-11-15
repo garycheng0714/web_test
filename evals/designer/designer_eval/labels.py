@@ -19,13 +19,15 @@ class AnnotationResult(BaseModel):
 
 
 class PhoenixAnnotation(BaseModel):
-    """One annotation as the Phoenix client returns it. Extra fields (`created_at`, `user_id`) are
-    ignored; `annotator_kind` is the client's closed set, which includes `LLM`."""
+    """One annotation as the Phoenix client returns it, narrowed to the two kinds `labels.jsonl`
+    keeps: the client can also return `LLM`, and such a row fails here rather than being dropped.
+
+    Extra fields (`created_at`, `updated_at`, `user_id`) are ignored."""
 
     id: str | None = None
     span_id: str
     name: str
-    annotator_kind: Literal["HUMAN", "CODE", "LLM"]
+    annotator_kind: Literal["HUMAN", "CODE"]
     result: AnnotationResult | None = None
     identifier: str = ""
     source: str | None = None
@@ -41,7 +43,7 @@ class AnnotationRow(BaseModel):
     target_id: str
     span_id: str
     annotation: str
-    annotator_kind: Literal["HUMAN", "CODE", "LLM"]
+    annotator_kind: Literal["HUMAN", "CODE"]
     annotator: str
     label: str | None = None
     score: float | None = None

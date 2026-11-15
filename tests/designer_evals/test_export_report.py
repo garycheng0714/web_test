@@ -123,18 +123,13 @@ def _human_label(target_id: str, span_id: str, annotation: str, label: str):
 
 
 def _annotation(
-    span_id: str,
-    name: str,
-    label: str | None = None,
-    explanation: str | None = None,
-    *,
-    kind: str = "HUMAN",
+    span_id: str, name: str, label: str | None = None, explanation: str | None = None
 ) -> PhoenixAnnotation:
     return PhoenixAnnotation(
         id=f"a-{name}-{span_id}",
         span_id=span_id,
         name=name,
-        annotator_kind=kind,
+        annotator_kind="HUMAN",
         result=AnnotationResult(label=label, explanation=explanation),
         source="APP",
     )
@@ -394,13 +389,17 @@ def test_export_rejects_an_annotation_without_an_annotator_kind():
         PhoenixAnnotation.model_validate({"span_id": "span-1", "name": "claim_alignment"})
 
 
-def test_export_keeps_an_llm_annotation_as_its_own_annotator():
-    units = [_claim("case-1-functional->FR-1", "span-1", "FR-1", "case-1-functional")]
-    annotations = [
-        _annotation("span-1", "claim_alignment", "pass", kind="LLM"),
-    ]
+def test_export_rejects_an_llm_annotation():
+    annotation = {
+        "id": "a1",
+        "span_id": "span-1",
+        "name": "claim_alignment",
+        "annotator_kind": "LLM",
+        "result": {"label": "pass"},
+        "identifier": "",
+        "source": "API",
+        "metadata": {},
+    }
 
-    rows = export_labels._label_rows(units, annotations, _run(), annotator="local")
-
-    assert rows[0].annotator_kind == "LLM"
-    assert rows[0].annotator == "llm"
+    with pytest.raises(ValidationError):
+        PhoenixAnnotation.model_validate(annotation)

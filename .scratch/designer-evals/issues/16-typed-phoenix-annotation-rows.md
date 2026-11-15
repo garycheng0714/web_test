@@ -51,8 +51,16 @@ been written with `annotator: "code"`. `AnnotationRow.annotator_kind` now accept
 and a non-HUMAN row records `kind.lower()`. No committed label row changes: all 251 rows across the
 six runs still read and rewrite byte-identically.
 
-Tests: a fixture without `annotator_kind` fails; an LLM annotation keeps its kind and gets
-`annotator: "llm"`. 391 passed, basedpyright clean, 7 contracts kept.
+Tests: a fixture without `annotator_kind` fails, and an LLM annotation fails. 391 passed,
+basedpyright clean, 7 contracts kept.
 
 Still unverified: no live Phoenix export was run (the local instance does not hold these spans), so
 the payload is checked against the client's types, not against a real response.
+
+## Comments
+
+2026-11-15: the human chose the strict form. `PhoenixAnnotation` is narrowed to the two kinds we
+keep rather than describing everything the client can return, and a rejected LLM row surfaces as a
+pydantic traceback on purpose — the alternative (accept three, drop LLM with an `ignored N` count)
+was rejected as silently skipping data. The cost is accepted knowingly: enabling an LLM evaluator on
+the `web-test-designer-eval` project makes every export fail until the type is widened again.
