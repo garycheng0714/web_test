@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 
 from opentelemetry import trace as otel_trace
+from opentelemetry.context import Context
 
 from evals.designer.designer_eval import phoenix
 from evals.designer.designer_eval.annotations import AnnotationSpec
@@ -102,10 +103,12 @@ class _FakeSpan:
 
 class _FakeTracer:
     def __init__(self):
-        self.calls: list[tuple[str, object, dict[str, str]]] = []
+        self.calls: list[tuple[str, Context | None, dict[str, str]]] = []
         self._next_span_id = 0xABC
 
-    def start_as_current_span(self, name: str, *, context, attributes):
+    def start_as_current_span(
+        self, name: str, *, context: Context | None, attributes: dict[str, str]
+    ):
         self.calls.append((name, context, attributes))
         span = _FakeSpan(self._next_span_id)
         self._next_span_id += 1
@@ -142,7 +145,7 @@ def test_create_units_uses_the_agent_span_as_parent(monkeypatch):
     assert provider.flushed is True
     assert [unit.span_id for unit in units] == ["0000000000000abc"]
     assert units[0].kind == UnitKind.CLAIM
-    assert units[0].attributes is spec.attributes
+    assert units[0].attributes == spec.attributes
     assert len(tracer.calls) == 1
     name, context, attributes = tracer.calls[0]
     assert name == spec.name

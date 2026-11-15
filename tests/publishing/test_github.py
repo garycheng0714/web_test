@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -93,7 +93,7 @@ def test_publish_check_creates_when_absent() -> None:
     }
     completed_at = kwargs["completed_at"]
     assert isinstance(completed_at, datetime)
-    assert completed_at.utcoffset().total_seconds() == 0
+    assert completed_at.utcoffset() == timedelta(0)
     assert completed_at.tzinfo is UTC
 
 

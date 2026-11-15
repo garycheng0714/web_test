@@ -30,18 +30,19 @@ the builder is the starting point, not the authority.
 | `todomvc-v07` | `todomvc-v07-20261110` | 28 | 0 |
 | `todomvc-v08` | `todomvc-v07-20261110` (same cases, corrected FR-TODO-05) | 28 | 0 |
 | `todomvc-probe` | `todomvc-probe-1` (mutations of the `todomvc-v07` cases) | 20 | 15 |
+| `realworld` | `realworld-v06-20261113` | 30 | 0 |
 
 Archived, not judged:
 
 | dataset | source runs | claims | fails |
 | --- | --- | --- | --- |
-| `archive/automationexercise-fr` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
-| `archive/register-login` | `register-login-20261029T070829Z` | 7 | 0 |
+| `judge/archive/automationexercise-fr` | `old-skill-automationexercise-20261029` (52), `house-automationexercise-20261029` (30) | 82 | 30 |
+| `judge/archive/register-login` | `register-login-20261029T070829Z` | 7 | 0 |
 
-Two PRDs are judged, so this is still a **dev set**: a by-PRD train/dev/test split needs 5-6 PRDs.
-The designer-run sets are pass-heavy: `automationexercise`, `todomvc-v07` and `todomvc-v08` have no
-failures at all, and the one failure in `todomvc` compares the PRD to the app rather than the case to
-the PRD.
+Three PRDs are judged, so this is still a **dev set**: a by-PRD train/dev/test split needs 5-6 PRDs.
+The designer-run sets are pass-heavy: `automationexercise`, `todomvc-v07`, `todomvc-v08` and
+`realworld` have no failures at all, and the one failure in `todomvc` compares the PRD to the app
+rather than the case to the PRD.
 
 `todomvc-probe` is different in kind: its 20 rows are **mutations of the `todomvc-v07` cases**, made
 to measure the judge's fail recall. Its 5 passes are mutations a human judged acceptable, not

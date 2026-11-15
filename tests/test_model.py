@@ -65,5 +65,10 @@ def test_design_and_automation_models_are_independent(monkeypatch):
     monkeypatch.setenv("WEB_TEST_DESIGN_MODEL", "openai-chat:deepseek-v4.1-flash")
     monkeypatch.setenv("OPENCODE_API_KEY", "test-key")
 
-    assert resolve_model().model_name == "kimi-k2.7-code"
-    assert resolve_design_model().model_name == "deepseek-v4.1-flash"
+    model = resolve_model()
+    design = resolve_design_model()
+
+    assert isinstance(model, OpenAIChatModel)
+    assert model.model_name == "kimi-k2.7-code"
+    assert isinstance(design, OpenAIChatModel)
+    assert design.model_name == "deepseek-v4.1-flash"

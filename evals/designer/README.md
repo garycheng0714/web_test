@@ -61,11 +61,11 @@ evals/designer/
 ├── run_eval.py          # designer -> Phoenix eval units
 ├── export_labels.py     # Phoenix annotations -> labels.jsonl
 ├── report.py            # labels + units -> report.md
-├── judge.py             # judge -> JSONL + TPR/TNR report
-├── designer_eval/       # parsing, units, annotations, artifacts, Phoenix I/O, judge
+├── run_judge.py         # judge -> JSONL + TPR/TNR report
+├── designer_eval/       # parsing, units, annotations, artifacts, Phoenix I/O, dataset, labels,
+│                        # judge, judge records, judge report
 ├── judge/data/          # committed dev set (PRD + labeled claims)
 ├── judge/runs/          # local judge output, gitignored
-├── phoenix/             # local instrumentation probes
 ├── spec.md              # eval contract
 └── runs/                # local run artifacts, gitignored
 ```

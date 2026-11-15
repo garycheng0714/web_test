@@ -6,136 +6,113 @@ and Phoenix cannot clear one.
 Run from the repository root:
 
     PYTHONPATH=. uv run --group eval python evals/designer/export_labels.py \
-        --run register-login-20261029T070829Z
+        --run journey-v07-20261103
 """
 
 import argparse
-import json
-import os
 import sys
 from collections.abc import Sequence
-from pathlib import Path
-from typing import Any
 
-from web_test.paths import REPO_ROOT
-
-RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
-
-
-def _base_url() -> str:
-    base = os.environ.get("PHOENIX_COLLECTOR_ENDPOINT", "http://127.0.0.1:6006")
-    return base.removesuffix("/v1/traces")
+from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_units
+from evals.designer.designer_eval.jsonl import write_rows
+from evals.designer.designer_eval.labels import AnnotationRow, PhoenixAnnotation
+from evals.designer.designer_eval.layout import resolve_run_dir
+from evals.designer.designer_eval.phoenix import base_url
+from evals.designer.designer_eval.units import EvalUnit
 
 
-def _latest_run() -> Path:
-    runs = [path for path in RUNS_DIR.iterdir() if (path / "run.json").exists()]
-    if not runs:
-        raise FileNotFoundError(f"no run artifacts under {RUNS_DIR}")
-    return max(runs, key=lambda path: path.stat().st_mtime)
-
-
-def _alignment_by_span(annotations: Sequence[Any]) -> dict[str, str | None]:
+def _alignment_by_span(annotations: Sequence[PhoenixAnnotation]) -> dict[str, str | None]:
     return {
-        annotation["span_id"]: (annotation.get("result") or {}).get("label")
+        annotation.span_id: annotation.result.label if annotation.result else None
         for annotation in annotations
-        if annotation["annotator_kind"] == "HUMAN" and annotation["name"] == "claim_alignment"
+        if annotation.annotator_kind == "HUMAN" and annotation.name == "claim_alignment"
     }
 
 
 def _label_rows(
-    units: list[dict],
-    annotations: Sequence[Any],
-    run: dict,
+    units: list[EvalUnit],
+    annotations: Sequence[PhoenixAnnotation],
+    run: RunSummary,
     *,
     annotator: str,
-) -> list[dict]:
-    by_span: dict[str, list[dict]] = {}
+) -> list[AnnotationRow]:
+    by_span: dict[str, list[PhoenixAnnotation]] = {}
     for annotation in annotations:
-        by_span.setdefault(annotation["span_id"], []).append(annotation)
+        by_span.setdefault(annotation.span_id, []).append(annotation)
 
     alignment = _alignment_by_span(annotations)
     rows = []
     for unit in units:
-        for annotation in by_span.get(unit["span_id"], []):
-            kind = annotation["annotator_kind"]
+        for annotation in by_span.get(unit.span_id, []):
+            kind = annotation.annotator_kind
             # A failure mode is only meaningful on a failing claim; the Phoenix UI cannot clear
             # one, so an old value on a passing claim is dropped here.
             if (
                 kind == "HUMAN"
-                and annotation["name"] == "claim_failure_mode"
-                and alignment.get(unit["span_id"]) != "fail"
+                and annotation.name == "claim_failure_mode"
+                and alignment.get(unit.span_id) != "fail"
             ):
                 continue
-            result = annotation.get("result") or {}
+            result = annotation.result
             rows.append(
-                {
-                    "run_id": run["run_id"],
-                    "prd": run["prd"],
-                    "target_kind": unit["kind"],
-                    "target_id": unit["target_id"],
-                    "span_id": unit["span_id"],
-                    "annotation": annotation["name"],
-                    "annotator_kind": kind,
-                    "label": result.get("label"),
-                    "score": result.get("score"),
-                    "annotator": annotator if kind == "HUMAN" else "code",
-                    "explanation": result.get("explanation"),
-                    "identifier": annotation.get("identifier", ""),
-                    "annotation_id": annotation.get("id"),
-                    "source": annotation.get("source"),
-                    "metadata": annotation.get("metadata", {}),
-                }
+                AnnotationRow(
+                    run_id=run.run_id,
+                    prd=run.prd,
+                    target_kind=unit.kind,
+                    target_id=unit.target_id,
+                    span_id=unit.span_id,
+                    annotation=annotation.name,
+                    annotator_kind=kind,
+                    label=result.label if result else None,
+                    score=result.score if result else None,
+                    annotator=annotator if kind == "HUMAN" else kind.lower(),
+                    explanation=result.explanation if result else None,
+                    identifier=annotation.identifier,
+                    annotation_id=annotation.id,
+                    source=annotation.source,
+                    metadata=annotation.metadata,
+                )
             )
     return sorted(
         rows,
-        key=lambda row: (
-            row["target_kind"],
-            row["target_id"],
-            row["annotation"],
-            row["annotator_kind"],
-        ),
+        key=lambda row: (row.target_kind, row.target_id, row.annotation, row.annotator_kind),
     )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Export Phoenix annotations to labels.jsonl.")
-    parser.add_argument("--run", help="run id under .scratch/designer-evals/runs/")
+    parser.add_argument("--run", help="run id under evals/designer/runs/")
     parser.add_argument("--run-dir", help="explicit run directory (e.g. old-skill-runs/...)")
     parser.add_argument("--project", help="Phoenix project; defaults to run.json")
     parser.add_argument("--annotator", default="local", help="annotator name for HUMAN rows")
     args = parser.parse_args()
 
     try:
-        if args.run_dir:
-            run_dir = Path(args.run_dir)
-        elif args.run:
-            run_dir = RUNS_DIR / args.run
-        else:
-            run_dir = _latest_run()
-        run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
-        units = json.loads((run_dir / "units.json").read_text(encoding="utf-8"))
+        run_dir = resolve_run_dir(run=args.run, run_dir=args.run_dir, marker="run.json")
+        run = read_run(run_dir)
+        units = read_units(run_dir)
     except (OSError, ValueError) as error:
         print(f"failed to read run artifacts: {error}", file=sys.stderr)
         return 1
 
     from phoenix.client import Client
 
-    project = args.project or run["project"]
-    client = Client(base_url=_base_url())
-    annotations = client.spans.get_span_annotations(
-        span_ids=[unit["span_id"] for unit in units],
-        project_identifier=project,
-    )
+    project = args.project or run.project
+    client = Client(base_url=base_url())
+    annotations = [
+        PhoenixAnnotation.model_validate(annotation)
+        for annotation in client.spans.get_span_annotations(
+            span_ids=[unit.span_id for unit in units],
+            project_identifier=project,
+        )
+    ]
     rows = _label_rows(units, annotations, run, annotator=args.annotator)
     path = run_dir / "labels.jsonl"
-    path.write_text(
-        "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
-        encoding="utf-8",
-    )
+    write_rows(path, rows)
 
-    human = sum(row["annotator_kind"] == "HUMAN" for row in rows)
-    code = sum(row["annotator_kind"] == "CODE" for row in rows)
-    print(f"run: {run['run_id']}")
+    human = sum(row.annotator_kind == "HUMAN" for row in rows)
+    code = sum(row.annotator_kind == "CODE" for row in rows)
+    print(f"run: {run.run_id}")
     print(f"project: {project}")
     print(f"labels: {len(rows)} ({human} HUMAN, {code} CODE)")
     print(f"annotator: {args.annotator}")

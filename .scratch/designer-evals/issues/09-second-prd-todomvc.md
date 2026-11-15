@@ -305,3 +305,7 @@ The v0.7 dataset stays as the record of the 0.96 result and the gap it exposed.
 
 The v0.8 labeling, dataset build and three judge runs above close the ticket's last three tasks; the
 boxes were left unticked when the work landed.
+
+2026-11-12: the RealWorld rejection in "Why TodoMVC" is stale. `demo.realworld.io` is gone, but the
+project moved: `realworld-apps/realworld` now has a live frontend at `demo.realworld.show` and a
+public API at `api.realworld.show`, both 200 on this date. Ticket 11 uses it as the third PRD.

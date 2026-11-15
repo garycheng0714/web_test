@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from enum import StrEnum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from evals.designer.designer_eval.requirements import Requirement
 from web_test.planning.cases_writer import render_case_section
@@ -29,8 +29,11 @@ class UnitSpec:
     parent_target_id: str | None = None
 
 
-@dataclass(frozen=True)
-class EvalUnit:
+class EvalUnit(BaseModel):
+    """One eval unit, in memory and in `units.json`: the file is read back into this model."""
+
+    model_config = ConfigDict(frozen=True)
+
     kind: UnitKind
     target_id: str
     span_id: str

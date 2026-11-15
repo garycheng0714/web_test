@@ -114,12 +114,12 @@ exclude_lines = [
 ]
 
 [tool.basedpyright]
-include = ["web_test", "evals/designer"]
-exclude = [".venv", "**/__pycache__", "evals/designer/phoenix"]
+include = ["web_test", "evals/designer", "tests"]
+exclude = [".venv", "**/__pycache__"]
 typeCheckingMode = "standard"
 
 [tool.importlinter]
-root_package = "web_test"
+root_packages = ["web_test", "evals"]
 
 [[tool.importlinter.contracts]]
 name = "Shared schemas do not import planning stages, publishing, or automation"
@@ -155,3 +155,29 @@ type = "forbidden"
 source_modules = ["web_test.automation"]
 forbidden_modules = ["web_test.planning.**"]
 ignore_imports = ["web_test.automation.** -> web_test.planning.schema"]
+
+[[tool.importlinter.contracts]]
+name = "The shipped package does not import the eval harness"
+type = "forbidden"
+source_modules = ["web_test"]
+forbidden_modules = ["evals"]
+
+[[tool.importlinter.contracts]]
+name = "Eval scripts import the package; the package never imports a script"
+type = "forbidden"
+source_modules = ["evals.designer.designer_eval"]
+forbidden_modules = [
+    "evals.designer.run_eval",
+    "evals.designer.run_judge",
+    "evals.designer.report",
+    "evals.designer.export_labels",
+    "evals.designer.build_claims",
+]
+
+[[tool.importlinter.contracts]]
+name = "The judge report does not know the judge"
+type = "independence"
+modules = [
+    "evals.designer.designer_eval.judge",
+    "evals.designer.designer_eval.judge_report",
+]

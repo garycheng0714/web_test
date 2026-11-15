@@ -23,6 +23,7 @@ from datetime import UTC, datetime
 
 from evals.designer.designer_eval.annotations import code_annotations
 from evals.designer.designer_eval.artifacts import RunMetadata, write_design, write_results
+from evals.designer.designer_eval.layout import RUNS_DIR
 from evals.designer.designer_eval.phoenix import (
     create_client,
     create_provider,
@@ -39,7 +40,6 @@ from web_test.paths import REPO_ROOT
 from web_test.planning.cases_writer import render_document, title_from_stem
 from web_test.planning.designer import design_test_cases
 
-RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
 DEFAULT_PROJECT = "web-test-designer-eval"
 
 
