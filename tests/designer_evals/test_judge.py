@@ -254,3 +254,12 @@ def test_write_records_and_render_report(tmp_path: Path):
     assert "Fail recall" in text
     assert "asserts an undefined behaviour" in text
     assert "Dev only" in text
+
+
+def test_render_report_keeps_the_whole_critique():
+    tail = "the last sentence of a long critique"
+    critique = "a paragraph that would have been cut. " * 40 + tail
+
+    text = render_report(score([_record("fail", "pass", critique=critique)]))
+
+    assert tail in text
