@@ -65,13 +65,14 @@ AC）。同一條已述規則套用在新輸入（換一個關鍵字、換一組
 
 ## Data
 
-- PRDs：`prd/register-login.md`（FR-ACC-01~06）、`prd/login-smoke.md`、
-  `prd/live-evidence.md`；必要時加 `.scratch/automationexercise/prd.md`。
+- 工作 PRD：`.scratch/automationexercise/prd.md`、`.scratch/todomvc/prd.md`、
+  `.scratch/realworld/prd.md`；`run_eval.py --prd` 預設第一份。`prd/register-login.md`、
+  `prd/login-smoke.md`、`prd/live-evidence.md` 是歷史輸入，只拿來對照，不再當預設。
 - 每個 PRD 用 `design_test_cases` 跑一次；pin `WEB_TEST_DESIGN_MODEL`
   （預設 `openai-chat:deepseek-v4.1-flash`），記錄 model id 與 usage。
 - 現有 `test-case/` 檔案只當 baseline／seed，不當 validation。
-- 每次 run 存到 `evals/designer/runs/<run_id>/`：
-  `design.json`、`run.json`、`units.json`、rendered markdown。
+- 每次 run 存到 `evals/designer/runs/<run_id>/`：`design.json`、`run.json`、
+  `units.json`、`prd.md`、rendered markdown；`labels.jsonl` 由 `export_labels.py` 寫入同一個目錄。
 - Phoenix project：house run 用 `web-test-designer-eval`；old-skill probe 用
   `web-test-designer-eval-old-skill`，避免兩套 skill 的 trace 混在一起。每次 run 是一條
   designer trace，底下有 requirement 與 claim 的 `EVALUATOR` spans。
@@ -110,9 +111,12 @@ AC）。同一條已述規則套用在新輸入（換一個關鍵字、換一組
 - 一個 judge 只判一個準則：case 的每個行為斷言都在 PRD 有依據、驗的是它宣稱的 requirement，
   而且 requirement 明寫的每個結果都有被斷言（`incomplete_journey`）。
   `duplicated` 由 CODE 的 `case_duplicate` 判，不進 judge；per-mode 只用來診斷。
-- judge 預設只跑 single-FR case。multi-FR case 是 ticket 30 之前的歷史形狀，只在使用
+- judge 預設只跑 single-FR case。multi-FR case 是早期 run 的歷史形狀，只在使用
   `--include-multi-fr` 時納入。
-- 目前只有一份帶負例的 PRD，judge 只能做 dev（claim-level）；by-PRD split 等更多 PRD。
+- 六個資料集涵蓋三份 PRD：`automationexercise`、`todomvc-v07`、`todomvc-v08`、`realworld`
+  沒有自然產生的 fail；`todomvc` 的 1 筆 fail 是 PRD 對 app 的落差；`todomvc-probe` 的 15 筆
+  是 mutation probe，單獨報，不混進 designer run 的數字。因此 judge 只能做 dev
+  （claim-level）；by-PRD split 仍等更多 PRD。
 - `claim_failure_mode`／`claim_reason` 是人類分析欄位，不是 judge 的輸出，也不進 TPR/TNR。
 - **不要用 Jev verifier 當 ground truth**：它同時是 gate，會循環。人類標籤才是 ground truth。
 
@@ -177,17 +181,14 @@ AC）。同一條已述規則套用在新輸入（換一個關鍵字、換一組
 
 ## Ticket map
 
-- [01](issues/01-eval-trace-and-units.md) — eval trace 與 claim／missing requirement 單位（unblocked）
-- [02](issues/02-labels-and-coverage-report.md) — labels export 與 coverage report（blocked by 01）
-- [03](issues/03-semantic-case-quality-judge.md) — semantic judge（blocked by 02）
-- [04](issues/04-phoenix-experiments.md) — Phoenix experiments 比較多次 run（blocked by 01；02 可選）
-- [06](issues/06-ac-level-and-baseline.md) — claim 單位改成 AC、重建基線（needs-triage）
-- 05 — report-only CI：deferred，暫不開票
+Ticket 的內容與狀態以 `.scratch/designer-evals/issues/` 為準，本文件不再維護一份清單（它已漂移
+過一次）。唯一的例外是 ticket 05（report-only CI）從來沒開票，決定是 deferred，記在
+`## Decisions`。
 
 ## Decisions
 
 - 工作目錄：`evals/designer/`
-- Ticket status：`needs-triage`
+- Ticket status 的起始預設是 `needs-triage`（開票當時的慣例，不是現在的規則）
 - `OPENCODE_API_KEY` 可用
 - Phoenix 是人類標註 UI；`labels.jsonl` 是單次 run 的匯出快照
 - judge 的 source of truth 是 `judge/data/` 底下 committed 的資料集；Phoenix 重 export 會蓋掉修正

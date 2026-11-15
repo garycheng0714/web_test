@@ -20,12 +20,12 @@
 
 ## Tasks
 
-- [ ] Rewrite the `## Data` PRD list: name the three working PRDs under `.scratch/`, and say the `prd/` files are historical inputs (one line, no table).
-- [ ] Add the two missing run artifacts to the list on line 73.
-- [ ] Rewrite line 115 so it states what the six datasets actually contain: no natural designer failure in `automationexercise`, `todomvc-v07`, `todomvc-v08` or `realworld`; `todomvc` has one PRD-vs-app failure; `todomvc-probe` is mutation-based and reported separately. Keep the "still short of a by-PRD split" conclusion, which is true.
-- [ ] Extend the Ticket map to the current numbering, or replace it with a pointer to `.scratch/designer-evals/issues/` (it has drifted once; a pointer cannot drift).
-- [ ] Make line 190 say it recorded a starting default rather than a live rule.
-- [ ] `uv run pytest tests/designer_evals` green (nothing should change).
+- [x] Rewrite the `## Data` PRD list: name the three working PRDs under `.scratch/`, and say the `prd/` files are historical inputs (one line, no table).
+- [x] Add the two missing run artifacts to the list on line 73.
+- [x] Rewrite line 115 so it states what the six datasets actually contain: no natural designer failure in `automationexercise`, `todomvc-v07`, `todomvc-v08` or `realworld`; `todomvc` has one PRD-vs-app failure; `todomvc-probe` is mutation-based and reported separately. Keep the "still short of a by-PRD split" conclusion, which is true.
+- [x] Extend the Ticket map to the current numbering, or replace it with a pointer to `.scratch/designer-evals/issues/` (it has drifted once; a pointer cannot drift).
+- [x] Make line 190 say it recorded a starting default rather than a live rule.
+- [x] `uv run pytest tests/designer_evals` green (nothing should change).
 
 ## Out of scope
 
@@ -37,3 +37,20 @@
 
 - `spec.md` is 14 KB of prose with interleaved decisions; editing one section can contradict another. Re-read the whole `## Data` and `## Evaluations` after the edit rather than only the changed lines.
 - A Ticket map kept by hand will drift again. Preferring a pointer is a deliberate loss of "what is open" at a glance.
+
+## Result
+
+- `## Data` now names the three working PRDs under `.scratch/` (checked: all three exist) and says
+  the `prd/` files are historical inputs; the default `--prd` is
+  `.scratch/automationexercise/prd.md`, as the code has had it since ticket 08.
+- The run artifact list gains `prd.md` and `labels.jsonl`.
+- The "only one PRD with failing labels" line now states what the six datasets hold, counted from
+  `judge/`: `automationexercise`, `todomvc-v07`, `todomvc-v08`, `realworld` 0 fails; `todomvc` 1;
+  `todomvc-probe` 15, reported separately.
+- The Ticket map became a pointer to `.scratch/designer-evals/issues/`, with ticket 05's deferred
+  decision kept in `## Decisions`, where it already was.
+- `Ticket status：needs-triage` now reads as the starting default it was.
+- Also removed a dangling "ticket 30" reference on line 113: the numbering in this repo stops at 21,
+  so the multi-FR note now says "早期 run 的歷史形狀".
+
+Documentation only; tests unaffected.
