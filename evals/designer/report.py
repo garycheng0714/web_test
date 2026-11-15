@@ -9,6 +9,7 @@ Run from the repository root after export_labels.py:
 import argparse
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
@@ -24,11 +25,27 @@ from web_test.planning.review.verification import VerificationStatus
 from web_test.planning.schema import DesignOutput
 
 
+@dataclass(frozen=True)
+class RequirementRow:
+    """One PRD requirement with the claims and HUMAN alignment labels that landed on it."""
+
+    requirement_id: str
+    claim_ids: list[str]
+    case_ids: list[str]
+    missing: bool
+    status: Literal["missing", "unlabeled", "covered", "not_clean"]
+    labels: list[AnnotationRow]
+    pass_count: int
+    tested: bool
+
+
 def _claims(units: list[EvalUnit]) -> list[EvalUnit]:
     return [unit for unit in units if unit.kind == UnitKind.CLAIM]
 
 
-def requirement_rows(units: list[EvalUnit], labels: Sequence[AnnotationRow]) -> list[dict]:
+def requirement_rows(
+    units: list[EvalUnit], labels: Sequence[AnnotationRow]
+) -> list[RequirementRow]:
     requirements: dict[str, dict] = {}
     for unit in units:
         if unit.kind != UnitKind.REQUIREMENT:
@@ -78,13 +95,16 @@ def requirement_rows(units: list[EvalUnit], labels: Sequence[AnnotationRow]) -> 
         else:
             status = "not_clean"
         rows.append(
-            {
-                **item,
-                "status": status,
-                "labels": relevant,
-                "pass_count": sum(label.label == "pass" for label in relevant),
-                "tested": bool(item["claim_ids"]) and not item["missing"],
-            }
+            RequirementRow(
+                requirement_id=requirement_id,
+                claim_ids=item["claim_ids"],
+                case_ids=item["case_ids"],
+                missing=item["missing"],
+                status=status,
+                labels=relevant,
+                pass_count=sum(label.label == "pass" for label in relevant),
+                tested=bool(item["claim_ids"]) and not item["missing"],
+            )
         )
     return rows
 
@@ -156,17 +176,10 @@ def _header_lines(run: RunSummary, *, total: int, claim_count: int, human_labels
     ]
 
 
-def _coverage_lines(
-    *,
-    total: int,
-    tested: int,
-    clean: int,
-    not_clean: list[dict],
-    missing: list[dict],
-    unlabeled: list[dict],
-    low: float,
-    high: float,
-) -> list[str]:
+def _coverage_lines(rows: Sequence[RequirementRow], *, low: float, high: float) -> list[str]:
+    total = len(rows)
+    tested = sum(row.tested for row in rows)
+    clean = sum(row.status == "covered" for row in rows)
     return [
         "",
         "## Coverage",
@@ -174,13 +187,13 @@ def _coverage_lines(
         f"- Tested: {tested} / {total} (has at least one claim)" if total else "- Tested: 0 / 0",
         f"- Clean: {clean} / {total} ({clean / total:.0%})" if total else "- Clean: 0 / 0",
         f"- Wilson 95% CI (clean): [{low:.2f}, {high:.2f}]" if total else "- Wilson 95% CI: n/a",
-        f"- Not clean: {len(not_clean)}",
-        f"- Missing: {len(missing)}",
-        f"- Unlabeled: {len(unlabeled)}",
+        f"- Not clean: {sum(row.status == 'not_clean' for row in rows)}",
+        f"- Missing: {sum(row.status == 'missing' for row in rows)}",
+        f"- Unlabeled: {sum(row.status == 'unlabeled' for row in rows)}",
     ]
 
 
-def _requirement_lines(rows: list[dict]) -> list[str]:
+def _requirement_lines(rows: Sequence[RequirementRow]) -> list[str]:
     lines = [
         "",
         "## Requirements",
@@ -189,12 +202,10 @@ def _requirement_lines(rows: list[dict]) -> list[str]:
         "| --- | --- | --- | --- |",
     ]
     for row in rows:
-        labels_text = (
-            ", ".join(f"{label.label}({label.annotator})" for label in row["labels"]) or "-"
-        )
+        labels_text = ", ".join(f"{label.label}({label.annotator})" for label in row.labels) or "-"
         lines.append(
-            f"| {row['requirement_id']} | {', '.join(row['case_ids']) or '-'} | "
-            f"{labels_text} | `{row['status']}` |"
+            f"| {row.requirement_id} | {', '.join(row.case_ids) or '-'} | "
+            f"{labels_text} | `{row.status}` |"
         )
     return lines
 
@@ -233,37 +244,38 @@ def _claim_lines(
     return lines
 
 
-def _not_clean_lines(not_clean: list[dict]) -> list[str]:
+def _not_clean_lines(rows: Sequence[RequirementRow]) -> list[str]:
     lines = ["", "## Requirements without a passing claim", ""]
-    if not not_clean:
+    if not rows:
         return [*lines, "None."]
-    for row in not_clean:
-        labels_text = ", ".join(f"{label.target_id}={label.label}" for label in row["labels"])
-        lines.append(f"- {row['requirement_id']}: {labels_text}")
+    for row in rows:
+        labels_text = ", ".join(f"{label.target_id}={label.label}" for label in row.labels)
+        lines.append(f"- {row.requirement_id}: {labels_text}")
     return lines
 
 
 def _code_check_lines(
     *,
-    findings: RunSummary,
-    empty_cases: list[str],
-    duplicate_cases: list[str],
-    structure_errors: list[str],
-    structure_checked: bool,
+    run: RunSummary,
+    rows: Sequence[RequirementRow],
+    design: DesignOutput,
+    structure_errors: list[str] | None,
     structure_note: str,
-    missing: list[dict],
-    unlabeled: list[dict],
 ) -> list[str]:
+    empty_cases = _empty_cases(design)
+    duplicate_cases = _duplicate_cases(design)
+    missing = [row.requirement_id for row in rows if row.status == "missing"]
+    unlabeled = [row.requirement_id for row in rows if row.status == "unlabeled"]
     lines = ["", "## Code checks", ""]
-    non_requirement_count = sum(len(ids) for ids in findings.non_requirement_ids.values())
+    non_requirement_count = sum(len(ids) for ids in run.non_requirement_ids.values())
     lines.append(f"- Non-requirement IDs: {non_requirement_count}")
-    for cid, ids in sorted(findings.non_requirement_ids.items()):
+    for cid, ids in sorted(run.non_requirement_ids.items()):
         lines.append(f"  - {cid}: {', '.join(ids)}")
-    invalid_count = sum(len(ids) for ids in findings.invalid_requirement_ids.values())
+    invalid_count = sum(len(ids) for ids in run.invalid_requirement_ids.values())
     lines.append(f"- Invalid requirement IDs: {invalid_count}")
-    for cid, ids in sorted(findings.invalid_requirement_ids.items()):
+    for cid, ids in sorted(run.invalid_requirement_ids.items()):
         lines.append(f"  - {cid}: {', '.join(ids)}")
-    multi = findings.multi_requirement_cases
+    multi = run.multi_requirement_cases
     lines.append(
         f"- Multi-requirement cases: {len(multi)}" + (f" ({', '.join(multi)})" if multi else "")
     )
@@ -275,22 +287,18 @@ def _code_check_lines(
         f"- Duplicate cases: {len(duplicate_cases)}"
         + (f" ({', '.join(duplicate_cases)})" if duplicate_cases else "")
     )
-    if structure_checked:
+    if structure_errors is not None:
         lines.append(f"- Structure failures: {len(structure_errors)}")
     elif structure_note:
         lines.append(f"- Structure failures: not checked ({structure_note})")
     else:
         lines.append("- Structure failures: not checked")
-    for error in structure_errors:
+    for error in structure_errors or []:
         lines.append(f"  - {error}")
     if missing:
-        lines.append(
-            f"- Missing requirements: {', '.join(row['requirement_id'] for row in missing)}"
-        )
+        lines.append(f"- Missing requirements: {', '.join(missing)}")
     if unlabeled:
-        lines.append(
-            "- Unlabeled requirements: " + ", ".join(row["requirement_id"] for row in unlabeled)
-        )
+        lines.append("- Unlabeled requirements: " + ", ".join(unlabeled))
     return lines
 
 
@@ -327,11 +335,7 @@ def render_report(
 ) -> str:
     rows = requirement_rows(units, labels)
     total = len(rows)
-    tested = sum(row["tested"] for row in rows)
-    clean = sum(row["status"] == "covered" for row in rows)
-    not_clean = [row for row in rows if row["status"] == "not_clean"]
-    missing = [row for row in rows if row["status"] == "missing"]
-    unlabeled = [row for row in rows if row["status"] == "unlabeled"]
+    clean = sum(row.status == "covered" for row in rows)
     low, high = wilson_interval(clean, total)
     fields_by_target = human_fields(labels, by="target_id")
     aligned = {
@@ -351,31 +355,19 @@ def render_report(
     lines = _header_lines(
         run, total=total, claim_count=len(_claims(units)), human_labels=human_labels
     )
-    lines += _coverage_lines(
-        total=total,
-        tested=tested,
-        clean=clean,
-        not_clean=not_clean,
-        missing=missing,
-        unlabeled=unlabeled,
-        low=low,
-        high=high,
-    )
+    lines += _coverage_lines(rows, low=low, high=high)
     lines += _requirement_lines(rows)
     lines += _failure_mode_lines(
         mode_counts=mode_counts, fail_count=fail_count, human_labels=human_labels
     )
     lines += _claim_lines(units, fields_by_target)
-    lines += _not_clean_lines(not_clean)
+    lines += _not_clean_lines([row for row in rows if row.status == "not_clean"])
     lines += _code_check_lines(
-        findings=run,
-        empty_cases=_empty_cases(design),
-        duplicate_cases=_duplicate_cases(design),
-        structure_errors=structure_errors or [],
-        structure_checked=structure_errors is not None,
+        run=run,
+        rows=rows,
+        design=design,
+        structure_errors=structure_errors,
         structure_note=structure_note,
-        missing=missing,
-        unlabeled=unlabeled,
     )
     lines += _limits_lines()
     return "\n".join(lines) + "\n"

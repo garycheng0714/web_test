@@ -216,11 +216,11 @@ def test_requirement_rows_marks_a_fake_failure_as_false_tag():
 
     rows = report.requirement_rows(units, labels)
 
-    assert {row["requirement_id"]: row["status"] for row in rows} == {
+    assert {row.requirement_id: row.status for row in rows} == {
         "FR-1": "covered",
         "FR-2": "not_clean",
     }
-    assert rows[1]["pass_count"] == 0
+    assert rows[1].pass_count == 0
 
 
 def test_requirement_rows_marks_a_missing_requirement():
@@ -228,7 +228,7 @@ def test_requirement_rows_marks_a_missing_requirement():
 
     rows = report.requirement_rows(units, [])
 
-    assert [row["status"] for row in rows] == ["missing"]
+    assert [row.status for row in rows] == ["missing"]
 
 
 def test_wilson_interval_for_six_of_six():
