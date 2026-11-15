@@ -16,6 +16,12 @@ jobs:
       - run: uv sync --locked
       - run: uv run playwright install --with-deps chromium
       - run: uv run pytest -q --cov=web_test --cov-report=term-missing
+      # The eval library has its own gate: mixing it into the product's number would dilute
+      # a web_test regression behind its much higher coverage.
+      - name: Designer eval library coverage
+        run: >-
+          uv run pytest tests/designer_evals -q --cov=evals.designer.designer_eval
+          --cov-fail-under=95
       # The live tests hit automationexercise.com; a third-party outage must not block a PR.
       - name: Live browser tests
         continue-on-error: true
