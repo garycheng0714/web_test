@@ -66,7 +66,6 @@ evals/designer/
 │                        # judge, judge records, judge report
 ├── judge/data/          # committed dev set (PRD + labeled claims)
 ├── judge/runs/          # local judge output, gitignored
-├── phoenix/             # local instrumentation probes
 ├── spec.md              # eval contract
 └── runs/                # local run artifacts, gitignored
 ```

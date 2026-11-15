@@ -6,7 +6,7 @@
 
 **Blocked by:** Nothing.
 
-**Status:** ready-for-human
+**Status:** resolved
 
 ## Why
 
@@ -31,10 +31,10 @@ Option 1 is the smallest state; option 2 costs one paragraph. Option 3 is not re
 
 ## Tasks
 
-- [ ] Pick an option.
-- [ ] If deleting: remove `evals/designer/phoenix/` and the layout line in `evals/designer/README.md`; keep the `learn/` reference.
-- [ ] If keeping: update `evals/designer/phoenix/README.md` with the status line, and record the choice here.
-- [ ] `uv run ruff check evals` and `uv run pytest tests/designer_evals` green either way.
+- [x] Pick an option: **1, delete them** (decided by the human, 2026-11-15).
+- [x] If deleting: remove `evals/designer/phoenix/` and the layout line in `evals/designer/README.md`; keep the `learn/` reference.
+- [x] If keeping: not applicable.
+- [x] `uv run ruff check evals` and `uv run pytest tests/designer_evals` green either way.
 
 ## Out of scope
 
@@ -45,3 +45,14 @@ Option 1 is the smallest state; option 2 costs one paragraph. Option 3 is not re
 
 - Deleting loses the runnable probes. If the Phoenix instrumentation is ever debugged again (the "late child span" and "register span" questions are already answered in `learn/`, but a new Phoenix version may reopen them), the scripts have to be rewritten from that reference.
 - Keeping them without an owner means the next Phoenix upgrade silently breaks them, and nobody finds out because nothing runs them.
+
+## Result
+
+`evals/designer/phoenix/` is gone (four files, 507 lines including its README). Also removed the
+`evals/designer/phoenix` entry from `[tool.basedpyright] exclude`, which existed only for those
+files, and the `phoenix/` line from the README's layout block.
+
+The findings stay in `learn/evals/reference/phoenix.md`; the scripts are in this commit's parent in
+git history if they are ever needed again. `uv run ruff check evals`, `uv run --group eval
+basedpyright` (0 errors), `uv run lint-imports` (8 kept) and 391 tests all still pass; nothing
+imported the probes.

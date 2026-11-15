@@ -115,7 +115,7 @@ exclude_lines = [
 
 [tool.basedpyright]
 include = ["web_test", "evals/designer"]
-exclude = [".venv", "**/__pycache__", "evals/designer/phoenix"]
+exclude = [".venv", "**/__pycache__"]
 typeCheckingMode = "standard"
 
 [tool.importlinter]
