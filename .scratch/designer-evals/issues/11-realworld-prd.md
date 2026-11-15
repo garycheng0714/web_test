@@ -215,3 +215,12 @@ per run 0.77 / 0.80 / 0.80, 9 claims flipped at least once. The seven split into
 
 So the first number on this PRD measures a prompt defect mixed with a PRD-shape question; it is not a
 clean estimate of the judge. Ticket 23 is the prerequisite for reading it.
+
+2026-11-15, second measurement after ticket 23. Same 30 claims, prompt `67265b54`, three runs:
+0.80 / 0.83 / 0.80, majority **0.80 [0.63, 0.90]**. The non-assertion false alarms are gone
+(`case-15`, `case-26` now pass; `case-14`'s button objection disappeared). The six remaining majority
+failures are three requirement-shape disagreements (`FR-RW-14`, `FR-RW-16` in some runs, `FR-RW-21`,
+`FR-RW-27` — a case covers one of two stated results and the judge cannot see the sibling case) and
+three real over-assertions (`FR-RW-07` persistence, `FR-RW-09` "leaves the editor", `FR-RW-28` "account
+not created"). Splitting the multi-result requirements is the next decision; it needs a designer
+re-run.

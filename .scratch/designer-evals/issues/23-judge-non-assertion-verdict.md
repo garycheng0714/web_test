@@ -62,6 +62,34 @@ The model knew the rule and had no way to record it. A two-valued field forces a
 
 - `realworld` × 3 = 90 judge calls for the comparison.
 
+## Result (2026-11-15)
+
+| run | fail | `pass_specificity` |
+| --- | --- | --- |
+| `realworld-run1-v2` | 6 | 0.80 [0.63, 0.90] |
+| `realworld-run2-v2` | 5 | 0.83 [0.66, 0.93] |
+| `realworld-run3-v2` | 6 | 0.80 [0.63, 0.90] |
+| majority | 6 | **0.80** [0.63, 0.90] |
+
+Prompt `67265b54`, 90 calls. The change did what it was written to do: `case-15` (the editor button's
+enabled state) and `case-26` (text in the input box) now pass, and `case-14`'s button objection is
+gone. `null` is being used; no critique claims a non-assertion is ungrounded any more.
+
+The headline moved 0.77 → 0.80, not the predicted 0.87, because the remaining failures are a
+different cause. Six majority failures:
+
+- **3 requirement shape** — `FR-RW-27` (two pages), `FR-RW-14` and `FR-RW-21` (two directions that need
+  different actors). The case covers one result, defers the other, and the judge cannot see the sibling
+  case.
+- **3 over-assertions** — `FR-RW-07` "the settings were saved", `FR-RW-09` "the screen leaves the
+  editor" (which §11 says is unspecified), `FR-RW-28` "the account was not created".
+
+So 0.80 is a cleaner number than 0.77 but still not a clean judge estimate: the requirement-shape
+family is a PRD decision, not a judge defect. If those three requirements were split by page/actor,
+the same prompt would measure about 0.90.
+
+Keep the change. The requirement-shape question is its own ticket.
+
 ## Risks
 
 - The prompt hash changes from `8835420e…` to `67265b54…`. Rates measured with the old hash are not
