@@ -11,14 +11,15 @@ Run from the repository root:
 """
 
 import argparse
-import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
+from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_units
 from evals.designer.designer_eval.dataset import LabeledClaim
 from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
+from evals.designer.designer_eval.units import EvalUnit, UnitKind
 from web_test.paths import REPO_ROOT
 
 RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
@@ -43,36 +44,36 @@ def _field(
 
 
 def build_rows(
-    units: Sequence[dict], labels: Sequence[AnnotationRow], run: dict
+    units: Sequence[EvalUnit], labels: Sequence[AnnotationRow], run: RunSummary
 ) -> list[LabeledClaim]:
     """Join claim units with their human labels; refuse a claim that is not fully labeled."""
     by_span = human_fields(labels, by="span_id")
     rows: list[LabeledClaim] = []
     unlabeled: list[str] = []
     for unit in units:
-        if unit["kind"] != "claim":
+        if unit.kind != UnitKind.CLAIM:
             continue
-        fields = by_span.get(unit["span_id"], {})
+        fields = by_span.get(unit.span_id, {})
         alignment = _field(fields, "claim_alignment")
         if alignment is None:
-            unlabeled.append(unit["target_id"])
+            unlabeled.append(unit.target_id)
             continue
         if alignment not in ("pass", "fail"):
-            raise ValueError(f"{unit['target_id']} has an unknown claim_alignment {alignment!r}")
+            raise ValueError(f"{unit.target_id} has an unknown claim_alignment {alignment!r}")
         human_label: Literal["pass", "fail"] = "pass" if alignment == "pass" else "fail"
         mode = _field(fields, "claim_failure_mode")
         if human_label == "pass":
             # Phoenix cannot clear a value, so a mode left on a passing claim means nothing.
             mode = None
         elif mode in NO_MODE:
-            raise ValueError(f"{unit['target_id']} failed without a failure mode")
+            raise ValueError(f"{unit.target_id} failed without a failure mode")
         rows.append(
             LabeledClaim(
-                source_run=run["run_id"],
-                claim_id=unit["target_id"],
-                requirement_id=unit["attributes"]["claim.requirement_id"],
-                case_id=unit["attributes"]["claim.case_id"],
-                case_markdown=unit["attributes"]["output.value"],
+                source_run=run.run_id,
+                claim_id=unit.target_id,
+                requirement_id=unit.attributes["claim.requirement_id"],
+                case_id=unit.attributes["claim.case_id"],
+                case_markdown=unit.attributes["output.value"],
                 human_label=human_label,
                 human_mode=mode,
                 human_reason=_field(fields, "claim_reason", "explanation"),
@@ -99,8 +100,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             if args.run_dir
             else (RUNS_DIR / args.run if args.run else _latest_run())
         )
-        run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
-        units = json.loads((run_dir / "units.json").read_text(encoding="utf-8"))
+        run = read_run(run_dir)
+        units = read_units(run_dir)
         labels = read_labels(run_dir / "labels.jsonl")
         rows = build_rows(units, labels, run)
     except (OSError, ValueError, KeyError) as error:

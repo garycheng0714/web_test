@@ -5,7 +5,10 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from evals.designer.designer_eval.artifacts import RunSummary
 from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
+from evals.designer.designer_eval.units import EvalUnit, UnitKind
+from web_test.planning.schema import DesignOutput
 
 ROOT = Path(__file__).parents[2]
 
@@ -23,34 +26,51 @@ export_labels = _load("export_labels")
 report = _load("report")
 
 
-def _run():
-    return {"run_id": "run-1", "prd": "register-login.md", "model": "model-1"}
+def _run() -> RunSummary:
+    return RunSummary(
+        run_id="run-1",
+        prd="register-login.md",
+        prd_path="prd/register-login.md",
+        model="model-1",
+        project="project-1",
+        created_at="2026-11-13T00:00:00Z",
+        requirements=2,
+        cases=2,
+        claims=2,
+        units=4,
+        annotations=0,
+        usage={},
+    )
 
 
-def _requirement(requirement_id: str, span_id: str, *, missing: bool = False):
-    return {
-        "kind": "requirement",
-        "target_id": requirement_id,
-        "span_id": span_id,
-        "name": f"requirement {requirement_id}",
-        "attributes": {
+def _requirement(requirement_id: str, span_id: str, *, missing: bool = False) -> EvalUnit:
+    return EvalUnit(
+        kind=UnitKind.REQUIREMENT,
+        target_id=requirement_id,
+        span_id=span_id,
+        name=f"requirement {requirement_id}",
+        attributes={
             "requirement.id": requirement_id,
             "requirement.missing": "true" if missing else "false",
         },
-    }
+    )
 
 
-def _claim(target_id: str, span_id: str, requirement_id: str, case_id: str):
-    return {
-        "kind": "claim",
-        "target_id": target_id,
-        "span_id": span_id,
-        "name": f"claim {target_id}",
-        "attributes": {
+def _claim(target_id: str, span_id: str, requirement_id: str, case_id: str) -> EvalUnit:
+    return EvalUnit(
+        kind=UnitKind.CLAIM,
+        target_id=target_id,
+        span_id=span_id,
+        name=f"claim {target_id}",
+        attributes={
             "requirement.id": requirement_id,
             "claim.case_id": case_id,
         },
-    }
+    )
+
+
+def _design(*cases: dict) -> DesignOutput:
+    return DesignOutput.model_validate({"cases": list(cases)})
 
 
 def _human(target_id: str, span_id: str, label: str | None):
@@ -229,19 +249,20 @@ def test_render_report_shows_fake_failure(tmp_path):
         _human("case-1-functional->FR-1", "span-1", "pass"),
         _human("case-2-functional->FR-2", "span-2", "fail"),
     ]
-    design = {"cases": [_design_case(["FR-1"]), _design_case(["FR-2"])]}
+    design = _design(_design_case(["FR-1"]), _design_case(["FR-2"]))
 
     text = report.render_report(
-        run=_run(),
+        run=_run().model_copy(
+            update={
+                "non_requirement_ids": {"case-1-functional": ["MSG-TITLE"]},
+                "invalid_requirement_ids": {"case-2-functional": ["FR-999"]},
+                "multi_requirement_cases": ["case-2-functional"],
+            }
+        ),
         units=units,
         labels=labels,
         design=design,
         structure_errors=["front_matter: missing"],
-        findings=report.RunFindings(
-            non_requirement_ids={"case-1-functional": ["MSG-TITLE"]},
-            invalid_requirement_ids={"case-2-functional": ["FR-999"]},
-            multi_requirement_cases=["case-2-functional"],
-        ),
     )
 
     assert "Tested: 2 / 2" in text
@@ -274,7 +295,7 @@ def test_render_report_counts_only_claim_alignment_as_a_human_label():
         run=_run(),
         units=units,
         labels=labels,
-        design={"cases": [_design_case(["FR-1"])]},
+        design=_design(_design_case(["FR-1"])),
     )
 
     assert "HUMAN labels: 1" in text
@@ -284,7 +305,7 @@ def test_render_report_counts_only_claim_alignment_as_a_human_label():
 
 
 def test_render_report_flags_duplicates_without_claims():
-    design = {"cases": [_design_case([]), _design_case([])]}
+    design = _design(_design_case([]), _design_case([]))
 
     text = report.render_report(run=_run(), units=[], labels=[], design=design)
 
@@ -292,12 +313,10 @@ def test_render_report_flags_duplicates_without_claims():
 
 
 def test_empty_cases_uses_the_case_id_format():
-    design = {
-        "cases": [
-            _design_case([], test_type="DataPersistence"),
-            _design_case(["FR-1"]),
-        ]
-    }
+    design = _design(
+        _design_case([], test_type="DataPersistence"),
+        _design_case(["FR-1"]),
+    )
 
     assert report._empty_cases(design) == ["case-1-data-persistence"]
 
@@ -307,7 +326,7 @@ def test_render_report_names_why_structure_checks_were_skipped():
         run=_run(),
         units=[],
         labels=[],
-        design={"cases": []},
+        design=_design(),
         structure_note="test-case.md is missing",
     )
 
@@ -325,7 +344,7 @@ def test_render_report_separates_tested_from_clean():
         run=_run(),
         units=units,
         labels=labels,
-        design={"cases": [_design_case(["FR-1"])]},
+        design=_design(_design_case(["FR-1"])),
     )
 
     assert "Tested: 1 / 1" in text

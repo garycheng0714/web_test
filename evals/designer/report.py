@@ -3,19 +3,19 @@
 Run from the repository root after export_labels.py:
 
     PYTHONPATH=. uv run --group eval python evals/designer/report.py \
-        --run register-login-20261029T070829Z
+        --run journey-v07-20261103
 """
 
 import argparse
-import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
+from evals.designer.designer_eval.artifacts import RunSummary, read_design, read_run, read_units
 from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
 from evals.designer.designer_eval.metrics import wilson_interval
-from evals.designer.designer_eval.units import RunFindings, UnitKind, case_id, duplicate_groups
+from evals.designer.designer_eval.units import EvalUnit, UnitKind, case_id, duplicate_groups
 from web_test.paths import REPO_ROOT
 from web_test.planning.review.parser import parse_test_case
 from web_test.planning.review.structure import structure_checks
@@ -25,8 +25,8 @@ from web_test.planning.schema import DesignOutput
 RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
 
 
-def _claims(units: list[dict]) -> list[dict]:
-    return [unit for unit in units if unit["kind"] == UnitKind.CLAIM]
+def _claims(units: list[EvalUnit]) -> list[EvalUnit]:
+    return [unit for unit in units if unit.kind == UnitKind.CLAIM]
 
 
 def _latest_run() -> Path:
@@ -36,16 +36,12 @@ def _latest_run() -> Path:
     return max(runs, key=lambda path: path.stat().st_mtime)
 
 
-def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def requirement_rows(units: list[dict], labels: Sequence[AnnotationRow]) -> list[dict]:
+def requirement_rows(units: list[EvalUnit], labels: Sequence[AnnotationRow]) -> list[dict]:
     requirements: dict[str, dict] = {}
     for unit in units:
-        if unit["kind"] != UnitKind.REQUIREMENT:
+        if unit.kind != UnitKind.REQUIREMENT:
             continue
-        attributes = unit["attributes"]
+        attributes = unit.attributes
         requirement_id = attributes["requirement.id"]
         requirements[requirement_id] = {
             "requirement_id": requirement_id,
@@ -55,7 +51,7 @@ def requirement_rows(units: list[dict], labels: Sequence[AnnotationRow]) -> list
         }
 
     for unit in _claims(units):
-        attributes = unit["attributes"]
+        attributes = unit.attributes
         requirement_id = attributes["requirement.id"]
         row = requirements.setdefault(
             requirement_id,
@@ -66,7 +62,7 @@ def requirement_rows(units: list[dict], labels: Sequence[AnnotationRow]) -> list
                 "missing": False,
             },
         )
-        row["claim_ids"].append(unit["target_id"])
+        row["claim_ids"].append(unit.target_id)
         row["case_ids"].append(attributes["claim.case_id"])
         row["missing"] = False
 
@@ -115,32 +111,29 @@ def _cell(value: object) -> str:
     return str(value).replace("|", "\\|").replace("\n", " ").strip() or "-"
 
 
-def _empty_cases(design: dict) -> list[str]:
-    validated = DesignOutput.model_validate(design)
+def _empty_cases(design: DesignOutput) -> list[str]:
     return [
         case_id(index, case.test_type)
-        for index, case in enumerate(validated.cases, start=1)
+        for index, case in enumerate(design.cases, start=1)
         if not case.requirement_ids
     ]
 
 
-def _prd_path(run: dict) -> Path | None:
-    recorded = run.get("prd_path")
-    if recorded:
-        candidate = (REPO_ROOT / recorded).resolve()
-        if candidate.exists():
-            return candidate
-    candidate = REPO_ROOT / "prd" / run["prd"]
+def _prd_path(run: RunSummary) -> Path | None:
+    recorded = (REPO_ROOT / run.prd_path).resolve()
+    if recorded.exists():
+        return recorded
+    candidate = REPO_ROOT / "prd" / run.prd
     return candidate if candidate.exists() else None
 
 
-def structure_failures(run_dir: Path, run: dict) -> tuple[list[str] | None, str]:
+def structure_failures(run_dir: Path, run: RunSummary) -> tuple[list[str] | None, str]:
     text_path = run_dir / "test-case.md"
     prd_path = _prd_path(run)
     if not text_path.exists():
         return None, "test-case.md is missing"
     if prd_path is None:
-        return None, f"PRD {run['prd']} not found"
+        return None, f"PRD {run.prd} not found"
     text = text_path.read_text(encoding="utf-8")
     try:
         subject = parse_test_case(text, prd_path.read_text(encoding="utf-8"))
@@ -154,17 +147,17 @@ def structure_failures(run_dir: Path, run: dict) -> tuple[list[str] | None, str]
     ], ""
 
 
-def _duplicate_cases(design: dict) -> list[str]:
-    groups = duplicate_groups(DesignOutput.model_validate(design))
+def _duplicate_cases(design: DesignOutput) -> list[str]:
+    groups = duplicate_groups(design)
     return sorted({cid for ids in groups.values() for cid in ids})
 
 
-def _header_lines(run: dict, *, total: int, claim_count: int, human_labels: int) -> list[str]:
+def _header_lines(run: RunSummary, *, total: int, claim_count: int, human_labels: int) -> list[str]:
     return [
-        f"# Designer eval report: {run['run_id']}",
+        f"# Designer eval report: {run.run_id}",
         "",
-        f"- PRD: `{run['prd']}`",
-        f"- Model: `{run['model']}`",
+        f"- PRD: `{run.prd}`",
+        f"- Model: `{run.model}`",
         f"- Requirements: {total}",
         f"- Claims: {claim_count}",
         f"- HUMAN labels: {human_labels}",
@@ -230,7 +223,7 @@ def _failure_mode_lines(
 
 
 def _claim_lines(
-    units: list[dict], fields_by_target: dict[str, dict[str, AnnotationRow]]
+    units: list[EvalUnit], fields_by_target: dict[str, dict[str, AnnotationRow]]
 ) -> list[str]:
     lines = [
         "",
@@ -240,11 +233,11 @@ def _claim_lines(
         "| --- | --- | --- | --- |",
     ]
     for unit in _claims(units):
-        fields = fields_by_target.get(unit["target_id"], {})
+        fields = fields_by_target.get(unit.target_id, {})
         alignment = _value(fields, "claim_alignment")
         mode = _value(fields, "claim_failure_mode")
         reason = _value(fields, "claim_reason", "explanation")
-        lines.append(f"| {unit['target_id']} | {alignment} | {mode} | {_cell(reason)} |")
+        lines.append(f"| {unit.target_id} | {alignment} | {mode} | {_cell(reason)} |")
     return lines
 
 
@@ -260,7 +253,7 @@ def _not_clean_lines(not_clean: list[dict]) -> list[str]:
 
 def _code_check_lines(
     *,
-    findings: RunFindings,
+    findings: RunSummary,
     empty_cases: list[str],
     duplicate_cases: list[str],
     structure_errors: list[str],
@@ -333,13 +326,12 @@ def _limits_lines() -> list[str]:
 
 def render_report(
     *,
-    run: dict,
-    units: list[dict],
+    run: RunSummary,
+    units: list[EvalUnit],
     labels: Sequence[AnnotationRow],
-    design: dict,
+    design: DesignOutput,
     structure_errors: list[str] | None = None,
     structure_note: str = "",
-    findings: RunFindings | None = None,
 ) -> str:
     rows = requirement_rows(units, labels)
     total = len(rows)
@@ -363,7 +355,6 @@ def render_report(
         if label.label == "fail" and mode:
             mode_counts[mode] = mode_counts.get(mode, 0) + 1
     fail_count = sum(label.label == "fail" for label in aligned.values())
-    findings = findings or RunFindings()
 
     lines = _header_lines(
         run, total=total, claim_count=len(_claims(units)), human_labels=human_labels
@@ -385,7 +376,7 @@ def render_report(
     lines += _claim_lines(units, fields_by_target)
     lines += _not_clean_lines(not_clean)
     lines += _code_check_lines(
-        findings=findings,
+        findings=run,
         empty_cases=_empty_cases(design),
         duplicate_cases=_duplicate_cases(design),
         structure_errors=structure_errors or [],
@@ -411,9 +402,9 @@ def main() -> int:
             run_dir = RUNS_DIR / args.run
         else:
             run_dir = _latest_run()
-        run = _load_json(run_dir / "run.json")
-        units = _load_json(run_dir / "units.json")
-        design = _load_json(run_dir / "design.json")
+        run = read_run(run_dir)
+        units = read_units(run_dir)
+        design = read_design(run_dir)
         labels = read_labels(run_dir / "labels.jsonl")
     except (OSError, ValueError) as error:
         print(f"failed to read run artifacts: {error}", file=sys.stderr)
@@ -427,7 +418,6 @@ def main() -> int:
         design=design,
         structure_errors=structure_errors,
         structure_note=structure_note,
-        findings=RunFindings.model_validate(run),
     )
     path = run_dir / "report.md"
     path.write_text(report, encoding="utf-8")

@@ -1,7 +1,14 @@
 import json
 from datetime import UTC, datetime
 
-from evals.designer.designer_eval.artifacts import RunMetadata, write_design, write_results
+from evals.designer.designer_eval.artifacts import (
+    RunMetadata,
+    read_design,
+    read_run,
+    read_units,
+    write_design,
+    write_results,
+)
 from evals.designer.designer_eval.requirements import Requirement
 from evals.designer.designer_eval.units import EvalUnit, RunFindings, UnitKind
 from web_test.paths import REPO_ROOT
@@ -88,7 +95,7 @@ def test_write_results_writes_units_run_metadata_and_prd(tmp_path):
         "prd_path": "prd/register-login.md",
         "model": "openai-chat:deepseek-v4.1-flash",
         "project": "web-test-designer-eval",
-        "created_at": "2026-10-29T07:09:04+00:00",
+        "created_at": "2026-10-29T07:09:04Z",
         "requirements": 1,
         "cases": 1,
         "claims": 1,
@@ -99,3 +106,20 @@ def test_write_results_writes_units_run_metadata_and_prd(tmp_path):
         "invalid_requirement_ids": {},
         "multi_requirement_cases": ["case-1-functional"],
     }
+
+
+def test_the_written_artifacts_read_back_as_the_same_models(tmp_path):
+    run_dir = tmp_path / "run"
+    metadata = _metadata()
+    write_design(run_dir, metadata.design, "# rendered\n")
+    write_results(run_dir, metadata)
+
+    summary = read_run(run_dir)
+
+    assert (summary.run_id, summary.claims, summary.multi_requirement_cases) == (
+        "run-1",
+        1,
+        ["case-1-functional"],
+    )
+    assert read_units(run_dir) == metadata.units
+    assert read_design(run_dir) == metadata.design

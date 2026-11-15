@@ -6,18 +6,19 @@ and Phoenix cannot clear one.
 Run from the repository root:
 
     PYTHONPATH=. uv run --group eval python evals/designer/export_labels.py \
-        --run register-login-20261029T070829Z
+        --run journey-v07-20261103
 """
 
 import argparse
-import json
 import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_units
 from evals.designer.designer_eval.labels import AnnotationRow, write_labels
+from evals.designer.designer_eval.units import EvalUnit
 from web_test.paths import REPO_ROOT
 
 RUNS_DIR = REPO_ROOT / "evals" / "designer" / "runs"
@@ -44,9 +45,9 @@ def _alignment_by_span(annotations: Sequence[Any]) -> dict[str, str | None]:
 
 
 def _label_rows(
-    units: list[dict],
+    units: list[EvalUnit],
     annotations: Sequence[Any],
-    run: dict,
+    run: RunSummary,
     *,
     annotator: str,
 ) -> list[AnnotationRow]:
@@ -57,24 +58,24 @@ def _label_rows(
     alignment = _alignment_by_span(annotations)
     rows = []
     for unit in units:
-        for annotation in by_span.get(unit["span_id"], []):
+        for annotation in by_span.get(unit.span_id, []):
             kind = annotation["annotator_kind"]
             # A failure mode is only meaningful on a failing claim; the Phoenix UI cannot clear
             # one, so an old value on a passing claim is dropped here.
             if (
                 kind == "HUMAN"
                 and annotation["name"] == "claim_failure_mode"
-                and alignment.get(unit["span_id"]) != "fail"
+                and alignment.get(unit.span_id) != "fail"
             ):
                 continue
             result = annotation.get("result") or {}
             rows.append(
                 AnnotationRow(
-                    run_id=run["run_id"],
-                    prd=run["prd"],
-                    target_kind=unit["kind"],
-                    target_id=unit["target_id"],
-                    span_id=unit["span_id"],
+                    run_id=run.run_id,
+                    prd=run.prd,
+                    target_kind=unit.kind,
+                    target_id=unit.target_id,
+                    span_id=unit.span_id,
                     annotation=annotation["name"],
                     annotator_kind=kind,
                     label=result.get("label"),
@@ -108,18 +109,18 @@ def main() -> int:
             run_dir = RUNS_DIR / args.run
         else:
             run_dir = _latest_run()
-        run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
-        units = json.loads((run_dir / "units.json").read_text(encoding="utf-8"))
+        run = read_run(run_dir)
+        units = read_units(run_dir)
     except (OSError, ValueError) as error:
         print(f"failed to read run artifacts: {error}", file=sys.stderr)
         return 1
 
     from phoenix.client import Client
 
-    project = args.project or run["project"]
+    project = args.project or run.project
     client = Client(base_url=_base_url())
     annotations = client.spans.get_span_annotations(
-        span_ids=[unit["span_id"] for unit in units],
+        span_ids=[unit.span_id for unit in units],
         project_identifier=project,
     )
     rows = _label_rows(units, annotations, run, annotator=args.annotator)
@@ -128,7 +129,7 @@ def main() -> int:
 
     human = sum(row.annotator_kind == "HUMAN" for row in rows)
     code = sum(row.annotator_kind == "CODE" for row in rows)
-    print(f"run: {run['run_id']}")
+    print(f"run: {run.run_id}")
     print(f"project: {project}")
     print(f"labels: {len(rows)} ({human} HUMAN, {code} CODE)")
     print(f"annotator: {args.annotator}")

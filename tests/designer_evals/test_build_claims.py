@@ -3,7 +3,9 @@ from pathlib import Path
 
 import pytest
 
+from evals.designer.designer_eval.artifacts import RunSummary
 from evals.designer.designer_eval.labels import AnnotationRow
+from evals.designer.designer_eval.units import EvalUnit, UnitKind
 
 ROOT = Path(__file__).parents[2]
 
@@ -19,24 +21,44 @@ def _load(name: str):
 
 build_claims = _load("build_claims")
 
-RUN = {"run_id": "run-1", "prd": "prd.md"}
+RUN = RunSummary(
+    run_id="run-1",
+    prd="prd.md",
+    prd_path="prd/prd.md",
+    model="model-1",
+    project="project-1",
+    created_at="2026-11-13T00:00:00Z",
+    requirements=1,
+    cases=1,
+    claims=1,
+    units=1,
+    annotations=0,
+    usage={},
+)
 
 
-def _claim(claim_id: str, span_id: str, requirement_id: str = "FR-ACC-01") -> dict:
-    return {
-        "kind": "claim",
-        "target_id": claim_id,
-        "span_id": span_id,
-        "attributes": {
+def _claim(claim_id: str, span_id: str, requirement_id: str = "FR-ACC-01") -> EvalUnit:
+    return EvalUnit(
+        kind=UnitKind.CLAIM,
+        target_id=claim_id,
+        span_id=span_id,
+        name=f"claim {claim_id}",
+        attributes={
             "claim.requirement_id": requirement_id,
             "claim.case_id": claim_id.split("->")[0],
             "output.value": f"## Case: {claim_id}",
         },
-    }
+    )
 
 
-def _requirement(span_id: str) -> dict:
-    return {"kind": "requirement", "target_id": "FR-ACC-01", "span_id": span_id, "attributes": {}}
+def _requirement(span_id: str) -> EvalUnit:
+    return EvalUnit(
+        kind=UnitKind.REQUIREMENT,
+        target_id="FR-ACC-01",
+        span_id=span_id,
+        name="requirement FR-ACC-01",
+        attributes={},
+    )
 
 
 def _label(
