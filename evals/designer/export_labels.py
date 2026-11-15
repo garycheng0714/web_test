@@ -12,49 +12,48 @@ Run from the repository root:
 import argparse
 import sys
 from collections.abc import Sequence
-from typing import Any
 
 from evals.designer.designer_eval.artifacts import RunSummary, read_run, read_units
 from evals.designer.designer_eval.jsonl import write_rows
-from evals.designer.designer_eval.labels import AnnotationRow
+from evals.designer.designer_eval.labels import AnnotationRow, PhoenixAnnotation
 from evals.designer.designer_eval.layout import resolve_run_dir
 from evals.designer.designer_eval.phoenix import base_url
 from evals.designer.designer_eval.units import EvalUnit
 
 
-def _alignment_by_span(annotations: Sequence[Any]) -> dict[str, str | None]:
+def _alignment_by_span(annotations: Sequence[PhoenixAnnotation]) -> dict[str, str | None]:
     return {
-        annotation["span_id"]: (annotation.get("result") or {}).get("label")
+        annotation.span_id: annotation.result.label if annotation.result else None
         for annotation in annotations
-        if annotation["annotator_kind"] == "HUMAN" and annotation["name"] == "claim_alignment"
+        if annotation.annotator_kind == "HUMAN" and annotation.name == "claim_alignment"
     }
 
 
 def _label_rows(
     units: list[EvalUnit],
-    annotations: Sequence[Any],
+    annotations: Sequence[PhoenixAnnotation],
     run: RunSummary,
     *,
     annotator: str,
 ) -> list[AnnotationRow]:
-    by_span: dict[str, list[dict]] = {}
+    by_span: dict[str, list[PhoenixAnnotation]] = {}
     for annotation in annotations:
-        by_span.setdefault(annotation["span_id"], []).append(annotation)
+        by_span.setdefault(annotation.span_id, []).append(annotation)
 
     alignment = _alignment_by_span(annotations)
     rows = []
     for unit in units:
         for annotation in by_span.get(unit.span_id, []):
-            kind = annotation["annotator_kind"]
+            kind = annotation.annotator_kind
             # A failure mode is only meaningful on a failing claim; the Phoenix UI cannot clear
             # one, so an old value on a passing claim is dropped here.
             if (
                 kind == "HUMAN"
-                and annotation["name"] == "claim_failure_mode"
+                and annotation.name == "claim_failure_mode"
                 and alignment.get(unit.span_id) != "fail"
             ):
                 continue
-            result = annotation.get("result") or {}
+            result = annotation.result
             rows.append(
                 AnnotationRow(
                     run_id=run.run_id,
@@ -62,16 +61,16 @@ def _label_rows(
                     target_kind=unit.kind,
                     target_id=unit.target_id,
                     span_id=unit.span_id,
-                    annotation=annotation["name"],
+                    annotation=annotation.name,
                     annotator_kind=kind,
-                    label=result.get("label"),
-                    score=result.get("score"),
-                    annotator=annotator if kind == "HUMAN" else "code",
-                    explanation=result.get("explanation"),
-                    identifier=annotation.get("identifier", ""),
-                    annotation_id=annotation.get("id"),
-                    source=annotation.get("source"),
-                    metadata=annotation.get("metadata", {}),
+                    label=result.label if result else None,
+                    score=result.score if result else None,
+                    annotator=annotator if kind == "HUMAN" else kind.lower(),
+                    explanation=result.explanation if result else None,
+                    identifier=annotation.identifier,
+                    annotation_id=annotation.id,
+                    source=annotation.source,
+                    metadata=annotation.metadata,
                 )
             )
     return sorted(
@@ -100,10 +99,13 @@ def main() -> int:
 
     project = args.project or run.project
     client = Client(base_url=base_url())
-    annotations = client.spans.get_span_annotations(
-        span_ids=[unit.span_id for unit in units],
-        project_identifier=project,
-    )
+    annotations = [
+        PhoenixAnnotation.model_validate(annotation)
+        for annotation in client.spans.get_span_annotations(
+            span_ids=[unit.span_id for unit in units],
+            project_identifier=project,
+        )
+    ]
     rows = _label_rows(units, annotations, run, annotator=args.annotator)
     path = run_dir / "labels.jsonl"
     write_rows(path, rows)

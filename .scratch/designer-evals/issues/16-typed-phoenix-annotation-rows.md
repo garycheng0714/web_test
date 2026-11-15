@@ -4,7 +4,7 @@
 
 **Blocked by:** Nothing. Ticket 13 touches the same file but not the same lines.
 
-**Status:** ready-for-agent
+**Status:** ready-for-review
 
 ## Why
 
@@ -23,11 +23,11 @@ A renamed field upstream is a `KeyError` inside a list comprehension today, or a
 
 ## Tasks
 
-- [ ] Capture one real response shape first: run `uvx arize-phoenix serve`, export one run, and record which keys the client actually returns (the tests' dicts are the only evidence today, and they were typed by hand).
-- [ ] Add the two models; validate the response in `export_labels.main()` before it reaches `_label_rows`.
-- [ ] Type `_alignment_by_span` and `_label_rows` against them; keep the "failure mode on a passing claim is dropped" rule where it is.
-- [ ] Move the test fixtures to the model, and keep one test that proves a row without `annotator_kind` fails.
-- [ ] `uv run pytest tests/designer_evals` green; `uv run --group eval basedpyright` clean.
+- [x] Capture the response shape. No local Phoenix holds these runs' spans any more, so the source was the installed client's own types (`phoenix.client.resources.spans.SpanAnnotation` and `v1.AnnotationResult`, arize-phoenix-client 3.5.0); a live export is still the end-to-end check.
+- [x] Add the two models; validate the response in `export_labels.main()` before it reaches `_label_rows`.
+- [x] Type `_alignment_by_span` and `_label_rows` against them; keep the "failure mode on a passing claim is dropped" rule where it is.
+- [x] Move the test fixtures to the model, and keep one test that proves a row without `annotator_kind` fails.
+- [x] `uv run pytest tests/designer_evals` green; `uv run --group eval basedpyright` clean.
 
 ## Out of scope
 
@@ -38,3 +38,21 @@ A renamed field upstream is a `KeyError` inside a list comprehension today, or a
 
 - The live client may return `result: null` versus omitting `result`, and may include fields the fixtures do not have. Model the response as optional-tolerant; do not tighten a field the API omits.
 - Phoenix version drift is the reason this ticket exists, but a strict model turns a harmless new field into a failed export only if `extra="forbid"` is set. Keep the default (`ignore`).
+
+## Result
+
+`designer_eval/labels.py` now has `PhoenixAnnotation` and `AnnotationResult`. `export_labels.main`
+validates the client's response into them before `_label_rows` sees it, and both helpers take the
+model instead of `Sequence[Any]`.
+
+Reading the client's declared types paid for itself: `annotator_kind` is `Literal["HUMAN", "CODE",
+"LLM"]`, and an LLM annotation would have crashed `AnnotationRow` (which accepted two kinds) and
+been written with `annotator: "code"`. `AnnotationRow.annotator_kind` now accepts the three values
+and a non-HUMAN row records `kind.lower()`. No committed label row changes: all 251 rows across the
+six runs still read and rewrite byte-identically.
+
+Tests: a fixture without `annotator_kind` fails; an LLM annotation keeps its kind and gets
+`annotator: "llm"`. 391 passed, basedpyright clean, 7 contracts kept.
+
+Still unverified: no live Phoenix export was run (the local instance does not hold these spans), so
+the payload is checked against the client's types, not against a real response.

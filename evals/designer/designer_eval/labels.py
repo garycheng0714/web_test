@@ -10,6 +10,28 @@ from evals.designer.designer_eval.jsonl import read_rows
 from evals.designer.designer_eval.units import UnitKind
 
 
+class AnnotationResult(BaseModel):
+    """The result block of one annotation. A freeform annotation fills `explanation` only."""
+
+    label: str | None = None
+    score: float | None = None
+    explanation: str | None = None
+
+
+class PhoenixAnnotation(BaseModel):
+    """One annotation as the Phoenix client returns it. Extra fields (`created_at`, `user_id`) are
+    ignored; `annotator_kind` is the client's closed set, which includes `LLM`."""
+
+    id: str | None = None
+    span_id: str
+    name: str
+    annotator_kind: Literal["HUMAN", "CODE", "LLM"]
+    result: AnnotationResult | None = None
+    identifier: str = ""
+    source: str | None = None
+    metadata: dict[str, object] = {}
+
+
 class AnnotationRow(BaseModel):
     """One exported annotation. Boundary data, so the Phoenix API decides what a row may hold."""
 
@@ -19,7 +41,7 @@ class AnnotationRow(BaseModel):
     target_id: str
     span_id: str
     annotation: str
-    annotator_kind: Literal["HUMAN", "CODE"]
+    annotator_kind: Literal["HUMAN", "CODE", "LLM"]
     annotator: str
     label: str | None = None
     score: float | None = None

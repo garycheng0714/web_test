@@ -6,7 +6,13 @@ import pytest
 from pydantic import ValidationError
 
 from evals.designer.designer_eval.artifacts import RunSummary
-from evals.designer.designer_eval.labels import AnnotationRow, human_fields, read_labels
+from evals.designer.designer_eval.labels import (
+    AnnotationResult,
+    AnnotationRow,
+    PhoenixAnnotation,
+    human_fields,
+    read_labels,
+)
 from evals.designer.designer_eval.units import EvalUnit, UnitKind
 from web_test.planning.schema import DesignOutput
 
@@ -116,17 +122,22 @@ def _human_label(target_id: str, span_id: str, annotation: str, label: str):
     return _human(target_id, span_id, label).model_copy(update={"annotation": annotation})
 
 
-def _annotation(span_id: str, name: str, label=None, explanation=None):
-    return {
-        "id": f"a-{name}-{span_id}",
-        "span_id": span_id,
-        "name": name,
-        "annotator_kind": "HUMAN",
-        "result": {"label": label, "score": None, "explanation": explanation},
-        "identifier": "",
-        "source": "APP",
-        "metadata": {},
-    }
+def _annotation(
+    span_id: str,
+    name: str,
+    label: str | None = None,
+    explanation: str | None = None,
+    *,
+    kind: str = "HUMAN",
+) -> PhoenixAnnotation:
+    return PhoenixAnnotation(
+        id=f"a-{name}-{span_id}",
+        span_id=span_id,
+        name=name,
+        annotator_kind=kind,
+        result=AnnotationResult(label=label, explanation=explanation),
+        source="APP",
+    )
 
 
 def test_export_label_rows_keeps_human_and_code_annotations():
@@ -135,26 +146,16 @@ def test_export_label_rows_keeps_human_and_code_annotations():
         _claim("case-1-functional->FR-1", "span-1", "FR-1", "case-1-functional"),
     ]
     annotations = [
-        {
-            "id": "a1",
-            "span_id": "span-1",
-            "name": "claim_alignment",
-            "annotator_kind": "HUMAN",
-            "result": {"label": "pass", "score": 1.0, "explanation": None},
-            "identifier": "",
-            "source": "APP",
-            "metadata": {},
-        },
-        {
-            "id": "a2",
-            "span_id": "span-1",
-            "name": "case_duplicate",
-            "annotator_kind": "CODE",
-            "result": {"label": "unique", "score": 1.0, "explanation": None},
-            "identifier": "",
-            "source": "API",
-            "metadata": {"case_id": "case-1-functional"},
-        },
+        _annotation("span-1", "claim_alignment", "pass"),
+        PhoenixAnnotation(
+            id="a2",
+            span_id="span-1",
+            name="case_duplicate",
+            annotator_kind="CODE",
+            result=AnnotationResult(label="unique", score=1.0),
+            source="API",
+            metadata={"case_id": "case-1-functional"},
+        ),
     ]
 
     rows = export_labels._label_rows(units, annotations, _run(), annotator="local")
@@ -386,3 +387,20 @@ def test_human_fields_groups_the_human_rows_by_the_asked_id():
     assert set(by_target) == {"case-1->FR-1"}
     assert set(by_span) == {"span-1"}
     assert set(by_target["case-1->FR-1"]) == {"claim_alignment"}
+
+
+def test_export_rejects_an_annotation_without_an_annotator_kind():
+    with pytest.raises(ValidationError):
+        PhoenixAnnotation.model_validate({"span_id": "span-1", "name": "claim_alignment"})
+
+
+def test_export_keeps_an_llm_annotation_as_its_own_annotator():
+    units = [_claim("case-1-functional->FR-1", "span-1", "FR-1", "case-1-functional")]
+    annotations = [
+        _annotation("span-1", "claim_alignment", "pass", kind="LLM"),
+    ]
+
+    rows = export_labels._label_rows(units, annotations, _run(), annotator="local")
+
+    assert rows[0].annotator_kind == "LLM"
+    assert rows[0].annotator == "llm"
