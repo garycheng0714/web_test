@@ -31,6 +31,7 @@ the builder is the starting point, not the authority.
 | `todomvc-v08` | `todomvc-v07-20261110` (same cases, corrected FR-TODO-05) | 28 | 0 |
 | `todomvc-probe` | `todomvc-probe-1` (mutations of the `todomvc-v07` cases) | 20 | 15 |
 | `realworld` | `realworld-v06-20261113` | 30 | 0 |
+| `realworld-probe` | `realworld-probe-1` (mutations of the `realworld-v06` cases) | 20 | 17 |
 
 Archived, not judged:
 
@@ -48,6 +49,10 @@ rather than the case to the PRD.
 to measure the judge's fail recall. Its 5 passes are mutations a human judged acceptable, not
 natural designer output. Report its `fail_recall` on its own; do not add it to a designer-run set's
 numbers.
+
+`realworld-probe` applies the same method to the third PRD: 17 mutations and 3 accepted changes. The
+first human pass over it disagreed with the construction on 12 of 20; the strict reading was adopted
+after adjudication, so 17 rows fail and 3 pass.
 
 `register-login` was the eval's default PRD by habit, not by design: it was the first complete PRD in
 the repo. Its `FR-ACC-01` still carries three staged criteria, so a designer run on it either splits

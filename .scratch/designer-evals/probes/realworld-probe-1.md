@@ -1,14 +1,10 @@
-# RealWorld probe 1 — 20 cases
+# RealWorld probe 1 — 20 cases (adjudicated)
 
-每張 probe 都是一張 case。只回答:**這張 case 有沒有驗到它宣稱的 requirement?**
-
-回覆格式:`P01 pass` 或 `P02 fail — <一句理由>`
-
-先全部標完再看 key。這一輪標的是 judge,不是 designer。
+以嚴格判準定案:17 fail / 3 pass。人工的初標與意圖不同時,以嚴格讀法為準。
 
 ---
 
-## P01
+## P01 fail - profile 那一半沒有斷言(incomplete_journey)
 
 ## Case 12: 個人設定(SETTINGS)/ 更新個人資料: 驗證在 `/settings` 修改 `Your Name` 後按 `Update Settings`,header 與 profile 顯示新的名稱
 
@@ -40,7 +36,7 @@ FR-RW-07 允許改 `Your Name` 或 bio,本案例以 `Your Name` 為代表。`You
 
 ---
 
-## P02
+## P02 fail - error 訊息 `email is invalid` 不是 PRD 的字串(case_assertion)
 
 ## Case 3: 帳號與 session(ACCOUNT)/ 註冊驗證: 驗證以格式錯誤的 email(不含 `@`)註冊時停留在 `/register`、header 不變成已登入,error 區塊顯示 `email is invalid`
 
@@ -72,7 +68,7 @@ test_type: Validation
 
 ---
 
-## P03
+## P03 fail - step 1 為什麼需要捲動到清單底部
 
 ## Case 16: 文章(ARTICLE)/ 閱讀文章: 驗證從列表點開文章後顯示標題、作者與渲染後的 markdown 內文,頁面底部有留言區
 
@@ -104,7 +100,7 @@ test_type: Functional
 
 ---
 
-## P04
+## P04 fail - 沒有任何步驟打開 profile 頁(wrong_assertion_to_requirement)
 
 ## Case 4: 帳號與 session(ACCOUNT)/ 登入: 驗證以既有帳號的 email 與 password 登入後 header 換成已登入並回到 `/`
 
@@ -135,7 +131,7 @@ test_type: Functional
 
 ---
 
-## P05
+## P05 pass
 
 ## Case 15: 文章(ARTICLE)/ 發佈被拒: 驗證缺漏必填欄位時按 `Publish Article`,停留在編輯頁、文章未建立,error 區塊顯示 `can't be blank`
 
@@ -166,7 +162,7 @@ test_type: Validation
 
 ---
 
-## P06
+## P06 fail - 沒有測到登出
 
 ## Case 7: 帳號與 session(ACCOUNT)/ 登出: 驗證在 `/settings` 按 `Or click here to logout.` 後 header 換回 `Sign in` / `Sign up`
 
@@ -195,7 +191,7 @@ test_type: Functional
 
 ---
 
-## P07
+## P07 fail - 預估閱讀時間 PRD 沒寫(prd_gap)
 
 ## Case 20: 文章列表(LIST)/ Global Feed: 驗證開啟 `/` 預設顯示 `Global Feed`,每篇顯示標題、描述、作者與收藏數,且最新在前
 
@@ -226,7 +222,7 @@ test_type: Functional
 
 ---
 
-## P08
+## P08 fail - 樂觀更新 PRD 沒寫(prd_gap)
 
 ## Case 26: 留言(COMMENT)/ 發表留言: 驗證已登入使用者在文章頁留言後,留言出現在留言區並標示留言者
 
@@ -256,7 +252,7 @@ test_type: Functional
 
 ---
 
-## P09
+## P09 fail - 沒檢查 Your Feed
 
 ## Case 25: 文章列表(LIST)/ tab 可見性: 驗證 `Your Feed` tab 只在登入後出現:訪客看不到,登入後即出現
 
@@ -287,7 +283,7 @@ test_type: Permission
 
 ---
 
-## P10
+## P10 pass
 
 ## Case 2: 帳號與 session(ACCOUNT)/ 註冊驗證: 驗證以已存在的 email 註冊時停留在 `/register`、header 不變成已登入,error 區塊顯示 `has already been taken`
 
@@ -319,7 +315,7 @@ test_type: Validation
 
 ---
 
-## P11
+## P11 fail - JWT 儲存位置不是使用者可見結果(wrong_assertion_to_requirement)
 
 ## Case 6: 帳號與 session(ACCOUNT)/ session 持續: 驗證登入後重新載入任一頁仍維持登入,不需再次登入
 
@@ -347,7 +343,7 @@ token 存哪裡、JWT 內容是實作細節(PRD §10),不斷言。
 
 ---
 
-## P12
+## P12 fail - 刪別人的留言,不是這條 requirement 的旅程(wrong_actions)
 
 ## Case 27: 留言(COMMENT)/ 刪除留言: 驗證留言作者按刪除圖示後該留言消失,其他留言保留
 
@@ -377,7 +373,7 @@ test_type: Functional
 
 ---
 
-## P13
+## P13 fail - slug 格式由實作決定(case_assertion)
 
 ## Case 17: 文章(ARTICLE)/ 編輯文章: 驗證作者修改文章標題後,文章頁顯示新標題、網址的 slug 跟著改變,`Global Feed` 也顯示新標題
 
@@ -410,7 +406,7 @@ slug 格式本身是實作細節(§11 第 6 條),只斷言「標題改變時 slu
 
 ---
 
-## P14
+## P14 fail - 只重新載入,沒有註冊(wrong_actions)
 
 ## Case 1: 帳號與 session(ACCOUNT)/ 註冊: 驗證以未被使用的 username、email、password 註冊後帳號建立、header 換成已登入並回到 `/`
 
@@ -441,7 +437,7 @@ test_type: Functional
 
 ---
 
-## P15
+## P15 fail - tag 比對規則 PRD 沒寫(case_assertion)
 
 ## Case 23: 文章列表(LIST)/ 依 tag 篩選: 驗證在 Popular Tags 點某個 tag 後,出現以該 tag 為名的 tab,清單只列出帶該 tag 的文章
 
@@ -472,7 +468,7 @@ Popular Tags 的排序與數量不驗證,只當入口動作(PRD §10)。tag 正�
 
 ---
 
-## P16
+## P16 fail - 沒有驗證新文章出現在第一篇
 
 ## Case 14: 文章(ARTICLE)/ 發佈文章: 驗證在 `/editor` 發佈文章後,該文章以新標題出現在 `Global Feed` 第一篇
 
@@ -503,7 +499,7 @@ test_type: Functional
 
 ---
 
-## P17
+## P17 fail - PRD 沒有提到按鈕顏色
 
 ## Case 8: 帳號與 session(ACCOUNT)/ 註冊表單: 驗證 `/register` 的 `Sign up` 按鈕在任一欄位為空時不可按
 
@@ -533,7 +529,7 @@ test_type: UI
 
 ---
 
-## P18
+## P18 fail - 同個測試用到 2 個不同帳號
 
 ## Case 30: 收藏與追蹤(SOCIAL)/ 追蹤: 驗證已登入使用者按 `Follow <username>` 後按鈕進入已追蹤狀態且計數 +1,再按一次回到 `Follow <username>` 且計數還原
 
@@ -564,7 +560,7 @@ test_type: Functional
 
 ---
 
-## P19
+## P19 pass
 
 ## Case 29: 收藏與追蹤(SOCIAL)/ 收藏: 驗證已登入使用者按收藏按鈕後按鈕進入已收藏狀態且計數 +1,再按一次回到未收藏狀態且計數還原
 
@@ -586,8 +582,8 @@ test_type: Functional
 
 | Step | Action | Expected Result |
 | --- | --- | --- |
-| 1 | 按收藏按鈕 | 按鈕進入已收藏狀態,按鈕旁的收藏計數顯示 6 |
-| 2 | 再按一次收藏按鈕 | 按鈕回到未收藏狀態,收藏計數顯示 5 |
+| 1 | 按收藏按鈕 | 按鈕進入已收藏狀態,按鈕旁的收藏計數顯示 4 |
+| 2 | 再按一次收藏按鈕 | 按鈕回到未收藏狀態,收藏計數顯示 3 |
 
 ### Notes
 
@@ -595,7 +591,7 @@ test_type: Functional
 
 ---
 
-## P20
+## P20 fail - 頁碼顯示 PRD 沒寫(prd_gap)
 
 ## Case 24: 文章列表(LIST)/ 分頁: 驗證文章總數超過一頁時清單下方出現分頁連結,點第 2 頁顯示下一批文章
 
