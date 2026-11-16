@@ -11,6 +11,7 @@ from evals.designer.designer_eval.judge import (
     JudgeExample,
     JudgeInput,
     JudgeOutput,
+    StepCheck,
     build_prompt,
     group_by_source,
     load_examples,
@@ -211,6 +212,17 @@ def test_group_by_source_splits_the_metrics():
     assert "| `run-2` | 1 |" in report
 
 
+def test_a_non_assertion_step_has_no_grounded_verdict():
+    output = JudgeOutput(
+        checks=[StepCheck(step=1, grounded=None, note="form-field input mechanics")],
+        critique="the step only fills a field",
+        result="pass",
+    )
+
+    assert output.checks[0].grounded is None
+    assert output.model_dump()["checks"][0]["grounded"] is None
+
+
 def test_run_one_uses_the_structured_output():
     model = TestModel(
         custom_output_args={
@@ -242,3 +254,12 @@ def test_write_records_and_render_report(tmp_path: Path):
     assert "Fail recall" in text
     assert "asserts an undefined behaviour" in text
     assert "Dev only" in text
+
+
+def test_render_report_keeps_the_whole_critique():
+    tail = "the last sentence of a long critique"
+    critique = "a paragraph that would have been cut. " * 40 + tail
+
+    text = render_report(score([_record("fail", "pass", critique=critique)]))
+
+    assert tail in text

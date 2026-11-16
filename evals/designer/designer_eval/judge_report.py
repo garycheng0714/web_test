@@ -1,5 +1,7 @@
 """Render one judge run's metrics as the markdown report."""
 
+from textwrap import indent
+
 from evals.designer.designer_eval.judge_records import JudgeMetrics
 
 
@@ -59,8 +61,11 @@ def render_report(metrics: JudgeMetrics, groups: dict[str, JudgeMetrics] | None 
         lines.append(
             f"- `{record.claim_id}` ({record.source_run}): human `{record.human_label}`"
             + (f" / {record.human_mode}" if record.human_mode else "")
-            + f", judge `{record.verdict}` - {record.critique.strip().splitlines()[0][:160]}"
+            + f", judge `{record.verdict}`"
         )
+        lines.append("")
+        lines.append(indent(record.critique.strip(), "  "))
+        lines.append("")
     lines += [
         "",
         "## Limits",

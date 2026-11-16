@@ -196,3 +196,39 @@ The PRD is frozen again at **v0.6**: `sha256`
 its run `realworld-v05-20261113` are superseded: that run answered a PRD that no longer exists, so it
 must not be labeled, exported or compared. No labels had been made, so nothing was lost but the one
 designer call.
+
+2026-11-15: v0.6 ran as `realworld-v06-20261113`. 28 requirements, 30 cases, 30 claims, usage 39,496;
+the gate passed with two extra cases (`FR-RW-16` for the followed/empty halves, `FR-RW-27` for the two
+protected pages). All 30 claims are human-labeled **pass**, so the dataset is pass-only.
+
+Judge ×3 on that set: majority 7 fail, `pass_specificity` **0.77 [0.59, 0.88]**, `fail_recall` `n/a`;
+per run 0.77 / 0.80 / 0.80, 9 claims flipped at least once. The seven split into three kinds:
+
+- **3 are the judge contradicting its own rubric** — it treated non-assertions (form mechanics, a
+  button's enabled state, "no error", leaving the editor) as ungrounded assertions. Prompt `8835420e`;
+  fixed by ticket 23.
+- **3 are a requirement shape** — `FR-RW-14`, `FR-RW-16`, `FR-RW-21` state a second direction that
+  needs a different actor or state, so one case cannot assert both and the judge sees a case that
+  looks incomplete. Splitting them is a PRD decision, not made here.
+- **1 is a real over-assertion** — `case-12` asserted that the settings were saved, which no
+  requirement states.
+
+So the first number on this PRD measures a prompt defect mixed with a PRD-shape question; it is not a
+clean estimate of the judge. Ticket 23 is the prerequisite for reading it.
+
+2026-11-15, second measurement after ticket 23. Same 30 claims, prompt `67265b54`, three runs:
+0.80 / 0.83 / 0.80, majority **0.80 [0.63, 0.90]**. The non-assertion false alarms are gone
+(`case-15`, `case-26` now pass; `case-14`'s button objection disappeared). The six remaining majority
+failures are three requirement-shape disagreements (`FR-RW-14`, `FR-RW-16` in some runs, `FR-RW-21`,
+`FR-RW-27` — a case covers one of two stated results and the judge cannot see the sibling case) and
+three real over-assertions (`FR-RW-07` persistence, `FR-RW-09` "leaves the editor", `FR-RW-28` "account
+not created"). Splitting the multi-result requirements is the next decision; it needs a designer
+re-run.
+
+2026-11-16, third measurement: the judge now accepts the ordinary consequence of a stated result
+(prompt `cbbb6990`). Three runs: 0.97 / 0.87 / 0.93, majority **0.93 [0.79, 0.98]** — two failures
+left. `FR-RW-07`, `FR-RW-21`, `FR-RW-27` and `FR-RW-28` pass. The two that remain are
+`FR-RW-09` (blocked by this PRD's own "post-publish redirect unspecified" note, not by the judge) and
+`FR-RW-14` (the author direction is never asserted; that is incompleteness, which leniency cannot
+excuse). No negatives exist in this set, so the cost of the wider rule is unmeasured until a probe for
+this PRD exists.

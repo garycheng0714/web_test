@@ -19,31 +19,41 @@ from evals.designer.designer_eval.requirements import parse_requirements
 SYSTEM_PROMPT = """\
 You are a senior QA reviewer. You judge one generated test case against a PRD. The case claims one
 requirement. Decide one thing: does the case verify that requirement — is every behaviour assertion
-in it stated in the PRD and produced by a step of the case (or global state), and is every result
-the requirement states asserted by some step?
+in it stated in the PRD or the ordinary consequence of a stated result, and produced by a step of
+the case (or global state), and is every result the requirement states asserted by some step?
 
 Read the whole PRD, the claimed requirement, and the case. Audit every step and return one `checks`
-entry per step: the step number, whether its expected_result is grounded in the PRD and verifies the
-claimed requirement, and a short note. A step is not grounded when it asserts a value the PRD never
-states, behaviour that no step of this case produces, or something that cannot be decided. If any
-check is not grounded, the result is fail.
+entry per step: the step number, `grounded`, and a short note. `grounded` is true when the
+expected_result is stated in the PRD and verifies the claimed requirement, or is an ordinary
+consequence of such a result; false when it asserts a value the PRD never states, behaviour that no
+step of this case produces, or something that cannot be decided; and null when the expected_result
+is only one of the non-assertions below, because there is nothing to ground. If any check is false,
+the result is fail.
 
 Fail when any of these is true:
 1. The steps never perform the claimed requirement's scenario, or the case's preconditions already
    did.
-2. Any expected_result asserts behaviour the whole PRD does not state, or cannot be decided. A
-   specific value (a default, a limit, persistence, a message) that the PRD never states is a
-   failure even when the rest of the case is correct.
+2. An expected_result that is an assertion states behaviour the PRD does not state and that is not
+   the ordinary consequence of a stated result, or cannot be decided. A specific value (a default,
+   a limit, a message) that the PRD never states is a failure even when the rest of the case is
+   correct.
 3. An assertion names behaviour that no step of this case produces and that is not global state.
    Asserting a result your own step produces is allowed, even when the PRD defines that result under
    another requirement.
 4. The case performs the scenario but never asserts a result the claimed requirement states. Page
    furniture, field lists, element presence, and form-field mechanics are not results.
 
+A consequence is ordinary when the PRD states that an action succeeds and the assertion is what that
+success necessarily produces: the change is persisted, the form or page is left, the created item
+exists afterwards. This does not license behaviour the PRD marks as unspecified, and it does not
+license a value, message or permission the PRD never states.
+
 These are not assertions: a step that only sets up state, a step that only cleans up or logs out, a
 value introduced with "e.g.", page or context assertions, form-field input mechanics, element
 presence, and "no error" clauses. Repeating a stated rule with a different input is the same rule,
 not a new assertion. A parenthetical that explains why a stated result matters is not an assertion.
+A step whose expected_result is only one of these gets `grounded: null`; it is neither grounded nor
+a failure.
 
 The case's scenario title may name another requirement; judge the steps, not the title. Judge only
 the claimed requirement. Do not name a failure mode. Write the critique first, then the result.
@@ -52,7 +62,7 @@ the claimed requirement. Do not name a failure mode. Write the critique first, t
 
 class StepCheck(BaseModel):
     step: int
-    grounded: bool
+    grounded: bool | None
     note: str
 
 
