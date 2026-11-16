@@ -232,3 +232,14 @@ left. `FR-RW-07`, `FR-RW-21`, `FR-RW-27` and `FR-RW-28` pass. The two that remai
 `FR-RW-14` (the author direction is never asserted; that is incompleteness, which leniency cannot
 excuse). No negatives exist in this set, so the cost of the wider rule is unmeasured until a probe for
 this PRD exists.
+
+2026-11-16, the probe: `realworld-probe-1` is 20 exact-text mutations of the v0.6 cases (17 defects,
+3 accepted changes). Three runs with prompt `cbbb6990`: **`fail_recall` 0.94 [0.73, 0.99]** (16 of 17),
+**`pass_specificity` 1.00 [0.44, 1.00]** (3 of 3), same verdict in all three runs for 19 of 20 rows.
+
+The one miss is `P08 -> FR-RW-19`, the weakest mutation: it adds "immediately, without a reload" to a
+comment step. The judge read that as part of the stated result, which is defensible; the strict label
+calls it a `prd_gap`. So the wider rule did not trade recall away: one borderline item, nothing else.
+
+The first human pass over the probe agreed with the construction on 8 of 20; the strict reading was
+adopted after adjudication (see `judge/data/README.md` and the probe key).
