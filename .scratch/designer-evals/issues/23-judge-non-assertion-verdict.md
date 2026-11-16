@@ -90,6 +90,34 @@ the same prompt would measure about 0.90.
 
 Keep the change. The requirement-shape question is its own ticket.
 
+## Third measurement (2026-11-16, ordinary consequences)
+
+The strict reading was the main source of false alarms. The prompt now grounds an assertion that is
+what a stated success necessarily produces, and the same 30 claims were judged three more times:
+
+| run | fail | `pass_specificity` |
+| --- | --- | --- |
+| `realworld-run1-v3` | 1 | 0.97 [0.83, 0.99] |
+| `realworld-run2-v3` | 4 | 0.87 [0.70, 0.95] |
+| `realworld-run3-v3` | 2 | 0.93 [0.79, 0.98] |
+| majority | 2 | **0.93** [0.79, 0.98] |
+
+Prompt `cbbb6990`, 90 calls. Five of the six remaining disagreements passed: `FR-RW-07` (persistence),
+`FR-RW-21` and `FR-RW-27` (one of two results), `FR-RW-28` ("account not created"). The two that still
+fail are the two the policy deliberately does not cover:
+
+- `FR-RW-09` — the PRD's own §9 says the post-publish redirect is unspecified, so "leaves the editor"
+  stays ungrounded. The note is the blocker, not the judge.
+- `FR-RW-14` — the case asserts the non-author result and never the author one; that is a missing
+  result, not an unstated one, so leniency does not apply.
+
+The cost of leniency is invisible here: this set has no negatives, so `fail_recall` is still `n/a`.
+A mutation probe on this PRD is the only way to check that the wider rule did not start accepting real
+defects. Until then the prompt stays a version, not a settled standard.
+
+Prompt history: `8835420e` (strict) 0.77, `67265b54` (null verdict) 0.80, `cbbb6990` (ordinary
+consequence) 0.93. The first two are superseded; the third is the current one.
+
 ## Risks
 
 - The prompt hash changes from `8835420e…` to `67265b54…`. Rates measured with the old hash are not

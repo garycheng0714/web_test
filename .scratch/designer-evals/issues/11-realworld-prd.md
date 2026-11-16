@@ -224,3 +224,11 @@ failures are three requirement-shape disagreements (`FR-RW-14`, `FR-RW-16` in so
 three real over-assertions (`FR-RW-07` persistence, `FR-RW-09` "leaves the editor", `FR-RW-28` "account
 not created"). Splitting the multi-result requirements is the next decision; it needs a designer
 re-run.
+
+2026-11-16, third measurement: the judge now accepts the ordinary consequence of a stated result
+(prompt `cbbb6990`). Three runs: 0.97 / 0.87 / 0.93, majority **0.93 [0.79, 0.98]** — two failures
+left. `FR-RW-07`, `FR-RW-21`, `FR-RW-27` and `FR-RW-28` pass. The two that remain are
+`FR-RW-09` (blocked by this PRD's own "post-publish redirect unspecified" note, not by the judge) and
+`FR-RW-14` (the author direction is never asserted; that is incompleteness, which leniency cannot
+excuse). No negatives exist in this set, so the cost of the wider rule is unmeasured until a probe for
+this PRD exists.
