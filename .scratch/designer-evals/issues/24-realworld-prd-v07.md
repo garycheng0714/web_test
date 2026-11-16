@@ -47,13 +47,13 @@ three v3 runs, which is variance, not a different rule.
 
 ## Tasks
 
-- [ ] `FR-RW-09`: add "導向 `/article/<slug>`" to the result, and replace its §9 inference note with a
+- [x] `FR-RW-09`: add "導向 `/article/<slug>`" to the result, and replace its §9 inference note with a
       dated observation row.
-- [ ] `FR-RW-14`: keep only "以非作者身分開啟一篇文章 → 看不到 `Delete Article`", with a note that the
+- [x] `FR-RW-14`: keep only "以非作者身分開啟一篇文章 → 看不到 `Delete Article`", with a note that the
       author direction is exercised by `FR-RW-13`.
-- [ ] `FR-RW-21`: same shape, pointing at `FR-RW-20`.
-- [ ] Header: version v0.7, "六項觀察", one v0.7 adjustment line.
-- [ ] Re-freeze, record `sha256` and line count in a dated comment.
+- [x] `FR-RW-21`: same shape, pointing at `FR-RW-20`.
+- [x] Header: version v0.7, "六項觀察", one v0.7 adjustment line.
+- [x] Re-freeze, record `sha256` and line count in a dated comment.
 - [ ] Run the designer once (paid) with an explicit `--run-id`.
 - [ ] Gate: 28 requirements, one case per requirement (an extra boundary case allowed), no duplicate,
       no invented id, no multi-requirement case.
@@ -110,3 +110,16 @@ The FR-RW-09 failure is a PRD-meta problem, not a judge one: §9's "source does 
 as specification because the judge receives the whole PRD. The FR-RW-14 failure is a requirement-shape
 problem: two results that need two identities cannot both be asserted by one case, and the judge
 cannot see the sibling case that covers the other half.
+
+2026-11-16: the three edits are in and the PRD is frozen at **v0.7**.
+
+- `sha256` `82ff33807b5c193ed927cf4121f4ea0f35d921088c89f4c777cae12f01a3775e`, 392 lines,
+  28 requirements, no acceptance criteria.
+- `FR-RW-09` now promises the `/article/<slug>` redirect; §9's "source does not say" sentence is gone
+  and a dated observation row replaces it. The other two inferences are unchanged.
+- `FR-RW-14` and `FR-RW-21` keep only the negative direction and point at `FR-RW-13` / `FR-RW-20` for
+  the author side. The count stayed 28.
+- The v0.6 dataset (`judge/data/realworld`) and the probe are untouched and stay comparable under
+  their own versions.
+
+Next: one designer run, the gate, labels, `judge/data/realworld-v07`, judge x3.
