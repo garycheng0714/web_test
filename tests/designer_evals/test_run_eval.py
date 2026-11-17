@@ -109,6 +109,32 @@ def test_parse_requirements_reads_acceptance_criteria():
     assert [ac.id for ac in requirements[1].acceptance_criteria] == ["FR-CART-02-AC1"]
 
 
+def test_parse_requirements_reads_journeys():
+    prd = """# PRD
+
+#### FR-X-01 a rule
+- first journey
+  continued here
+- second journey
+  (source: somewhere)
+"""
+
+    requirement = parse_requirements(prd)[0]
+
+    assert requirement.title == "a rule"
+    assert requirement.journeys == ["first journey continued here", "second journey"]
+
+
+def test_parse_requirements_strips_the_ac_prefix_from_a_journey():
+    prd = """# PRD
+
+#### FR-CART-01 Add to cart
+- **AC-1**: two products stay in the cart.
+"""
+
+    assert parse_requirements(prd)[0].journeys == ["two products stay in the cart."]
+
+
 def test_parse_requirements_rejects_a_repeated_acceptance_criterion_number():
     prd = """# PRD
 

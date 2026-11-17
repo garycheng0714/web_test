@@ -40,8 +40,14 @@ Fail when any of these is true:
 3. An assertion names behaviour that no step of this case produces and that is not global state.
    Asserting a result your own step produces is allowed, even when the PRD defines that result under
    another requirement.
-4. The case performs the scenario but never asserts a result the claimed requirement states. Page
-   furniture, field lists, element presence, and form-field mechanics are not results.
+4. The case performs the scenario but never asserts a result the rule states. Page furniture, field
+   lists, element presence, and form-field mechanics are not results.
+
+A requirement arrives as a rule and a list of journeys. The rule is what the requirement claims; the
+journeys are the listed ways to verify it — separate inputs or starting states — and a case may
+perform one of them. A case is complete when it asserts the rule's outcome for the journey it
+performs; do not fail it for leaving other listed journeys to another case. Whether every journey is
+covered is a question for the suite, not for one case.
 
 A consequence is ordinary when the PRD states that an action succeeds and the assertion is what that
 success necessarily produces: the change is persisted, the form or page is left, the created item
@@ -81,6 +87,8 @@ class JudgeInput:
     prd_text: str
     requirement_text: str
     case_markdown: str
+    requirement_rule: str = ""
+    requirement_journeys: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -96,18 +104,23 @@ def prompt_sha256() -> str:
 
 def build_prompt(example: JudgeExample) -> str:
     data = example.data
+    if data.requirement_rule and data.requirement_journeys:
+        journeys = "".join(f"- {journey}\n" for journey in data.requirement_journeys)
+        requirement = f"{data.requirement_id}\nRule: {data.requirement_rule}\nJourneys:\n{journeys}"
+    else:
+        requirement = f"{data.requirement_id}\n{data.requirement_text}"
     return (
         f"# PRD\n\n{data.prd_text}\n\n"
-        f"# Claimed requirement\n\n{data.requirement_id}\n{data.requirement_text}\n\n"
+        f"# Claimed requirement\n\n{requirement}\n"
         f"# Case\n\n{data.case_markdown}\n"
     )
 
 
 def load_examples(data_dir: Path, *, single_fr_only: bool = True) -> list[JudgeExample]:
-    """Turn a dataset's rows into judge inputs; the PRD supplies each requirement's text."""
+    """Turn a dataset's rows into judge inputs; the PRD supplies rule and journeys."""
     dataset = load_dataset(data_dir, single_fr_only=single_fr_only)
-    requirement_text = {
-        requirement.id: requirement.text for requirement in parse_requirements(dataset.prd_text)
+    requirements = {
+        requirement.id: requirement for requirement in parse_requirements(dataset.prd_text)
     }
     examples = [
         JudgeExample(
@@ -117,8 +130,10 @@ def load_examples(data_dir: Path, *, single_fr_only: bool = True) -> list[JudgeE
                 requirement_id=claim.requirement_id,
                 case_id=claim.case_id,
                 prd_text=dataset.prd_text,
-                requirement_text=requirement_text[claim.requirement_id],
+                requirement_text=requirements[claim.requirement_id].text,
                 case_markdown=claim.case_markdown,
+                requirement_rule=requirements[claim.requirement_id].title,
+                requirement_journeys=tuple(requirements[claim.requirement_id].journeys),
             ),
             human_label=claim.human_label,
             human_mode=claim.human_mode,
