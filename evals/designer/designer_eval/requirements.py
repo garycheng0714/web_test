@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 _REQUIREMENT = re.compile(r"^#{3,4}\s+(FR-[A-Z]+-\d+)\s*(.*)$")
 _HEADING = re.compile(r"^#{2,4}\s")
 _ACCEPTANCE_CRITERION = re.compile(r"^- \*\*AC-(\d+)\*\*[:\uff1a]\s*(.*)$")
+_BULLET = re.compile(r"^[-*]\s+(.*)$")
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,7 @@ class Requirement:
     id: str
     title: str
     text: str
+    journeys: list[str] = field(default_factory=list)
     acceptance_criteria: list[AcceptanceCriterion] = field(default_factory=list)
 
 
@@ -64,6 +66,38 @@ def _acceptance_criteria(requirement_id: str, lines: list[str]) -> list[Acceptan
     return criteria
 
 
+def _journeys(lines: list[str]) -> list[str]:
+    """The bullets under a requirement's heading, with their wrapped continuation lines.
+
+    The provenance line that follows a bullet starts with two spaces and an opening bracket; it is
+    not part of the journey.
+    """
+    journeys: list[str] = []
+    current: list[str] | None = None
+
+    def flush() -> None:
+        nonlocal current
+        if current is not None:
+            journeys.append(" ".join(part for part in current if part).strip())
+        current = None
+
+    for line in lines:
+        bullet = _BULLET.match(line)
+        if bullet:
+            flush()
+            criterion = _ACCEPTANCE_CRITERION.match(line)
+            current = [(criterion.group(2) if criterion else bullet.group(1)).strip()]
+            continue
+        stripped = line.strip()
+        continued = line.startswith("  ") and stripped and not stripped.startswith("(")
+        if continued and current is not None:
+            current.append(stripped)
+            continue
+        flush()
+    flush()
+    return journeys
+
+
 def parse_requirements(prd_text: str) -> list[Requirement]:
     """Extract `###`/`####` FR-* sections, stopping at the next `##`-`####` heading."""
     requirements: list[Requirement] = []
@@ -79,6 +113,7 @@ def parse_requirements(prd_text: str) -> list[Requirement]:
                     id=current_id,
                     title=current_title,
                     text="\n".join(lines).strip(),
+                    journeys=_journeys(lines),
                     acceptance_criteria=_acceptance_criteria(current_id, lines),
                 )
             )

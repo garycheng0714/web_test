@@ -42,7 +42,7 @@ semantic judge。Phoenix 只當 trace 與人類標註的review layer；metrics �
 - `wrong_assertion_to_requirement`：斷言在 PRD 有依據，但沒有任何一步產生它，也不是全域狀態
   ——通常是從 precondition 繼承來的隔壁 requirement 的頁面結果。修法是刪掉那個斷言，或把它
   降成狀態描述。
-- `incomplete_journey`：旅程做了，但漏掉 requirement 明寫的一個結果。頁面擺設、欄位清單、
+- `incomplete_journey`：旅程做了，但漏掉該規則明寫的一個結果。頁面擺設、欄位清單、
   元件存在、輸入機制不算結果。修法是補斷言。
 - `duplicated`：legacy，只出現在 ticket 30 之前的 multi-requirement case 上；一個 case 只
   宣稱一個 requirement 之後，這個形狀不可能再出現。保留給封存的舊資料集。
@@ -77,6 +77,16 @@ AC）。同一條已述規則套用在新輸入（換一個關鍵字、換一組
   `web-test-designer-eval-old-skill`，避免兩套 skill 的 trace 混在一起。每次 run 是一條
   designer trace，底下有 requirement 與 claim 的 `EVALUATOR` spans。
 
+## Requirement shape
+
+- 一個 requirement 有兩個部分：heading 那一句是**規則**，heading 底下的 bullet 是**旅程**（不同
+  輸入或不同起始狀態），用來驗同一條規則。`parse_requirements` 把它們分成 `title` 與
+  `journeys`，judge 的輸入也分開標示（`Rule:` / `Journeys:`）。
+- 一張 case 走一條旅程。它完整與否，看它有沒有斷言**那條規則**的結果，不是看它有沒有走完所有
+  旅程。「每個旅程有沒有被走過」由 coverage report 跨 case 回答。
+- 舊版 PRD 有 bullet 其實是同一段旅程的第二個結果（例如 counter 不受篩選影響）。寫成旅程時要
+  併進同一條 bullet，或升成自己的 requirement，否則它會變成「可走可不走」的旅程。
+
 ## Labels
 
 - Claim level：`claim_alignment` = `pass` / `fail`（CATEGORICAL，`pass=1.0`、`fail=0.0`），
@@ -109,7 +119,7 @@ AC）。同一條已述規則套用在新輸入（換一個關鍵字、換一組
   `openai-chat:kimi-k2.7-code`，與 designer 不同家族）；輸入不含人類標籤；輸出 JSONL + report
   到 `evals/designer/judge/runs/`。
 - 一個 judge 只判一個準則：case 的每個行為斷言都在 PRD 有依據、驗的是它宣稱的 requirement，
-  而且 requirement 明寫的每個結果都有被斷言（`incomplete_journey`）。
+  而且 case 走的那條旅程的規則結果都有被斷言（`incomplete_journey`）。
   `duplicated` 由 CODE 的 `case_duplicate` 判，不進 judge；per-mode 只用來診斷。
 - judge 預設只跑 single-FR case。multi-FR case 是早期 run 的歷史形狀，只在使用
   `--include-multi-fr` 時納入。

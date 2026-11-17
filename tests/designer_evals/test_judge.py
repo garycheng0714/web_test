@@ -1,4 +1,5 @@
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -210,6 +211,21 @@ def test_group_by_source_splits_the_metrics():
     report = render_report(score(records), groups)
     assert "By source run" in report
     assert "| `run-2` | 1 |" in report
+
+
+def test_build_prompt_labels_the_rule_and_the_journeys():
+    base = _example()
+    data = replace(
+        base.data,
+        requirement_rule="a user can sign up",
+        requirement_journeys=("with an email", "with a username"),
+    )
+
+    prompt = build_prompt(JudgeExample(data=data, human_label="pass", human_mode=None))
+
+    assert "Rule: a user can sign up" in prompt
+    assert "- with an email" in prompt
+    assert "- with a username" in prompt
 
 
 def test_a_non_assertion_step_has_no_grounded_verdict():
