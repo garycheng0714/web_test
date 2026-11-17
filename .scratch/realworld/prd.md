@@ -1,8 +1,8 @@
 # PRD:RealWorld / Conduit(designer eval 的第三份 PRD)
 
-> **版本**:v0.6(2026-11-13)
-> **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上 2026-11-13 對 live demo 的五項
-> 觀察;不是反推自 live 站,也不是本專案撰寫
+> **版本**:v0.8(2026-11-17)
+> **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上對 live demo 的六項觀察;不是
+> 反推自 live 站,也不是本專案撰寫
 > **來源**:
 > - 規格:[`realworld-apps/realworld`](https://github.com/realworld-apps/realworld) @
 >   `25588846c314b15a5e427ffe816e6b4af7be68c7`(2026-11-02,MIT)
@@ -36,6 +36,15 @@
 > 兩條驗證規則,不是同一條規則的兩個輸入,原寫法違反抽取規則 2。新增 `FR-RW-28`,需求 27 → 28。
 > v0.5 的 run `realworld-v05-20261113` 因此作廢,不得標註或比較。
 >
+> **v0.7 調整**:移除 v0.6 上 judge 僅剩的兩筆誤判的成因。`FR-RW-09` 把「導向 `/article/<slug>`」
+> 寫成第六項觀察,§9 不再說「來源沒寫」——judge 讀整份 PRD,那句話等於叫它 fail。`FR-RW-14`、
+> `FR-RW-21` 各移除第二個方向,作者那一半由 `FR-RW-13`、`FR-RW-20` 的刪除旅程執行。需求數維持
+> 28。
+>
+> **v0.8 調整**:恢復 `FR-RW-14`、`FR-RW-21` 的第二個方向。判準改成「heading 是規則、bullet 是
+> 旅程,一張 case 驗一個」之後,兩個身分不再需要擠進同一張 case;v0.7 的縮減是舊模型下的補救,
+> 現在拿掉。v0.7 的 run 作廢,不標註。需求數維持 28。
+>
 > **範圍(A+)**:只收 `features.md` 的七條功能,加上來源明寫的失敗路徑。只由 `routing.md` 增加、
 > 而七條功能沒點名的旅程(例如 Profile 頁的 My Articles / Favorited Articles 兩個 tab)不列為
 > requirement。
@@ -49,8 +58,8 @@
 > 4. **失敗路徑只有在來源明寫時才是 requirement。** 驗證訊息與 `error-messages` 在來源裡,所以
 >    「登入失敗」「註冊被拒」可以是 requirement;來源沒寫的行為列為第 11 章的非目標。
 >    例外:live demo 可觀察、但來源沒寫的行為,只有在 §9 明列時才可成為 requirement(目前是
->    `FR-RW-01`、`FR-RW-03` 的導向、`FR-RW-16` 的空狀態文案、`FR-RW-24`、`FR-RW-25`、
->    `FR-RW-27`)。
+>    `FR-RW-01`、`FR-RW-03`、`FR-RW-09` 的導向、`FR-RW-16` 的空狀態文案、`FR-RW-24`、
+>    `FR-RW-25`、`FR-RW-27`)。
 > 5. 被丟掉的東西列在第 10 章,讓切法可被檢查。
 > 6. 新增 requirement 一律附加編號,不重排既有編號。
 > 7. `specs/e2e/` 與其 SELECTORS 契約**不是**來源,寫作與 review 期間都不讀(ticket 11)。
@@ -169,8 +178,9 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 
 #### FR-RW-09 發佈文章
 - 已登入,在 `/editor` 填入標題、`What's this article about?` 與內文後按 `Publish Article` →
-  該文章以新標題出現在 `Global Feed` 的第一篇(列表以最新在前排序)。
-  (features「CRUD Articles」+ endpoints「ordered by most recent first」)
+  導向 `/article/<slug>`,該文章以新標題出現在 `Global Feed` 的第一篇(列表以最新在前排序)。
+  (features「CRUD Articles」+ endpoints「ordered by most recent first」;導向文章頁取自 live demo,
+  見 §9)
 
 #### FR-RW-10 發佈被拒
 - 在 `/editor` 缺漏必填欄位(標題、描述、內文任一)後按 `Publish Article` → 停留在編輯頁,文章
@@ -192,7 +202,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
   (features「CRUD Articles」+ templates 的 `Delete Article` + endpoints `DELETE /api/articles/:slug`)
 
 #### FR-RW-14 刪除按鈕僅作者可見
-- 以非作者身分開啟一篇文章 → 看不到 `Delete Article`;以作者身分開啟同一篇 → 看得到。
+- 以非作者身分開啟一篇文章 → 看不到 `Delete Article`。
+- 以作者身分開啟同一篇 → 看得到。
   (routing「Delete article button (only shown to article's author)」)
 
 ### 4.4 文章列表(LIST)
@@ -237,7 +248,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
   (features「CR-D Comments」+ templates 的 `mod-options` + endpoints `DELETE .../comments/:id`)
 
 #### FR-RW-21 刪除留言僅作者可見
-- 非留言作者看同一則留言 → 看不到刪除圖示;留言作者看到 → 看得到。
+- 非留言作者看同一則留言 → 看不到刪除圖示。
+- 留言作者看到 → 看得到。
   (routing「Delete comment button (only shown to comment's author)」)
 
 ### 4.6 收藏與追蹤(SOCIAL)
@@ -336,10 +348,10 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 | templates:Your Feed tab 只在登入後出現 | `FR-RW-26` |
 | live demo 觀察(2026-11-13):訪客開 `/settings`、`/editor` 被導向 `/login` | `FR-RW-27` |
 | live demo 觀察(2026-11-13):登入與註冊成功後導向 `/` | `FR-RW-01`、`FR-RW-03` |
+| live demo 觀察(2026-11-16):發佈文章後導向 `/article/<slug>` | `FR-RW-09` |
 
 > **三處推論,都在這裡標記**:
-> 1. `FR-RW-09` 的「出現在 Global Feed 第一篇」由「列表以最新在前排序」加上「建立文章」推得;
->    來源沒有明寫發佈後導向哪裡。
+> 1. `FR-RW-09` 的「出現在 Global Feed 第一篇」由「列表以最新在前排序」加上「建立文章」推得。
 > 2. `FR-RW-22`、`FR-RW-23` 的「計數 +1」由模板中按鈕旁的 `<span class="counter">` 推得;
 >    來源沒有明寫那個數字是收藏數或追蹤者數。
 > 3. `FR-RW-02`、`FR-RW-10` 的「error 區塊顯示伺服器訊息」由 `error-handling.md` 的訊息表加上模板
