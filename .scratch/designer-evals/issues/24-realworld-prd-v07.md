@@ -123,3 +123,14 @@ cannot see the sibling case that covers the other half.
   their own versions.
 
 Next: one designer run, the gate, labels, `judge/data/realworld-v07`, judge x3.
+
+2026-11-17, v0.8: the narrowing is undone. The judge now receives a requirement as a **rule plus its
+journeys** (`feature/require-rule-and-journeys`), and a case may perform one journey, so the two
+actors no longer have to fit one case. `FR-RW-14` and `FR-RW-21` carry the second direction again, as
+their own bullet — a second journey, not a second result in the same bullet.
+
+The PRD is frozen at **v0.8**: `sha256`
+`d900dda533eb0e5c81e016fe75eda22748f546ca9f312a6996181eedde163ea1`, 396 lines, 28 requirements.
+
+The v0.7 freeze (82ff338) and its run `realworld-v07-20261117` are superseded: that run answered the
+narrowed text. It was never labeled, so nothing was lost but one designer call.

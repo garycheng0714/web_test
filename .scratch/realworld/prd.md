@@ -1,6 +1,6 @@
 # PRD:RealWorld / Conduit(designer eval 的第三份 PRD)
 
-> **版本**:v0.7(2026-11-16)
+> **版本**:v0.8(2026-11-17)
 > **性質**:由公開規格**及其模板與 API 契約**衍生(derivation),加上對 live demo 的六項觀察;不是
 > 反推自 live 站,也不是本專案撰寫
 > **來源**:
@@ -40,6 +40,10 @@
 > 寫成第六項觀察,§9 不再說「來源沒寫」——judge 讀整份 PRD,那句話等於叫它 fail。`FR-RW-14`、
 > `FR-RW-21` 各移除第二個方向,作者那一半由 `FR-RW-13`、`FR-RW-20` 的刪除旅程執行。需求數維持
 > 28。
+>
+> **v0.8 調整**:恢復 `FR-RW-14`、`FR-RW-21` 的第二個方向。判準改成「heading 是規則、bullet 是
+> 旅程,一張 case 驗一個」之後,兩個身分不再需要擠進同一張 case;v0.7 的縮減是舊模型下的補救,
+> 現在拿掉。v0.7 的 run 作廢,不標註。需求數維持 28。
 >
 > **範圍(A+)**:只收 `features.md` 的七條功能,加上來源明寫的失敗路徑。只由 `routing.md` 增加、
 > 而七條功能沒點名的旅程(例如 Profile 頁的 My Articles / Favorited Articles 兩個 tab)不列為
@@ -199,8 +203,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 
 #### FR-RW-14 刪除按鈕僅作者可見
 - 以非作者身分開啟一篇文章 → 看不到 `Delete Article`。
-  (routing「Delete article button (only shown to article's author)」;作者看得到由 `FR-RW-13` 的刪除
-  旅程執行)
+- 以作者身分開啟同一篇 → 看得到。
+  (routing「Delete article button (only shown to article's author)」)
 
 ### 4.4 文章列表(LIST)
 
@@ -245,8 +249,8 @@ Header 依登入狀態換一組連結:訪客看到 `Home`、`Sign in`、`Sign up
 
 #### FR-RW-21 刪除留言僅作者可見
 - 非留言作者看同一則留言 → 看不到刪除圖示。
-  (routing「Delete comment button (only shown to comment's author)」;留言作者看得到由 `FR-RW-20` 的
-  刪除旅程執行)
+- 留言作者看到 → 看得到。
+  (routing「Delete comment button (only shown to comment's author)」)
 
 ### 4.6 收藏與追蹤(SOCIAL)
 
