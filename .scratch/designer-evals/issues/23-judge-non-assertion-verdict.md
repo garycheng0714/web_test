@@ -144,3 +144,7 @@ prompt: 2 values      ->  true / false / null
 2026-11-18: the rule-and-journeys prompt (`6a369dd2`, PR #55) is measured on the v0.8 set: 33 claims,
 all pass, three runs 1.00 / 1.00 / 0.97, majority **1.00 [0.90, 1.00]**. Its fail recall is not yet
 measured; the probe that reported 0.88 was the prompt-only version (`71f5c170`).
+
+Its probe result: prompt `6a369dd2` scores `fail_recall` **0.88 [0.66, 0.97]** and `pass_specificity`
+1.00 on `realworld-probe`, the same two ambiguous mutations missed as under `71f5c170` and no clear
+defect lost. So the structured input kept the prompt-only behaviour and added structure.

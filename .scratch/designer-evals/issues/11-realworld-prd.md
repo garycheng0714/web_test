@@ -256,3 +256,12 @@ All 33 claims are human-labeled pass; dataset `judge/data/realworld-v08` with th
 Judge ×3, prompt `6a369dd2`: **1.00 / 1.00 / 0.97**, majority **1.00 [0.90, 1.00]**, one 1/3 flip on
 `FR-RW-07`. This is the first RealWorld set with no majority false alarm, and the first built for the
 new judge, so it is not comparable with the 0.93 of v0.6.
+
+2026-11-18, the probe under the new judge. `realworld-probe` (20 rows, 17 defects) judged three times
+with prompt `6a369dd2`: **`fail_recall` 0.88 [0.66, 0.97]** (15 of 17), **`pass_specificity` 1.00**
+(3 of 3). Per run 0.88 / 0.88 / 1.00; majority 0.88.
+
+The two misses are the same two ambiguous mutations as under the prompt-only version: `P08`
+("immediately, without a reload" on a comment step) and `P18` (a follow case that also asserts the
+followed author's article appears in Your Feed). Both are readable as ordinary consequences of the
+step. No clear defect is missed, and no accepted mutation is false-alarmed.
