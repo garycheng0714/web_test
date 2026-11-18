@@ -140,3 +140,7 @@ prompt: 2 values      ->  true / false / null
                        ▼
              pass_specificity vs 0.77
 ```
+
+2026-11-18: the rule-and-journeys prompt (`6a369dd2`, PR #55) is measured on the v0.8 set: 33 claims,
+all pass, three runs 1.00 / 1.00 / 0.97, majority **1.00 [0.90, 1.00]**. Its fail recall is not yet
+measured; the probe that reported 0.88 was the prompt-only version (`71f5c170`).
