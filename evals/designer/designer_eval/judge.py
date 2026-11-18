@@ -37,9 +37,11 @@ Fail when any of these is true:
    the ordinary consequence of a stated result, or cannot be decided. A specific value (a default,
    a limit, a message) that the PRD never states is a failure even when the rest of the case is
    correct.
-3. An assertion names behaviour that no step of this case produces and that is not global state.
-   Asserting a result your own step produces is allowed, even when the PRD defines that result under
-   another requirement.
+3. An assertion names behaviour that no step of this case produces and that is not visible on a
+   page the case opens. Asserting a result your own step produces is allowed, even when the PRD
+   defines that result under another requirement. A relationship a step establishes — following an
+   author, favouriting an article — is not the same as another page rendering it: asserting that
+   page's content needs a step that opens it.
 4. The case performs the scenario but never asserts a result the rule states. Page furniture, field
    lists, element presence, and form-field mechanics are not results.
 
