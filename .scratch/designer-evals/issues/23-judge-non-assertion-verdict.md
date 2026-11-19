@@ -148,3 +148,22 @@ measured; the probe that reported 0.88 was the prompt-only version (`71f5c170`).
 Its probe result: prompt `6a369dd2` scores `fail_recall` **0.88 [0.66, 0.97]** and `pass_specificity`
 1.00 on `realworld-probe`, the same two ambiguous mutations missed as under `71f5c170` and no clear
 defect lost. So the structured input kept the prompt-only behaviour and added structure.
+
+## Final prompt: visibility (2026-11-19, `c1f862a4`)
+
+Rule 3 still let the judge call a follow action "global state" and accept an assertion about Your
+Feed that the case never opened (probe `P18`). It now requires the assertion to be visible on a page
+the case opens, and says a relationship a step establishes is not another page rendering it.
+
+| set | claims | result |
+| --- | --- | --- |
+| `realworld-probe` | 17 fail / 3 pass | `fail_recall` **1.00 [0.82, 1.00]**, `pass_specificity` 1.00 |
+| `realworld-v08` | 33 pass | `pass_specificity` **1.00 [0.90, 1.00]** |
+| `automationexercise` | 27 pass | `pass_specificity` **1.00** (three runs, no disagreement) |
+| `todomvc-v08` | 28 pass | `pass_specificity` 0.96 — one case, fixed by the FR-TODO-01 journey below; not re-run |
+| `todomvc-probe` | 15 fail / 5 pass | `fail_recall` 0.93 (the one miss, `P09`, is a journey-level label from the old model), `pass_specificity` 1.00 |
+
+`P18` is caught 3/3 and `P08` 2/3, so the stricter rule also closed the older ambiguous miss.
+
+Prompt history: `8835420e` 0.77 → `67265b54` 0.80 → `cbbb6990` 0.93 → `6a369dd2` 1.00 / recall 0.88
+→ `c1f862a4` 1.00 / recall 1.00.
