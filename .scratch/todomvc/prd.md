@@ -1,6 +1,9 @@
 # PRD:TodoMVC(designer eval 的第二份 PRD)
 
-> **版本**:v0.10(2026-11-19)
+> **版本**:v0.11(2026-11-19)
+> **v0.11 調整**:`FR-TODO-05`、`FR-TODO-14`、`FR-TODO-24` 各合併成一段旅程。一個 bullet 是一段
+> 旅程(起始狀態 + 動作序列 + 結果),方向與輸入屬於同一段旅程的 steps;原本把它們拆成多個 bullet,
+> 在新判準下會變成「可走可不走」的旅程。三張既有 case 已經都驗了,需求數不變。
 > **v0.10 調整**:`FR-TODO-01` 補上第二條旅程「移除最後一項 todo → 空狀態」。設計師原本就以這個方式
 > 進入空狀態（避免只斷言頁面載入就成立的狀態），但 requirement 只列了「開啟時就是空的」；新判準把
 > bullet 當旅程，所以那張 case 被判成走了別人的旅程。需求數不變。
@@ -98,9 +101,8 @@
 - 在新增輸入框只輸入空白後按 Enter → 清單不變,不建立新項目。(New todo)
 
 #### FR-TODO-05 勾選完成
-- 點某一項 todo 的 checkbox → 該項的 `completed` 變為 true,標題顯示刪除線且文字轉為灰色。
-- 再次點擊同一項的 checkbox → `completed` 變回 false,標題恢復為一般文字,該項回到未完成。
-- 其他 todo 的外觀與完成狀態不受影響。
+- 點某一項 todo 的 checkbox → 該項變為已完成,標題顯示刪除線且文字轉為灰色;再次點擊同一項 →
+  回到未完成;其他 todo 的狀態與外觀在兩個方向都不受影響。
   (Item, 1 + template 的 CSS;toggle 的兩個方向由「updating its `completed` value」與
   `FR-TODO-14`、`FR-TODO-21` 的「取消勾選」支撐)
 
@@ -134,8 +136,8 @@
 
 #### FR-TODO-14 未完成計數
 - Footer 顯示未完成 todo 的數量:0 / 1 / 2 個未完成時 → `0 items left` / `1 item left` /
-  `2 items left`;新增、勾選或取消勾選後 → 數字隨之更新。
-- 數字永遠是全部未完成的數量,不隨目前篩選改變。(Counter)
+  `2 items left`;新增、勾選或取消勾選後 → 數字隨之更新;數字永遠是全部未完成的數量,不隨目前
+  篩選改變。(Counter)
 
 #### FR-TODO-15 清除已完成
 - 有已完成項目時按下「清除已完成」→ 所有已完成項目從清單移除,「全部標記完成」的勾選狀態被
@@ -170,8 +172,8 @@
   (Item, 3 的 `destroy` 按鈕;規格未寫點擊後的行為,由按鈕名稱與 class 推得)
 
 #### FR-TODO-24 篩選下新增 todo
-- 在 `Active` 篩選下新增 todo → 新項目立即出現在清單。
-- 在 `Completed` 篩選下新增 todo → 新項目不出現在清單,直到切換到 `All` 或 `Active`。
+- 在 `Active` 篩選下新增 todo → 新項目立即出現在清單;在 `Completed` 篩選下新增 todo → 新項目不
+  出現在清單,直到切換到 `All` 或 `Active`。
   (Routing:清單以 model 層級的篩選產生)
 
 #### FR-TODO-25 上一頁 / 下一頁切換篩選

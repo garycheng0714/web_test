@@ -28,7 +28,7 @@ the builder is the starting point, not the authority.
 | `automationexercise` | `journey-v07-20261103` | 27 | 0 |
 | `todomvc` | `todomvc-v03-20261106` | 22 | 1 |
 | `todomvc-v07` | `todomvc-v07-20261110` | 28 | 0 |
-| `todomvc-v08` | `todomvc-v07-20261110` (same cases; the snapshot is v0.8.1, which adds the `FR-TODO-01` removal journey, and the cases predate it) | 28 | 0 |
+| `todomvc-v08` | `todomvc-v07-20261110` (same cases; the snapshot is v0.8.2, which adds the `FR-TODO-01` removal journey and folds three result bullets into their journeys, and the cases predate it) | 28 | 0 |
 | `todomvc-probe` | `todomvc-probe-1` (mutations of the `todomvc-v07` cases) | 20 | 15 |
 | `realworld` | `realworld-v06-20261113` | 30 | 0 |
 | `realworld-v08` | `realworld-v08-20261117` | 33 | 0 |
