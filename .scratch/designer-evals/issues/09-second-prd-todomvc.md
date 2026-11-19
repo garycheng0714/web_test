@@ -309,3 +309,9 @@ boxes were left unticked when the work landed.
 2026-11-12: the RealWorld rejection in "Why TodoMVC" is stale. `demo.realworld.io` is gone, but the
 project moved: `realworld-apps/realworld` now has a live frontend at `demo.realworld.show` and a
 public API at `api.realworld.show`, both 200 on this date. Ticket 11 uses it as the third PRD.
+
+2026-11-19: `FR-TODO-01` gains a second journey, "移除最後一項 todo → 空狀態". The designer's
+empty-state case starts with one todo and removes it (the skill says not to assert a state that holds
+at page load); under the rule-and-journeys judge that read as `FR-TODO-23`'s journey, so the case
+failed while asserting the right result. Working PRD is v0.10; the `todomvc-v08` snapshot is v0.8.1
+and its rows predate the bullet.

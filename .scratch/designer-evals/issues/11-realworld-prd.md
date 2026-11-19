@@ -243,3 +243,25 @@ calls it a `prd_gap`. So the wider rule did not trade recall away: one borderlin
 
 The first human pass over the probe agreed with the construction on 8 of 20; the strict reading was
 adopted after adjudication (see `judge/data/README.md` and the probe key).
+
+2026-11-18, v0.8 and the rule-and-journeys judge. The PRD promises the publish redirect and states
+the five two-journey requirements as two bullets each (PR #56); the judge receives a rule and its
+journeys instead of loose markdown (PR #55).
+
+Run `realworld-v08-20261117`: 28 requirements, **33 cases** — `FR-RW-14`, `16`, `21`, `26` and `27`
+each produced one case per journey, which the earlier model could not score cleanly. Usage 41,546.
+All 33 claims are human-labeled pass; dataset `judge/data/realworld-v08` with the v0.8 snapshot
+(`d900dda…`).
+
+Judge ×3, prompt `6a369dd2`: **1.00 / 1.00 / 0.97**, majority **1.00 [0.90, 1.00]**, one 1/3 flip on
+`FR-RW-07`. This is the first RealWorld set with no majority false alarm, and the first built for the
+new judge, so it is not comparable with the 0.93 of v0.6.
+
+2026-11-18, the probe under the new judge. `realworld-probe` (20 rows, 17 defects) judged three times
+with prompt `6a369dd2`: **`fail_recall` 0.88 [0.66, 0.97]** (15 of 17), **`pass_specificity` 1.00**
+(3 of 3). Per run 0.88 / 0.88 / 1.00; majority 0.88.
+
+The two misses are the same two ambiguous mutations as under the prompt-only version: `P08`
+("immediately, without a reload" on a comment step) and `P18` (a follow case that also asserts the
+followed author's article appears in Your Feed). Both are readable as ordinary consequences of the
+step. No clear defect is missed, and no accepted mutation is false-alarmed.

@@ -1,6 +1,8 @@
 # PRD:TodoMVC(designer eval 的第二份 PRD)
 
-> **版本**:v0.8(2026-11-10)
+> **版本**:v0.8.1(2026-11-19)
+> **v0.8.1 調整**:`FR-TODO-01` 補上「移除最後一項 todo」旅程。這是 2026-11-19 對 v0.8 的單點補充;
+> dataset 的 case 產生於補充之前,標籤不變。
 > **性質**:由公開規格**與其參考實作**抽取,不是反推自 live 站,也不是本專案撰寫
 > **來源**:
 > - 規格:[`tastejs/todomvc` 的 `app-spec.md`](https://github.com/tastejs/todomvc/blob/master/app-spec.md) @ `d040877fd8895c4f18fa5190e4b8ee474ffa8ac4`
@@ -79,6 +81,7 @@
 
 #### FR-TODO-01 空狀態
 - 開啟 app 且沒有任何 todo → 清單、未完成計數、篩選連結與清單頂端的「全部標記完成」都看不到。
+- 移除最後一項 todo → 清單、未完成計數、篩選連結與清單頂端的「全部標記完成」也看不到。
   (No todos + template 的 `.main` 結構)
 
 #### FR-TODO-02 載入時輸入框有焦點
